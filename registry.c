@@ -108,7 +108,15 @@ GetGlobalRegistryKeys()
       if (regkey)
           ShowLocalizedMsg(IDS_ERR_READING_REGISTRY);
       /* Use a sane default value */
-      _sntprintf_0(o.install_path, _T("%ls"), _T("C:\\Program Files\\OpenVPN\\"));
+      //_sntprintf_0(o.install_path, _T("%ls"), _T("C:\\Program Files\\OpenVPN\\"));
+      GetModuleFileName(NULL, o.install_path, _countof(o.install_path));
+      TCHAR *p = _tcsrchr(o.install_path, _T('\\'));
+      *p = _T('\0');
+      p = _tcsrchr(o.install_path, _T('\\'));
+      if(!_tcsnicmp(p, _T("\\bin"), _countof(_T("\\bin"))))
+        {
+          *p = _T('\0');
+        }
     }
   if (o.install_path[_tcslen(o.install_path) - 1] != _T('\\'))
     _tcscat(o.install_path, _T("\\"));
