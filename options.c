@@ -43,6 +43,7 @@
 #include "localization.h"
 #include "misc.h"
 #include "registry.h"
+#include "ini.h"
 #include "save_pass.h"
 
 #define streq(x, y) (_tcscmp((x), (y)) == 0)
@@ -654,6 +655,9 @@ SaveAdvancedDlgParams (HWND hdlg)
     o.ovpn_engine = IsDlgButtonChecked(hdlg, ID_RB_ENGINE_OVPN3) ?
         OPENVPN_ENGINE_OVPN3 : OPENVPN_ENGINE_OVPN2;
 
+    if(o.standalone)
+        SaveIniKeys ();
+    else
     SaveRegistryKeys ();
     ExpandOptions ();
 
@@ -698,6 +702,11 @@ AdvancedSettingsDlgProc (HWND hwndDlg, UINT msg, UNUSED WPARAM wParam, LPARAM lP
     switch(msg) {
 
     case WM_INITDIALOG:
+        EnableWindow(GetDlgItem(hwndDlg, ID_EDT_CONFIG_DIR), !o.standalone);
+        EnableWindow(GetDlgItem(hwndDlg, ID_EDT_LOG_DIR), !o.standalone);
+        EnableWindow(GetDlgItem(hwndDlg, ID_BTN_CONFIG_DIR), !o.standalone);
+        EnableWindow(GetDlgItem(hwndDlg, ID_BTN_LOG_DIR), !o.standalone);
+
         /* Limit extension editbox to 4 chars. */
         SendMessage (GetDlgItem(hwndDlg, ID_EDT_CONFIG_EXT), EM_SETLIMITTEXT, 4, 0);
         /* Limit management port editbox to 5 chars */

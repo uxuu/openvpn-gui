@@ -94,6 +94,7 @@ libopenvpn_plap_la_SOURCES = \
 	$(top_srcdir)/options.c \
 	$(top_srcdir)/proxy.c \
 	$(top_srcdir)/registry.c \
+	$(top_srcdir)/ini.c \
 	$(top_srcdir)/manage.c \
 	$(top_srcdir)/misc.c \
 	$(top_srcdir)/openvpn_config.c \

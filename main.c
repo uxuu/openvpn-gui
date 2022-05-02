@@ -44,6 +44,7 @@
 #include "passphrase.h"
 #include "proxy.h"
 #include "registry.h"
+#include "ini.h"
 #include "openvpn-gui-res.h"
 #include "localization.h"
 #include "manage.h"
@@ -240,10 +241,17 @@ int WINAPI _tWinMain (HINSTANCE hThisInstance,
   PrintDebug(_T("Shell32.dll version: 0x%lx"), shell32_version);
 #endif
 
+  if(SetStandalone())
+    {
+      GetIniKeys();
+    }
+  else
+    {
   if (first_instance)
       UpdateRegistry(); /* Checks version change and update keys/values */
 
   GetRegistryKeys();
+    }
   /* Parse command-line options */
   ProcessCommandLine(&o, GetCommandLine());
 

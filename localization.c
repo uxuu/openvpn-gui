@@ -38,6 +38,7 @@
 #include "options.h"
 #include "registry.h"
 #include "misc.h"
+#include "ini.h"
 
 extern options_t o;
 
@@ -95,9 +96,16 @@ GetGUILanguage(void)
     HKEY regkey;
     DWORD value = 0;
 
+    if(o.standalone)
+    {
+        GetIniValueNumeric(_T("user"), _T("ui_language"), &value);
+    }
+    else
+    {
     LONG status = RegOpenKeyEx(HKEY_CURRENT_USER, GUI_REGKEY_HKCU, 0, KEY_READ, &regkey);
     if (status == ERROR_SUCCESS)
         GetRegistryValueNumeric(regkey, _T("ui_language"), &value);
+    }
 
     gui_language = ( value != 0 ? value : GetUserDefaultUILanguage() );
     InitMUILanguage(gui_language);
@@ -109,11 +117,19 @@ static void
 SetGUILanguage(LANGID langId)
 {
     HKEY regkey;
+
+    if(o.standalone)
+    {
+        SetIniValueNumeric(_T("user"), _T("ui_language"), langId);
+    }
+    else
+    {
     if (RegCreateKeyEx(HKEY_CURRENT_USER, GUI_REGKEY_HKCU, 0, NULL, 0,
         KEY_WRITE, NULL, &regkey, NULL) != ERROR_SUCCESS )
         ShowLocalizedMsg(IDS_ERR_CREATE_REG_HKCU_KEY, GUI_REGKEY_HKCU);
 
     SetRegistryValueNumeric(regkey, _T("ui_language"), langId);
+    }
     InitMUILanguage(langId);
     gui_language = langId;
 }
@@ -444,11 +460,11 @@ FillLangListProc(UNUSED HANDLE module, UNUSED PTSTR type, UNUSED PTSTR stringId,
     return TRUE;
 }
 
-static BOOL 
+static BOOL
 GetLaunchOnStartup()
 {
-	
-    WCHAR regPath[MAX_PATH], exePath[MAX_PATH];	
+
+    WCHAR regPath[MAX_PATH], exePath[MAX_PATH];
     BOOL result = FALSE;
     HKEY regkey;
 
@@ -463,13 +479,13 @@ GetLaunchOnStartup()
         RegCloseKey(regkey);
 
     }
-	
+
     return result;
 
 }
 
 static void
-SetLaunchOnStartup(BOOL value) 
+SetLaunchOnStartup(BOOL value)
 {
 
     WCHAR exePath[MAX_PATH];
@@ -478,11 +494,11 @@ SetLaunchOnStartup(BOOL value)
     if (RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Run", 0, KEY_WRITE, &regkey) == ERROR_SUCCESS) {
 
         if (value) {
-            if (GetModuleFileNameW(NULL, exePath, MAX_PATH)) 
+            if (GetModuleFileNameW(NULL, exePath, MAX_PATH))
                 SetRegistryValue(regkey, L"OpenVPN-GUI", exePath);
         }
-        else 
-            RegDeleteValue(regkey, L"OpenVPN-GUI");            
+        else
+            RegDeleteValue(regkey, L"OpenVPN-GUI");
 
         RegCloseKey(regkey);
 
@@ -595,6 +611,9 @@ GeneralSettingsDlgProc(HWND hwndDlg, UINT msg, UNUSED WPARAM wParam, LPARAM lPar
                 (Button_GetCheck(GetDlgItem(hwndDlg, ID_CHK_AUTO_RESTART)) == BST_CHECKED);
 
 
+            if(o.standalone)
+                SaveIniKeys();
+            else
             SaveRegistryKeys();
 
             SetWindowLongPtr(hwndDlg, DWLP_MSGRESULT, PSNRET_NOERROR);

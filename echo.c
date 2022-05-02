@@ -35,6 +35,7 @@
 #include "openvpn-gui-res.h"
 #include "localization.h"
 #include "registry.h"
+#include "ini.h"
 
 extern options_t o;
 
@@ -133,6 +134,7 @@ echo_msg_persist(connection_t *c)
 {
     struct echo_msg_history *hist;
     size_t len = 0;
+    TCHAR buf[MAX_PATH];
 
     for (hist = c->echo_msg.history; hist; hist = hist->next)
     {
@@ -155,6 +157,12 @@ echo_msg_persist(connection_t *c)
     {
         data[i++] = hist->fp;
     }
+    if(o.standalone)
+    {
+        _sntprintf_0(buf, _T("@%ls"), c->config_name);
+        SetIniValueBinary(buf, _T("echo_msg_history"), (BYTE *) data, size);
+    }
+    else
     if (!SetConfigRegistryValueBinary(c->config_name, L"echo_msg_history", (BYTE *) data, size))
         WriteStatusLog(c, L"GUI> ", L"Failed to persist echo msg history: error writing to registry", false);
 
@@ -168,8 +176,12 @@ echo_msg_load(connection_t *c)
 {
     struct echo_msg_fp *data = NULL;
     DWORD item_len = sizeof(struct echo_msg_fp);
+    TCHAR buf[MAX_PATH];
 
+    _sntprintf_0(buf, _T("@%ls"), c->config_name);
     size_t size = GetConfigRegistryValue(c->config_name, L"echo_msg_history", NULL, 0);
+    if(o.standalone)
+       size = GetIniValueBinary(buf, _T("echo_msg_history"), (BYTE *) NULL, 0);
     if (size == 0)
         return; /* no history in registry */
     else if (size%item_len != 0)
@@ -179,6 +191,12 @@ echo_msg_load(connection_t *c)
     }
 
     data = malloc(size);
+    if(o.standalone)
+    {
+        if(!data || !GetIniValueBinary(buf, _T("echo_msg_history"), (BYTE *) data, size))
+            goto out;
+    }
+    else
     if (!data || !GetConfigRegistryValue(c->config_name, L"echo_msg_history", (BYTE*) data, size))
         goto out;
 

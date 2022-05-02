@@ -22,6 +22,7 @@ add_executable(${PROJECT_NAME} WIN32
     passphrase.c
     proxy.c
     registry.c
+    ini.c
     save_pass.c
     scripts.c
     service.c
@@ -109,6 +110,7 @@ add_library(${PROJECT_NAME_PLAP} SHARED
     proxy.c
     pkcs11.c
     registry.c
+    ini.c
     config_parser.c
     service.c
     plap/ui_glue.c
