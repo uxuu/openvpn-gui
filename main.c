@@ -283,7 +283,7 @@ int WINAPI _tWinMain (HINSTANCE hThisInstance,
 
   BOOL use_iservice = (o.iservice_admin && IsWindows7OrGreater()) || !IsUserAdmin();
   if (use_iservice && strtod(o.ovpn_version, NULL) > 2.3 && !o.silent_connection)
-    CheckIServiceStatus(TRUE);
+    CheckIServiceStatus(!o.standalone);
 
   CheckServiceStatus();	/* Check if automatic service is running or not */
   BuildFileList();
