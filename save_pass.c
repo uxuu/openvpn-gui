@@ -6,7 +6,9 @@
 #include <wincrypt.h>
 
 #include "main.h"
+#include "options.h"
 #include "registry.h"
+#include "ini.h"
 #include "save_pass.h"
 #include "passphrase.h"
 
@@ -15,6 +17,8 @@
 #define ENTROPY_DATA      L"entropy"
 #define AUTH_USER_DATA    L"username"
 #define ENTROPY_LEN 16
+
+extern options_t o;
 
 static DWORD
 crypt_protect(BYTE *data, int szdata, char *entropy, BYTE **out)
@@ -71,7 +75,12 @@ static void
 get_entropy(const WCHAR *config_name, char *e, int sz, BOOL generate)
 {
     int len;
+    TCHAR buf[MAX_PATH];
 
+    _sntprintf_0(buf, _T("@%ls"), config_name);
+    if(o.standalone)
+        len = GetIniValueBinary(buf, ENTROPY_DATA, (BYTE *) e, sz);
+    else
     len = GetConfigRegistryValue(config_name, ENTROPY_DATA, (BYTE *) e, sz);
     if (len > 0)
     {
@@ -83,6 +92,12 @@ get_entropy(const WCHAR *config_name, char *e, int sz, BOOL generate)
     {
         e[sz-1] = '\0';
         PrintDebug(L"Created new entropy string : %hs", e);
+        if(o.standalone)
+        {
+            if (SetIniValueBinary(buf, ENTROPY_DATA, (BYTE *)e, sz))
+                return;
+        }
+        else
         if (SetConfigRegistryValueBinary(config_name, ENTROPY_DATA, (BYTE *)e, sz))
             return;
     }
@@ -102,11 +117,16 @@ save_encrypted(const WCHAR *config_name, const WCHAR *password, const WCHAR *nam
     BYTE *out;
     DWORD len = (wcslen(password) + 1) * sizeof(WCHAR);
     char entropy[ENTROPY_LEN+1];
+    TCHAR buf[MAX_PATH];
 
+    _sntprintf_0(buf, _T("@%ls"), config_name);
     get_entropy(config_name, entropy, sizeof(entropy), true);
     len = crypt_protect((BYTE*) password, len, entropy, &out);
     if(len > 0)
     {
+        if(o.standalone)
+            SetIniValueBinary(buf, name, out, len);
+        else
         SetConfigRegistryValueBinary(config_name, name, out, len);
         LocalFree(out);
         return 1;
@@ -147,11 +167,16 @@ recall_encrypted(const WCHAR *config_name, WCHAR *password, DWORD capacity, cons
     DWORD len;
     int retval = 0;
     char entropy[ENTROPY_LEN+1];
+    TCHAR buf[MAX_PATH];
 
+    _sntprintf_0(buf, _T("@%ls"), config_name);
     get_entropy(config_name, entropy, sizeof(entropy), false);
 
     memset (password, 0, capacity);
 
+    if(o.standalone)
+        len = GetIniValueBinary(buf, name, in, sizeof(in));
+    else
     len = GetConfigRegistryValue(config_name, name, in, sizeof(in));
     if(len == 0)
         return 0;
@@ -201,6 +226,11 @@ int
 SaveUsername(const WCHAR *config_name, const WCHAR *username)
 {
     DWORD len = (wcslen(username) + 1) * sizeof(*username);
+    TCHAR buf[MAX_PATH];
+    _sntprintf_0(buf, _T("@%ls"), config_name);
+    if(o.standalone)
+        SetIniValueBinary(buf, AUTH_USER_DATA,(BYTE *) username, len);
+    else
     SetConfigRegistryValueBinary(config_name, AUTH_USER_DATA,(BYTE *) username, len);
     return 1;
 }
@@ -213,7 +243,12 @@ RecallUsername(const WCHAR *config_name, WCHAR *username)
 {
     DWORD capacity = USER_PASS_LEN * sizeof(WCHAR);
     DWORD len;
+    TCHAR buf[MAX_PATH];
 
+    _sntprintf_0(buf, _T("@%ls"), config_name);
+    if(o.standalone)
+        len = GetIniValueBinary(buf, AUTH_USER_DATA, (BYTE *) username,  capacity);
+    else
     len = GetConfigRegistryValue(config_name, AUTH_USER_DATA, (BYTE *) username,  capacity);
     if (len == 0)
         return 0;
@@ -224,12 +259,24 @@ RecallUsername(const WCHAR *config_name, WCHAR *username)
 void
 DeleteSavedKeyPass(const WCHAR *config_name)
 {
+    TCHAR buf[MAX_PATH];
+
+    _sntprintf_0(buf, _T("@%ls"), config_name);
+    if(o.standalone)
+        DeleteIniValue(buf, KEY_PASS_DATA);
+    else
     DeleteConfigRegistryValue(config_name, KEY_PASS_DATA);
 }
 
 void
 DeleteSavedAuthPass(const WCHAR *config_name)
 {
+    TCHAR buf[MAX_PATH];
+
+    _sntprintf_0(buf, _T("@%ls"), config_name);
+    if(o.standalone)
+        DeleteIniValue(buf, AUTH_PASS_DATA);
+    else
     DeleteConfigRegistryValue(config_name, AUTH_PASS_DATA);
 }
 
@@ -237,9 +284,21 @@ DeleteSavedAuthPass(const WCHAR *config_name)
 void
 DeleteSavedPasswords(const WCHAR *config_name)
 {
+    TCHAR buf[MAX_PATH];
+
+    _sntprintf_0(buf, _T("@%ls"), config_name);
+    if(o.standalone)
+    {
+        DeleteIniValue(buf, KEY_PASS_DATA);
+        DeleteIniValue(buf, AUTH_PASS_DATA);
+        DeleteIniValue(buf, ENTROPY_DATA);
+    }
+    else
+    {
     DeleteConfigRegistryValue(config_name, KEY_PASS_DATA);
     DeleteConfigRegistryValue(config_name, AUTH_PASS_DATA);
     DeleteConfigRegistryValue(config_name, ENTROPY_DATA);
+    }
 }
 
 /* check if auth password is saved */
@@ -247,6 +306,12 @@ BOOL
 IsAuthPassSaved(const WCHAR *config_name)
 {
     DWORD len = 0;
+    TCHAR buf[MAX_PATH];
+
+    _sntprintf_0(buf, _T("@%ls"), config_name);
+    if(o.standalone)
+        len = GetIniValueBinary(buf, AUTH_PASS_DATA, NULL, 0);
+    else
     len = GetConfigRegistryValue(config_name, AUTH_PASS_DATA, NULL, 0);
     PrintDebug(L"checking auth-pass-data in registry returned len = %d", len);
     return (len > 0);
@@ -257,6 +322,12 @@ BOOL
 IsKeyPassSaved(const WCHAR *config_name)
 {
     DWORD len = 0;
+    TCHAR buf[MAX_PATH];
+
+    _sntprintf_0(buf, _T("@%ls"), config_name);
+    if(o.standalone)
+        len = GetIniValueBinary(buf, KEY_PASS_DATA, NULL, 0);
+    else
     len = GetConfigRegistryValue(config_name, KEY_PASS_DATA, NULL, 0);
     PrintDebug(L"checking key-pass-data in registry returned len = %d", len);
     return (len > 0);

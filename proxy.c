@@ -35,6 +35,7 @@
 #include "main.h"
 #include "options.h"
 #include "registry.h"
+#include "ini.h"
 #include "proxy.h"
 #include "openvpn-gui-res.h"
 #include "localization.h"
@@ -265,6 +266,18 @@ SaveProxySettings(HWND hwndDlg)
                     _countof(o.proxy_socks_port));
     }
 
+    if(o.standalone)
+    {
+        /* Save Settings to ini */
+        SetIniValue(_T("proxy"), _T("proxy_source"), proxy_source_string);
+        SetIniValue(_T("proxy"), _T("proxy_type"), proxy_type_string);
+        SetIniValue(_T("proxy"), _T("proxy_http_address"), o.proxy_http_address);
+        SetIniValue(_T("proxy"), _T("proxy_http_port"), o.proxy_http_port);
+        SetIniValue(_T("proxy"), _T("proxy_socks_address"), o.proxy_socks_address);
+        SetIniValue(_T("proxy"), _T("proxy_socks_port"), o.proxy_socks_port);
+    }
+    else
+    {
     /* Open Registry for writing */
     _sntprintf_0(proxy_subkey, _T("%ls\\proxy"), GUI_REGKEY_HKCU);
     if (RegCreateKeyEx(HKEY_CURRENT_USER, proxy_subkey, 0, _T(""), REG_OPTION_NON_VOLATILE,
@@ -284,6 +297,7 @@ SaveProxySettings(HWND hwndDlg)
     SetRegistryValue(regkey, _T("proxy_socks_port"), o.proxy_socks_port);
 
     RegCloseKey(regkey);
+    }
 }
 
 
@@ -296,6 +310,18 @@ GetProxyRegistrySettings()
     TCHAR proxy_type_string[2] = _T("0");
     TCHAR proxy_subkey[MAX_PATH];
 
+    if(o.standalone)
+    {
+        /* get ini settings */
+        GetIniValue(_T("proxy"), _T("proxy_http_address"), o.proxy_http_address, _countof(o.proxy_http_address));
+        GetIniValue(_T("proxy"), _T("proxy_http_port"), o.proxy_http_port, _countof(o.proxy_http_port));
+        GetIniValue(_T("proxy"), _T("proxy_socks_address"), o.proxy_socks_address, _countof(o.proxy_socks_address));
+        GetIniValue(_T("proxy"), _T("proxy_socks_port"), o.proxy_socks_port, _countof(o.proxy_socks_port));
+        GetIniValue(_T("proxy"), _T("proxy_source"), proxy_source_string, _countof(proxy_source_string));
+        GetIniValue(_T("proxy"), _T("proxy_type"), proxy_type_string, _countof(proxy_type_string));
+    }
+    else
+    {
     /* Open Registry for reading */
     _sntprintf_0(proxy_subkey, _T("%ls\\proxy"), GUI_REGKEY_HKCU);
     status = RegOpenKeyEx(HKEY_CURRENT_USER, proxy_subkey, 0, KEY_READ, &regkey);
@@ -309,6 +335,7 @@ GetProxyRegistrySettings()
     GetRegistryValue(regkey, _T("proxy_socks_port"), o.proxy_socks_port, _countof(o.proxy_socks_port));
     GetRegistryValue(regkey, _T("proxy_source"), proxy_source_string, _countof(proxy_source_string));
     GetRegistryValue(regkey, _T("proxy_type"), proxy_type_string, _countof(proxy_type_string));
+    }
 
     if (proxy_source_string[0] == _T('0'))
     {
@@ -325,6 +352,7 @@ GetProxyRegistrySettings()
 
     o.proxy_type = (proxy_type_string[0] == _T('0') ? http : socks);
 
+    if(!o.standalone)
     RegCloseKey(regkey);
 }
 

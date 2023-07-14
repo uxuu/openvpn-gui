@@ -79,9 +79,16 @@ GetGUILanguage(void)
     HKEY regkey;
     DWORD value = 0;
 
+    if(o.standalone)
+    {
+        GetIniValueNumeric(_T("user"), _T("ui_language"), &value);
+    }
+    else
+    {
     LONG status = RegOpenKeyEx(HKEY_CURRENT_USER, GUI_REGKEY_HKCU, 0, KEY_READ, &regkey);
     if (status == ERROR_SUCCESS)
         GetRegistryValueNumeric(regkey, _T("ui_language"), &value);
+    }
 
     gui_language = ( value != 0 ? value : GetUserDefaultUILanguage() );
     InitMUILanguage(gui_language);
@@ -93,11 +100,19 @@ static void
 SetGUILanguage(LANGID langId)
 {
     HKEY regkey;
+
+    if(o.standalone)
+    {
+        SetIniValueNumeric(_T("user"), _T("ui_language"), langId);
+    }
+    else
+    {
     if (RegCreateKeyEx(HKEY_CURRENT_USER, GUI_REGKEY_HKCU, 0, NULL, 0,
         KEY_WRITE, NULL, &regkey, NULL) != ERROR_SUCCESS )
         ShowLocalizedMsg(IDS_ERR_CREATE_REG_HKCU_KEY, GUI_REGKEY_HKCU);
 
     SetRegistryValueNumeric(regkey, _T("ui_language"), langId);
+    }
     InitMUILanguage(langId);
     gui_language = langId;
 }
@@ -575,6 +590,9 @@ GeneralSettingsDlgProc(HWND hwndDlg, UINT msg, UNUSED WPARAM wParam, LPARAM lPar
             o.show_script_window =
                 (Button_GetCheck(GetDlgItem(hwndDlg, ID_CHK_SHOW_SCRIPT_WIN)) == BST_CHECKED);
 
+            if(o.standalone)
+                SaveIniKeys();
+            else
             SaveRegistryKeys();
 
             SetWindowLongPtr(hwndDlg, DWLP_MSGRESULT, PSNRET_NOERROR);

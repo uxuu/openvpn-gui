@@ -22,6 +22,7 @@ add_executable(${PROJECT_NAME} WIN32
     passphrase.c
     proxy.c
     registry.c
+    ini.c
     save_pass.c
     scripts.c
     service.c
