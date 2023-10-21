@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resource>
+    <UIDEF>
+        <file name="XML_INIT" path="uidef\init.xml"/>
+    </UIDEF>
+    <LAYOUT>
+        <file name="XML_MAINWND" path="xml\dlg_main.xml"/>
+        <file name="PAGE_HOME" path="xml\page_home.xml"/>
+        <file name="PAGE_LOGIN" path="xml\page_login.xml"/>
+        <file name="PAGE_DETAIL" path="xml\page_detail.xml"/>
+        <file name="PAGE_OPTION" path="xml\page_option.xml"/>
+    </LAYOUT>
+    <values>
+        <file name="string" path="values\string.xml"/>
+        <file name="color" path="values\color.xml"/>
+        <file name="skin" path="values\skin.xml"/>
+    </values>
+    <IMG>
+        <!-- System -->
+        <file name="ID_SYS_BTN_CLOSE" path="image\sys_btn_close.png"/>
+        <file name="ID_SYS_BTN_MAX" path="image\sys_btn_max.png"/>
+        <file name="ID_SYS_BTN_RESTORE" path="image\sys_btn_restore.png"/>
+        <file name="ID_SYS_BTN_MIN" path="image\sys_btn_min.png"/>
+        <file name="ID_MENU_BTN_MSG" path="image\menubtn_msg_non.png"/>
+        <file name="ID_MENU_BTN_SET" path="image\menubtn_set.png"/>
+        <file name="ID_BTN_BOTTOM" path="image\btn_bottom.png" />
+    </IMG>
+    <PNG>
+        <file name="IMG_CONNECTED" path="image\connected48.png" />
+        <file name="IDB_PNG_VSCROLL" path="image\vscrollbar.png" />
+    </PNG>
+    <ICON>
+        <file name="ICON_LOGO" path="image\logo.ico"/>
+    </ICON>
+</resource>
