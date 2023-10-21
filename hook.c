@@ -46,7 +46,7 @@ extern options_t o;
 
 #define NOHOOK
 #include "hook.h"
-
+#include "common.h"
 #define DATA_MAX_SIZE 65536
 
 __declspec( thread ) int no_hook = 0;
@@ -255,6 +255,7 @@ ConfigGet(LPCTSTR lpSubkey, LPCTSTR lpValueName, LPDWORD lpType, LPBYTE lpData, 
     }
     if (!lpcbData)
     {
+        free(buff);
         return status;
     }
 
@@ -271,6 +272,7 @@ ConfigGet(LPCTSTR lpSubkey, LPCTSTR lpValueName, LPDWORD lpType, LPBYTE lpData, 
     {
         _tcsncpy((LPTSTR)lpData, buff, len);
         *lpcbData = (len +1) * sizeof(buff[0]);
+        free(buff);
         return status;
     }
     len = hex2bin(buff + pos, len - pos, lpData, *lpcbData);
@@ -292,13 +294,13 @@ ConfigGet(LPCTSTR lpSubkey, LPCTSTR lpValueName, LPDWORD lpType, LPBYTE lpData, 
             *lpcbData = len;
             break;
     }
+    free(buff);
     return status;
 }
 
 LSTATUS
 ConfigSet(LPCTSTR lpSubkey, LPCTSTR lpValueName, DWORD dwType, LPCVOID lpData, DWORD cbData)
 {
-    WCHAR buff[DATA_MAX_SIZE];
     LPCVOID p = lpData;
     DWORD dwData;
     DWORD pos = 0, i = 0;
@@ -383,12 +385,15 @@ _RegCreateKeyEx(
     LPDWORD lpdwDisposition
     )
 {
-    *phkResult = malloc(sizeof(__HKEY));
+    if (!(*phkResult = malloc(sizeof(__HKEY))))
+    {
+        return ERROR_NOT_ENOUGH_MEMORY;
+    }
     if (o.config_mode == 0 || no_hook)
     {
         return RegCreateKeyEx(hKey->regkey,
                                lpSubKey,
-                               Reserved,
+                               dwReserved,
                                lpClass,
                                dwOptions,
                                samDesired,
@@ -403,7 +408,10 @@ _RegCreateKeyEx(
 LSTATUS
 _RegOpenKeyEx(_HKEY hKey, LPCTSTR lpSubKey, DWORD ulOptions, REGSAM samDesired, _PHKEY phkResult)
 {
-    *phkResult = malloc(sizeof(__HKEY));
+    if (!(*phkResult = malloc(sizeof(__HKEY))))
+    {
+        return ERROR_NOT_ENOUGH_MEMORY;
+    }
     if (o.config_mode == 0 || no_hook)
     {
         return RegOpenKeyEx(hKey->regkey, lpSubKey, ulOptions, samDesired, &(*phkResult)->regkey);
@@ -528,7 +536,7 @@ _RegSetKeyValue(_HKEY hKey, LPCTSTR lpSubKey, LPCTSTR lpValueName, DWORD dwType,
         return RegSetKeyValue(hKey->regkey, lpSubKey, lpValueName, dwType, lpData, cbData);
     }
     BuildPath(subkey, _countof(subkey), hKey->subkey, lpSubKey);
-    return ConfigSet(hKey->subkey, lpValueName, dwType, lpData, cbData);
+    return ConfigSet(subkey, lpValueName, dwType, lpData, cbData);
 }
 
 LSTATUS
@@ -542,6 +550,11 @@ _RegCopyTree(_HKEY hKeySrc, LPCTSTR lpSubKey, _HKEY hKeyDest)
         return RegCopyTree(hKeySrc->regkey, lpSubKey, hKeyDest->regkey);
     }
     buff = malloc(DATA_MAX_SIZE * sizeof(TCHAR));
+    if (!buff)
+    {
+        return ERROR_NOT_ENOUGH_MEMORY;
+    }
+    buff = malloc(DATA_MAX_SIZE * sizeof(WCHAR));
     if (!buff)
     {
         return ERROR_NOT_ENOUGH_MEMORY;

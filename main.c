@@ -51,6 +51,9 @@
 #include "echo.h"
 #include "as.h"
 
+#include "common.h"
+#include "DlgInit.h"
+
 #define OVPN_EXITCODE_ERROR      1
 #define OVPN_EXITCODE_TIMEOUT    2
 #define OVPN_EXITCODE_NOTREADY   3
@@ -154,7 +157,7 @@ NotifyRunningInstance()
         /* An instance is already running but its main window not yet initialized */
         exit_code = OVPN_EXITCODE_NOTREADY;
         MsgToEventLog(EVENTLOG_ERROR_TYPE, L"Previous instance not yet ready to accept commands. "
-                      "Try again later.");
+                      L"Try again later.");
     }
 
     return exit_code;
@@ -327,7 +330,7 @@ _tWinMain(HINSTANCE hThisInstance,
     }
 
     /* The class is registered, let's create the program*/
-    CreateWindowEx(
+    HWND hwnd = CreateWindowEx(
         0,                      /* Extended possibilites for variation */
         szClassName,            /* Classname */
         szTitleText,            /* Title Text */
@@ -341,22 +344,20 @@ _tWinMain(HINSTANCE hThisInstance,
         hThisInstance,          /* Program Instance handler */
         NULL                    /* No Window Creation data */
         );
-
+    DlgInitWindow(hwnd);
 
     /* Run the message loop. It will run until GetMessage() returns 0 */
-    while (GetMessage(&messages, NULL, 0, 0))
-    {
-        TranslateMessage(&messages);
-        DispatchMessage(&messages);
-    }
-
+    //while (GetMessage(&messages, NULL, 0, 0))
+    //{
+    //    TranslateMessage(&messages);
+    //    DispatchMessage(&messages);
+    //}
     CloseSemaphore(o.session_semaphore);
     o.session_semaphore = NULL; /* though we're going to die.. */
     if (o.event_log)
     {
         DeregisterEventSource(o.event_log);
     }
-
     /* The program return-value is 0 - The value that PostQuitMessage() gave */
     return messages.wParam;
 }
@@ -594,7 +595,6 @@ WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     switch (message)
     {
         case WM_CREATE:
-
             /* Save Window Handle */
             o.hWnd = hwnd;
             dpi_initialize(&o);
