@@ -62,7 +62,7 @@ typedef struct mgmt_cmd {
     mgmt_cmd_type type;
 } mgmt_cmd_t;
 
-
+void ReInitManagement(const mgmt_rtmsg_handler* handler, const mgmt_msg_func* handler2);
 void InitManagement(const mgmt_rtmsg_handler *handler);
 
 BOOL OpenManagement(connection_t *);

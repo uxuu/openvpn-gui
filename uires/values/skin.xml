@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<skin>
+    <!-- System -->
+    <imglist name="_skin.btn.close" src="IMG:ID_SYS_BTN_CLOSE" states="3" vertical="1"/>
+    <imglist name="_skin.btn.max" src="IMG:ID_SYS_BTN_MAX" states="3" vertical="1"/>
+    <imglist name="_skin.btn.restore" src="IMG:ID_SYS_BTN_RESTORE" states="3" vertical="1"/>
+    <imglist name="_skin.btn.min" src="IMG:ID_SYS_BTN_MIN" states="3" vertical="1"/>
+    <imglist name="_skin.btn.msg" src="IMG:ID_MENU_BTN_MSG" states="3" vertical="1"/>
+    <imglist name="_skin.btn.set" src="IMG:ID_MENU_BTN_SET" states="3" vertical="1"/>
+    <imglist name="btn_bottom" src="IMG:ID_BTN_BOTTOM" states="3"/>
+    <imgframe name="skin_connected" src="PNG:IMG_CONNECTED"/>
+    <vscrollbar name="skin_vscroll" src="PNG:IDB_PNG_VSCROLL" states="1" margin="3"/>
+</skin>

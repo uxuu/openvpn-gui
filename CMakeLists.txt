@@ -4,6 +4,12 @@ cmake_minimum_required(VERSION 3.10)
 
 project(openvpn-gui C CXX)
 
+file (TO_CMAKE_PATH "$ENV{SOUI4PATH}" SOUI_ROOT)
+message(STATUS "SOUI_ROOT: ${SOUI_ROOT}")
+if ("${SOUI_ROOT}" STREQUAL "")
+    message(FATAL_ERROR "FATAL:can't find env variable SOUI4PATH, clone soui core and install wizard first, please.")
+endif()
+
 add_executable(${PROJECT_NAME} WIN32
     access.c
     echo.c
@@ -26,6 +32,14 @@ add_executable(${PROJECT_NAME} WIN32
     as.c
     pkcs11.c
     config_parser.c
+    DlgInit.cpp
+    MainDlg.cpp
+    ${SOUI_ROOT}/controls.extend/gif/SGifPlayer.cpp
+    ${SOUI_ROOT}/controls.extend/gif/SSkinGif.cpp
+    ${SOUI_ROOT}/controls.extend/STurn3DView.cpp
+    ${SOUI_ROOT}/controls.extend/image3d/3dlib.cpp
+    ${SOUI_ROOT}/controls.extend/image3d/3dmatrix.cpp
+    ${SOUI_ROOT}/controls.extend/image3d/3dtransform.cpp
     res/openvpn-gui-res.rc)
 
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -DDEBUG")
@@ -49,7 +63,8 @@ set(CMAKE_SHARED_LINKER_FLAGS_ASAN
 
 set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} /guard:cf /DYNAMICBASE")
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4996 /wd4267 /wd4244")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4996 /wd4267 /wd4244 /wd4100 /wd4189")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4996 /wd4267 /wd4244 /wd4100 /wd4189")
 
 if(NOT (${CMAKE_C_COMPILER_ARCHITECTURE_ID} STREQUAL "ARM64"))
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /CETCOMPAT")
@@ -72,7 +87,26 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     Cryptui.lib
     Wininet.lib)
 
+target_link_libraries(${PROJECT_NAME} PRIVATE soui4 utilities4)
+
+#target_include_directories(${PROJECT_NAME} PUBLIC ${SOUI_ROOT}/config)
+target_include_directories(${PROJECT_NAME} PUBLIC ${SOUI_ROOT}/components)
+target_include_directories(${PROJECT_NAME} PUBLIC ${SOUI_ROOT}/utilities/include)
+target_include_directories(${PROJECT_NAME} PUBLIC ${SOUI_ROOT}/SOUI/include)
+target_include_directories(${PROJECT_NAME} PUBLIC ${SOUI_ROOT}/controls.extend)
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+if (CMAKE_CL_64)
+    if(${CMAKE_C_COMPILER_ARCHITECTURE_ID} STREQUAL "ARM64")
+        target_link_directories(${PROJECT_NAME} PUBLIC ${SOUI_ROOT}/bin-arm64)
+    else()
+        target_link_directories(${PROJECT_NAME} PUBLIC ${SOUI_ROOT}/bin-x64)
+    endif()
+else()
+    target_link_directories(${PROJECT_NAME} PUBLIC ${SOUI_ROOT}/bin)
+endif()
+
 
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /MANIFEST:NO")
 set(CMAKE_RC_FLAGS "/D \"HAVE_CONFIG_H\" /D \"_MSC_VER\"")
