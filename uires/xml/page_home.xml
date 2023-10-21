@@ -1,0 +1,53 @@
+﻿<?xml version="1.0"?>
+<include>
+  <!--login page-->
+  <caption pos="0,0,-0,-0">
+    <caption pos="0,0,-0,32">
+      <!--title bar-->
+      <icon pos="10,8" src="ICON_LOGO:16"/>
+      <text font="face:微软雅黑,size:14" colorText="#000000" pos="32,0" height="32" valign="middle">@string/title</text>
+      <imgbtn name="btn_close" skin="_skin.sys.btn.close" pos="-40,0" tip="close" animate="1"/>
+      <imgbtn name="btn_min" skin="_skin.sys.btn.minimize" pos="-75,0" animate="1" />
+      <imgbtn name="btn_set" skin="_skin.menu" pos="-105,0" animate="1" />
+    </caption>
+    <caption pos="0,30,-0,-45">
+        <listview pos="0,0,-0,-0"
+              name="lv_list_cfg"
+              headHeight="0"
+              focuable="0"
+              sbSkin="skin_vscroll"
+              colorBkgnd="#ffffff"
+              sbWid="8">
+          <template itemHeight="60"
+                    colorHover="rgb(220,219,218)"
+                    colorSelected="rgb(196,196,196)"
+                    trackMouseEvent="1">
+			<!--<hr name="hr" height="1" width="-2" pos="0,0,-0,-0]" colorLine="#c9c7c6"/>-->
+            <img name="cfg_face" pos="10,14,@32,@32" skin="skin_personal"/>
+            <text name="cfg_name"
+                  pos="[10,{0,-75,30"
+                  align="left"
+                  dotted="1"
+                  colorText="#333333"
+                  font="face:微软雅黑,size:14,adding:1" />
+            <text name="cfg_time"
+                  pos="[0,{0,-5,35"
+                  align="right"
+                  colorText="#7F7F7F"
+                  font="face:微软雅黑,size:12" />
+            <text name="cfg_content"
+                  pos="52,35,-30,50"
+                  font="face:微软雅黑,size:10"
+                  align="left"
+                  dotted="1"
+                  colorText="#7F7F7F"/>
+            <button pos="200,35,@150,@25" name="btn_test" tip="click the button to see how to writing the response function">btn</button>
+          </template>
+        </listview>
+    </caption>
+  </caption>
+  <caption pos="1,-45,-0,-0">
+    <imgbtn name="btn_home1" skin="btn_home1" pos="0,0" mouseRelay="1"/>
+    <imgbtn name="btn_setting1" skin="btn_setting1" pos="176,0,-1,-1" mouseRelay="1"/>
+  </caption>
+</include>

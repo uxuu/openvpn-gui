@@ -51,6 +51,9 @@
 #include "echo.h"
 #include "as.h"
 
+#include "common.h"
+#include "DlgInit.h"
+
 #define OVPN_EXITCODE_ERROR      1
 #define OVPN_EXITCODE_TIMEOUT    2
 #define OVPN_EXITCODE_NOTREADY   3
@@ -341,6 +344,8 @@ _tWinMain(HINSTANCE hThisInstance,
         hThisInstance,          /* Program Instance handler */
         NULL                    /* No Window Creation data */
         );
+
+    HANDLE hThread = CreateThread(NULL, 0, DlgInitWindow, NULL, 0, NULL);
 
 
     /* Run the message loop. It will run until GetMessage() returns 0 */

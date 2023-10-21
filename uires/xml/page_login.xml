@@ -1,0 +1,42 @@
+﻿<include>
+  <!--login page-->
+  <caption pos="0,0,-0,-0">
+    <caption pos="0,0,-0,32">
+      <!--title bar-->
+      <icon pos="10,8" src="ICON_LOGO:16"/>
+      <text font="face:微软雅黑,size:14" colorText="#000000" pos="32,0" height="32" valign="middle">@string/title</text>
+      <imgbtn name="btn_close" skin="_skin.sys.btn.close" pos="-40,0" tip="close" animate="1"/>
+      <imgbtn name="btn_min" skin="_skin.sys.btn.minimize" pos="-75,0" animate="1" />
+      <imgbtn name="btn_set" skin="_skin.menu" pos="-105,0" animate="1" />
+    </caption>
+    <caption pos="0,30,-0,-0">
+      <!--body-->
+      <img name="img_connected" pos="115,25" skin="img_connected" visible="0"/>
+	  <img name="img_connecting" pos="115,25" skin="img_connecting" visible="0"/>
+      <img name="img_disconnected" pos="115,25" skin="img_disconnected" visible="1"/>
+      <text name="connectstate" pos="132,179" font="face:微软雅黑,size:30" colorText="#FF9D00">已连接</text>
+      <caption pos="0,40,-0,-0">
+
+        <window pos="68,200,292,230" class="cls_edit" colorBkgnd="#ffffff">          
+          <edit pos="30,0,-25,-0" margin="0" password="0" mouseRelay="0" cueText="请输入账号" maxBuf="20" name="edit_account" align="center"/>
+          <imgbtn pos="5,5" skin="img_head_small" />
+        </window>
+        <window pos="68,240,292,270" class="cls_edit" colorBkgnd="#ffffff">          
+          <edit pos="30,0,-25,-0" margin="0" password="1" mouseRelay="0" cueText="请输入密码" maxBuf="20" name="edit_password" align="center"/>
+          <imgbtn pos="5,5" skin="img_key" />
+        </window>
+
+        <check name="chk_savepass" pos="72,280" font="face:微软雅黑" colorText="#000000">记住密码</check>
+        <check name="chk_autologin" pos="208,280" font="face:微软雅黑" colorText="#000000">自动登录</check>
+
+        <!--连接按钮-->
+        <button name="btn_connect" pos="68,-102,292,-72">开始连接</button>
+        <button name="btn_disconnect" pos="68,-102,292,-72" visible="0">断开连接</button>
+      </caption>
+    </caption>
+  </caption>
+  <caption pos="1,-45,-0,-0">
+    <imgbtn name="btn_home" skin="btn_home" pos="0,0" mouseRelay="1"/>
+    <imgbtn name="btn_setting" skin="btn_setting" pos="176,0,-1,-1" mouseRelay="1"/>
+  </caption>
+</include>

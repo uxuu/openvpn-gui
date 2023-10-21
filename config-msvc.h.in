@@ -26,3 +26,6 @@
 
 /* Version as a string */
 #define PACKAGE_VERSION_RESOURCE_STR "@GUI_VERSION_MAJOR@.@GUI_VERSION_MINOR@.0.0"
+
+#define DLL_SOUI_COM
+#define DLL_CORE
