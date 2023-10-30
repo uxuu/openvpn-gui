@@ -16,6 +16,7 @@ add_executable(${PROJECT_NAME} WIN32
     openvpn_config.c
     options.c
     proxy.c
+    hook.c
     registry.c
     save_pass.c
     scripts.c
@@ -28,7 +29,9 @@ add_executable(${PROJECT_NAME} WIN32
     res/openvpn-gui-res.rc)
 
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -DDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG")
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} /guard:cf /Qspectre")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} /guard:cf /Qspectre")
 
 list(APPEND CMAKE_CONFIGURATION_TYPES Asan)
 
@@ -114,6 +117,7 @@ add_library(${PROJECT_NAME_PLAP} SHARED
     options.c
     proxy.c
     pkcs11.c
+    hook.c
     registry.c
     config_parser.c
     service.c
