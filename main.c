@@ -244,6 +244,8 @@ _tWinMain(HINSTANCE hThisInstance,
     PrintDebug(_T("Shell32.dll version: 0x%lx"), shell32_version);
 #endif
 
+    InitConfigMode();
+
     if (first_instance)
     {
         UpdateRegistry(); /* Checks version change and update keys/values */
@@ -288,7 +290,7 @@ _tWinMain(HINSTANCE hThisInstance,
     BOOL use_iservice = (o.iservice_admin && IsWindows7OrGreater()) || !IsUserAdmin();
     if (use_iservice && strtod(o.ovpn_version, NULL) > 2.3 && !o.silent_connection)
     {
-        CheckIServiceStatus(TRUE);
+        CheckIServiceStatus(!o.config_mode);
     }
 
     CheckServiceStatus(); /* Check if automatic service is running or not */
