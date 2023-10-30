@@ -22,6 +22,8 @@
 #ifndef REGISTRY_H
 #define REGISTRY_H
 
+#include "hook.h"
+
 int GetRegistryKeys(void);
 
 int SaveRegistryKeys(void);
