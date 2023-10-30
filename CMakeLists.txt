@@ -16,6 +16,7 @@ add_executable(${PROJECT_NAME} WIN32
     openvpn_config.c
     options.c
     proxy.c
+    hook.c
     registry.c
     save_pass.c
     scripts.c
@@ -100,6 +101,7 @@ add_library(${PROJECT_NAME_PLAP} SHARED
     options.c
     proxy.c
     pkcs11.c
+    hook.c
     registry.c
     config_parser.c
     service.c

@@ -111,7 +111,8 @@ GetGlobalRegistryKeys()
             ShowLocalizedMsg(IDS_ERR_READING_REGISTRY);
         }
         /* Use a sane default value */
-        _sntprintf_0(o.install_path, _T("%ls"), _T("C:\\Program Files\\OpenVPN\\"));
+        //_sntprintf_0(o.install_path, _T("%ls"), _T("C:\\Program Files\\OpenVPN\\"));
+        GetInstallPath(o.install_path, _countof(o.install_path));
     }
     if (o.install_path[_tcslen(o.install_path) - 1] != _T('\\'))
     {
@@ -227,6 +228,7 @@ GetRegistryKeys()
         o.mgmt_port_offset = 25340;
     }
 
+    no_hook = 1;
     /* Read group policy setting for password reveal */
     status = RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\Policies\\Microsoft\\Windows\\CredUI", 0, KEY_READ, &regkey);
     if (status != ERROR_SUCCESS
@@ -243,6 +245,7 @@ GetRegistryKeys()
     {
         RegCloseKey(regkey);
     }
+    no_hook = 0;
 
     ExpandOptions();
     return true;
