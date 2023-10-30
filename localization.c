@@ -506,6 +506,7 @@ GetLaunchOnStartup()
     BOOL result = FALSE;
     HKEY regkey;
 
+    no_hook = 1;
     if (RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Run", 0, KEY_READ, &regkey) == ERROR_SUCCESS)
     {
 
@@ -521,6 +522,7 @@ GetLaunchOnStartup()
         RegCloseKey(regkey);
 
     }
+    no_hook = 0;
 
     return result;
 
@@ -533,6 +535,7 @@ SetLaunchOnStartup(BOOL value)
     WCHAR exePath[MAX_PATH];
     HKEY regkey;
 
+    no_hook = 1;
     if (RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Run", 0, KEY_WRITE, &regkey) == ERROR_SUCCESS)
     {
 
@@ -551,6 +554,7 @@ SetLaunchOnStartup(BOOL value)
         RegCloseKey(regkey);
 
     }
+    no_hook = 0;
 
 }
 
