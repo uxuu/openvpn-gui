@@ -157,7 +157,7 @@ NotifyRunningInstance()
         /* An instance is already running but its main window not yet initialized */
         exit_code = OVPN_EXITCODE_NOTREADY;
         MsgToEventLog(EVENTLOG_ERROR_TYPE, L"Previous instance not yet ready to accept commands. "
-                      "Try again later.");
+                      L"Try again later.");
     }
 
     return exit_code;
@@ -345,7 +345,8 @@ _tWinMain(HINSTANCE hThisInstance,
         NULL                    /* No Window Creation data */
         );
 
-    HANDLE hThread = CreateThread(NULL, 0, DlgInitWindow, NULL, 0, NULL);
+    //HANDLE hThread = CreateThread(NULL, 0, DlgInitWindow, NULL, 0, NULL);
+    DlgInitWindow(NULL);
 
 
     /* Run the message loop. It will run until GetMessage() returns 0 */

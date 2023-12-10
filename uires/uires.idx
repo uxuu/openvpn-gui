@@ -1,4 +1,4 @@
-﻿<resource>  
+﻿<resource>
   <UIDEF>
     <file name="XML_INIT" path="xml\init.xml"  />
   </UIDEF>
@@ -10,20 +10,6 @@
   </LAYOUT>
   <IMGX>
 	<file name="BG" path="image\bg.png"/>
-<!--    <file name="IMG_LOGIN_BORDER" path="image\login_border.png"/>
-    <file name="BTN_LOGIN_SETTING" path="image\login_setting.png"/>
-    <file name="BTN_USERLISTCLOSE" path="image\user_list_close.png"  />
-    <file name="BTN_REGISTER" path="image\register.png"  />
-    <file name="BTN_GETPSWBACK" path="image\getpswback.png"  />
-    <file name="BTN_KEYBOARD" path="image\keyboard.png"  />
-    <file name="BTN_LOGIN" path="image\login.png"/>
-    <file name="BTN_LOGIN2" path="image\login2.png"/>
-    <file name="BTN_LOGIN_2DCODE" path="image\login_2dcode.png"/>
-    <file name="IMG_HEAD_MASK" path="image\head_mask.png"/>
-    <file name="IMG_HEAD" path="image\head.png"/>-->
-	<file name="BTN_CONNECT" path="image\btnconnect.png"/>
-	<file name="BTN_DISCONNECT" path="image\btndisconnect.png"/>
-	<file name="BTN_SAVE" path="image\btnsave.png"/>
 	<file name="BTN_HOME" path="image\btnhome.png"/>
 	<file name="BTN_SETTING" path="image\btnsetting.png"/>
 	<file name="BTN_HOME1" path="image\btnhome1.png"/>
@@ -42,6 +28,6 @@
     <file name="IDB_PNG_PERSONAL" path="image\personal.png" />
   </PNG>
   <ICON>
-    <file name="ICON_LOGO"  path="image\logo.ico"    />
+    <file name="ICON_LOGO"  path="..\res\openvpn-gui.ico"    />
   </ICON>
 </resource>

@@ -4,10 +4,10 @@
     <caption pos="0,0,-0,32">
       <!--title bar-->
       <icon pos="10,8" src="ICON_LOGO:16"/>
-      <text font="face:微软雅黑,size:14" colorText="#000000" pos="32,0" height="32" valign="middle">@string/title</text>
-      <imgbtn name="btn_close" skin="_skin.sys.btn.close"  pos="-40,0" tip="close" animate="1"/>
-      <imgbtn name="btn_min" skin="_skin.sys.btn.minimize" pos="-75,0" animate="1" />
-      <imgbtn name="btn_set" skin="_skin.menu" pos="-105,0" animate="1" />
+      <text font="face:微软雅黑,size:14" colorText="#000000" pos="32,1" height="32" valign="middle">@string/title</text>
+      <imgbtn name="btn_close" skin="_skin.sys.btn.close"  pos="-40,1" tip="close" animate="1"/>
+      <imgbtn name="btn_min" skin="_skin.sys.btn.minimize" pos="-75,1" animate="1" />
+      <imgbtn name="btn_set" skin="_skin.menu" pos="-105,1" animate="1" />
     </caption>
     <caption pos="0,30,-0,-0">
       <!--body-->

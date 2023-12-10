@@ -5,6 +5,7 @@
 #include "..\controls.extend\gif\SSkinGif.h"
 #include "..\controls.extend\gif\SGifPlayer.h"
 #include "SListAdapter.h"
+#include "STreeAdapter.h"
 
 class CMainDlg : public SHostWnd
 {
@@ -97,6 +98,7 @@ protected:
 		REFLECT_NOTIFICATIONS_EX()
 	END_MSG_MAP()
 private:
+	STreeAdapter* m_pTreeAdapter;
 	SListAdapter* m_pListAdapter;
 	BOOL			m_bLayoutInited;
 };

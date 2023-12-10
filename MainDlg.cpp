@@ -8,6 +8,13 @@
 #include "MainDlg.h"
 
 #include <time.h>
+extern "C" {
+#undef MAX_NAME
+#include "options.h"
+#include "openvpn_config.h"
+
+	extern options_t o;
+}
 extern const TCHAR *cfgProp;
 extern HANDLE hEvent;
 CMainDlg::CMainDlg() : SHostWnd(_T("LAYOUT:XML_MAINWND"))
@@ -38,25 +45,25 @@ void CMainDlg::OnShowWindow(BOOL bShow, UINT nStatus)
 BOOL CMainDlg::OnInitDialog(HWND hWnd, LPARAM lParam)
 {
 	m_bLayoutInited = TRUE;
-	SListView* pList = FindChildByName2<SListView>(L"lv_list_cfg");
-	SASSERT(pList);
-	pList->EnableScrollBar(SSB_HORZ, FALSE);
+	//SListView* pList = FindChildByName2<SListView>(L"lv_list_cfg");
+	//SASSERT(pList);
+	//pList->EnableScrollBar(SSB_HORZ, FALSE);
 
-	m_pListAdapter = new SListAdapter();
-	pList->SetAdapter(m_pListAdapter);
-	m_pListAdapter->Release();
-	AddConfigItem(NULL, NULL, NULL);
-	AddConfigItem(NULL, NULL, NULL);
-	AddConfigItem(NULL, NULL, NULL);
-	AddConfigItem(NULL, NULL, NULL);
-	AddConfigItem(NULL, NULL, NULL);
-	AddConfigItem(NULL, NULL, NULL);
-	AddConfigItem(NULL, NULL, NULL);
-	AddConfigItem(NULL, NULL, NULL);
-	AddConfigItem(NULL, NULL, NULL);
-	AddConfigItem(NULL, NULL, NULL);
-	AddConfigItem(NULL, NULL, NULL);
-	AddConfigItem(NULL, NULL, NULL);
+	//m_pListAdapter = new SListAdapter();
+	//pList->SetAdapter(m_pListAdapter);
+	//m_pListAdapter->Release();
+	//for (connection_t *c = o.chead; c; c = c->next)
+	//{
+	//	AddConfigItem(NULL, NULL, NULL);
+	//}
+	STreeView* pTree = FindChildByName2<STreeView>(L"tv_config");
+	SASSERT(pTree);
+	pTree->EnableScrollBar(SSB_HORZ, FALSE);
+
+	m_pTreeAdapter = new STreeAdapter();
+	pTree->SetAdapter(m_pTreeAdapter);
+	m_pTreeAdapter->Release();
+
 	OnLoadConfig();
 	OnChangeStatus(0);
 	return 0;

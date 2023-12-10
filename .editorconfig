@@ -7,6 +7,9 @@ indent_size = 4
 indent_style = space
 trim_trailing_whitespace = true
 
+[*.cpp]
+indent_style = tab
+
 [*.sh]
 end_of_line = lf
 

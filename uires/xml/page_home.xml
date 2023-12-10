@@ -5,45 +5,28 @@
     <caption pos="0,0,-0,32">
       <!--title bar-->
       <icon pos="10,8" src="ICON_LOGO:16"/>
-      <text font="face:微软雅黑,size:14" colorText="#000000" pos="32,0" height="32" valign="middle">@string/title</text>
-      <imgbtn name="btn_close" skin="_skin.sys.btn.close" pos="-40,0" tip="close" animate="1"/>
-      <imgbtn name="btn_min" skin="_skin.sys.btn.minimize" pos="-75,0" animate="1" />
-      <imgbtn name="btn_set" skin="_skin.menu" pos="-105,0" animate="1" />
+      <text font="face:微软雅黑,size:14" colorText="#000000" pos="32,1" height="32" valign="middle">@string/title</text>
+      <imgbtn name="btn_close" skin="_skin.sys.btn.close" pos="-40,1" tip="close" animate="1"/>
+      <imgbtn name="btn_min" skin="_skin.sys.btn.minimize" pos="-75,1" animate="1" />
+      <imgbtn name="btn_set" skin="_skin.menu" pos="-105,1" animate="1" />
     </caption>
     <caption pos="0,30,-0,-45">
-        <listview pos="0,0,-0,-0"
-              name="lv_list_cfg"
-              headHeight="0"
-              focuable="0"
+        <treeview pos="0,0,-0,-0"
+              name="tv_config"
+              indent="0"
               sbSkin="skin_vscroll"
-              colorBkgnd="#ffffff"
               sbWid="8">
-          <template itemHeight="60"
-                    colorHover="rgb(220,219,218)"
-                    colorSelected="rgb(196,196,196)"
-                    trackMouseEvent="1">
-			<!--<hr name="hr" height="1" width="-2" pos="0,0,-0,-0]" colorLine="#c9c7c6"/>-->
-            <img name="cfg_face" pos="10,14,@32,@32" skin="skin_personal"/>
-            <text name="cfg_name"
-                  pos="[10,{0,-75,30"
-                  align="left"
-                  dotted="1"
-                  colorText="#333333"
-                  font="face:微软雅黑,size:14,adding:1" />
-            <text name="cfg_time"
-                  pos="[0,{0,-5,35"
-                  align="right"
-                  colorText="#7F7F7F"
-                  font="face:微软雅黑,size:12" />
-            <text name="cfg_content"
-                  pos="52,35,-30,50"
-                  font="face:微软雅黑,size:10"
-                  align="left"
-                  dotted="1"
-                  colorText="#7F7F7F"/>
-            <button pos="200,35,@150,@25" name="btn_test" tip="click the button to see how to writing the response function">btn</button>
+          <template>
+              <item_group focusable="0" layout="vbox" colorSelected="#00000000" size="360,36" margin="0,0,0,1" colorBorder="@color/color_line">
+                  <hr name="hr" height="1" width="-2" colorLine="#c9c7c6"/>
+                  <text extend_left="12" weight="1" size="-2,0" align="bottom" name="name" text=""/>
+              </item_group>
+              <item_data size="360,60" layout="hbox" gravity="center" colorHover="#dddbda" colorSelected="#c9c7c6">
+                  <img extend_left="12" name="state" skin="skin_personal"/>
+                  <text extend_left="12" name="name" text=""/>
+              </item_data>
           </template>
-        </listview>
+        </treeview>
     </caption>
   </caption>
   <caption pos="1,-45,-0,-0">
