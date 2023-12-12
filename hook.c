@@ -541,8 +541,8 @@ _RegCopyTreeW(_HKEY hKeySrc, LPCWSTR lpSubKey, _HKEY hKeyDest)
     {
         return RegCopyTreeW(hKeySrc->regkey, lpSubKey, hKeyDest->regkey);
     }
-	buff = malloc(DATA_MAX_SIZE * sizeof(WCHAR));
-	if (!buff)
+    buff = malloc(DATA_MAX_SIZE * sizeof(WCHAR));
+    if (!buff)
     {
         return ERROR_NOT_ENOUGH_MEMORY;
     }

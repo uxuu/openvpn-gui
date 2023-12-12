@@ -34,7 +34,6 @@ add_executable(${PROJECT_NAME} WIN32
     config_parser.c
     DlgInit.cpp
     MainDlg.cpp
-    SListAdapter.cpp
     ${SOUI_ROOT}/controls.extend/gif/SGifPlayer.cpp
     ${SOUI_ROOT}/controls.extend/gif/SSkinGif.cpp
     ${SOUI_ROOT}/controls.extend/STurn3DView.cpp

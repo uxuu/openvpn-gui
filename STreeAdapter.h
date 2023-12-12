@@ -10,60 +10,60 @@ extern "C" {
 #include <helper/SAdapterBase.h>
 struct TreeItemData
 {
-	TreeItemData():bGroup(false){}
-	INT32 gid;			//组ID
-	SStringT strImg ;	//图像
-	SStringT strName;	//名称
-	bool bGroup;
-	connection_t* c;
+    TreeItemData():bGroup(false){}
+    INT32 gid;            //组ID
+    SStringT strImg ;    //图像
+    SStringT strName;    //名称
+    bool bGroup;
+    connection_t* c;
 };
 class STreeAdapter :public STreeAdapterBase<TreeItemData>
 {
 public:
 public:
-	STreeAdapter()
-	{
+    STreeAdapter()
+    {
 
-	}
+    }
 
-	~STreeAdapter() {}
+    ~STreeAdapter() {}
 
-	virtual void getView(HSTREEITEM loc, SItemPanel* pItem, SXmlNode xmlTemplate)
-	{
-		ItemInfo & ii = m_tree.GetItemRef((HSTREEITEM)loc);
-		int itemType = getViewType(loc);
-		if (pItem->GetChildrenCount() == 0)
-		{
-			switch (itemType)
-			{
-			case 0:xmlTemplate = xmlTemplate.child(L"item_group");
-				break;
-			case 1:xmlTemplate = xmlTemplate.child(L"item_data");
-				break;
-			}
-			pItem->InitFromXml(&xmlTemplate);
-			if(itemType==0)
-			{
-				pItem->GetEventSet()->setMutedState(true);
-			}
-		}
-		if(itemType == 1)
-		{
+    virtual void getView(HSTREEITEM loc, SItemPanel* pItem, SXmlNode xmlTemplate)
+    {
+        ItemInfo & ii = m_tree.GetItemRef((HSTREEITEM)loc);
+        int itemType = getViewType(loc);
+        if (pItem->GetChildrenCount() == 0)
+        {
+            switch (itemType)
+            {
+            case 0:xmlTemplate = xmlTemplate.child(L"item_group");
+                break;
+            case 1:xmlTemplate = xmlTemplate.child(L"item_data");
+                break;
+            }
+            pItem->InitFromXml(&xmlTemplate);
+            if(itemType==0)
+            {
+                pItem->GetEventSet()->setMutedState(true);
+            }
+        }
+        if(itemType == 1)
+        {
 
-		}
-		else
-		{
-			pItem->FindChildByName(L"hr")->SetVisible(ii.data.gid != 0);
-		}
-		pItem->FindChildByName(L"name")->SetWindowText(ii.data.strName);
-	}
+        }
+        else
+        {
+            pItem->FindChildByName(L"hr")->SetVisible(ii.data.gid != 0);
+        }
+        pItem->FindChildByName(L"name")->SetWindowText(ii.data.strName);
+    }
 
-	virtual int getViewType(HSTREEITEM hItem) const
-	{
-		ItemInfo & ii = m_tree.GetItemRef((HSTREEITEM)hItem);
-		if (ii.data.bGroup) return 0;
-		else return 1;
-	}
+    virtual int getViewType(HSTREEITEM hItem) const
+    {
+        ItemInfo & ii = m_tree.GetItemRef((HSTREEITEM)hItem);
+        if (ii.data.bGroup) return 0;
+        else return 1;
+    }
 
     void DeleteAllItems()
     {
@@ -100,9 +100,9 @@ public:
         notifyBranchChanged(STVI_ROOT);
     }
 
-	virtual int getViewTypeCount() const
-	{
-		return 2;
-	}
+    virtual int getViewTypeCount() const
+    {
+        return 2;
+    }
 
 };

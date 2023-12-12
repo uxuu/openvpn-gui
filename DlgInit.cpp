@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include <windows.h>
 #include <windowsx.h>
 #include <shlwapi.h>
@@ -26,101 +26,101 @@ SComMgr2 *pComMgr = NULL;
 
 void DlgShowWindow(bool bShow)
 {
-	if (dlgMain != NULL)
-	{
-		dlgMain->ShowWindow(bShow?SW_SHOW:SW_HIDE);
-	}
+    if (dlgMain != NULL)
+    {
+        dlgMain->ShowWindow(bShow?SW_SHOW:SW_HIDE);
+    }
 }
 
 DWORD DlgInitWindow(void *p)
 {
 
-	HINSTANCE hInstance = GetModuleHandle(NULL);
-	//HRESULT hRes = OleInitialize(NULL);
-	SouiFactory souiFac;
-	DWORD nRet = 0;
-	if (pComMgr == NULL)
-	{
-		pComMgr = new SComMgr2(_T("imgdecoder-png"));
-		CAutoRefPtr<SOUI::IImgDecoderFactory> pImgDecoderFactory;
-		CAutoRefPtr<SOUI::IRenderFactory> pRenderFactory;
-		pComMgr->CreateRender_GDI((IObjRef**)&pRenderFactory);
-		//pComMgr->CreateRender_Skia((IObjRef**)&pRenderFactory);
-		pComMgr->CreateImgDecoder((IObjRef**)&pImgDecoderFactory);
+    HINSTANCE hInstance = GetModuleHandle(NULL);
+    //HRESULT hRes = OleInitialize(NULL);
+    SouiFactory souiFac;
+    DWORD nRet = 0;
+    if (pComMgr == NULL)
+    {
+        pComMgr = new SComMgr2(_T("imgdecoder-png"));
+        CAutoRefPtr<SOUI::IImgDecoderFactory> pImgDecoderFactory;
+        CAutoRefPtr<SOUI::IRenderFactory> pRenderFactory;
+        pComMgr->CreateRender_GDI((IObjRef**)&pRenderFactory);
+        //pComMgr->CreateRender_Skia((IObjRef**)&pRenderFactory);
+        pComMgr->CreateImgDecoder((IObjRef**)&pImgDecoderFactory);
 
-		pRenderFactory->SetImgDecoderFactory(pImgDecoderFactory);
+        pRenderFactory->SetImgDecoderFactory(pImgDecoderFactory);
 
-		SApplication *theApp = new SApplication(pRenderFactory, hInstance, _T("OpenVPN GUI"));
+        SApplication *theApp = new SApplication(pRenderFactory, hInstance, _T("OpenVPN GUI"));
 
-		HMODULE hSysResource = LoadLibrary(SYS_NAMED_RESOURCE);
-		if (hSysResource)
-		{
-			CAutoRefPtr<IResProvider> sysSesProvider;
-			sysSesProvider.Attach(souiFac.CreateResProvider(RES_PE));
-			sysSesProvider->Init((WPARAM)hSysResource, 0);
-			theApp->LoadSystemNamedResource(sysSesProvider);
-		}
-
-
-		CAutoRefPtr<IResProvider>   pResProvider;
-
-		if(PathFileExists(_T("uires")))
-		{
-			pResProvider.Attach(souiFac.CreateResProvider(RES_FILE));
-			if (!pResProvider->Init((LPARAM)_T("uires"), 0))
-			{
-				SASSERT(0);
-				return 1;
-			}
-		}
-		else
-		{
-			pResProvider.Attach(souiFac.CreateResProvider(RES_PE));
-			pResProvider->Init((WPARAM)hInstance, 0);
-		}
+        HMODULE hSysResource = LoadLibrary(SYS_NAMED_RESOURCE);
+        if (hSysResource)
+        {
+            CAutoRefPtr<IResProvider> sysSesProvider;
+            sysSesProvider.Attach(souiFac.CreateResProvider(RES_PE));
+            sysSesProvider->Init((WPARAM)hSysResource, 0);
+            theApp->LoadSystemNamedResource(sysSesProvider);
+        }
 
 
-		theApp->RegisterWindowClass<STurn3dView>();
-		theApp->RegisterSkinClass<SSkinVScrollbar>();
+        CAutoRefPtr<IResProvider>   pResProvider;
 
-		theApp->AddResProvider(pResProvider);
+        if(PathFileExists(_T("uires")))
+        {
+            pResProvider.Attach(souiFac.CreateResProvider(RES_FILE));
+            if (!pResProvider->Init((LPARAM)_T("uires"), 0))
+            {
+                SASSERT(0);
+                return 1;
+            }
+        }
+        else
+        {
+            pResProvider.Attach(souiFac.CreateResProvider(RES_PE));
+            pResProvider->Init((WPARAM)hInstance, 0);
+        }
 
 
-		// BLOCK: Run application
-		{
-			if (dlgMain == NULL)
-			{
-				dlgMain = new CMainDlg();
-				dlgMain->Create(GetActiveWindow(), 0, 0, 0, 0);
-				dlgMain->SendMessage(WM_INITDIALOG);
-				dlgMain->CenterWindow(dlgMain->m_hWnd);
-				dlgMain->ShowWindow(SW_SHOW);
+        theApp->RegisterWindowClass<STurn3dView>();
+        theApp->RegisterSkinClass<SSkinVScrollbar>();
 
-				nRet = theApp->Run(dlgMain->m_hWnd);
+        theApp->AddResProvider(pResProvider);
 
-			}
-			else
-			{
-				dlgMain->ShowWindow(SW_SHOW);
-			}
 
-		}
+        // BLOCK: Run application
+        {
+            if (dlgMain == NULL)
+            {
+                dlgMain = new CMainDlg();
+                dlgMain->Create(GetActiveWindow(), 0, 0, 0, 0);
+                dlgMain->SendMessage(WM_INITDIALOG);
+                dlgMain->CenterWindow(dlgMain->m_hWnd);
+                dlgMain->ShowWindow(SW_SHOW);
 
-		delete theApp;
-		delete pComMgr;
-	}
-	else
-	{
-		dlgMain->ShowWindow(SW_SHOW);
+                nRet = theApp->Run(dlgMain->m_hWnd);
 
-	}
+            }
+            else
+            {
+                dlgMain->ShowWindow(SW_SHOW);
+            }
 
-	//OleUninitialize();
-	return nRet;
+        }
+
+        delete theApp;
+        delete pComMgr;
+    }
+    else
+    {
+        dlgMain->ShowWindow(SW_SHOW);
+
+    }
+
+    //OleUninitialize();
+    return nRet;
 }
 
 void DlgShowPage(LPCTSTR pszName, BOOL bTitle)
 {
-	dlgMain->ShowPage(pszName, bTitle);
+    dlgMain->ShowPage(pszName, bTitle);
 }
 
