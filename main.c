@@ -345,7 +345,6 @@ _tWinMain(HINSTANCE hThisInstance,
         NULL                    /* No Window Creation data */
         );
 
-    //HANDLE hThread = CreateThread(NULL, 0, DlgInitWindow, NULL, 0, NULL);
     DlgInitWindow(NULL);
 
 

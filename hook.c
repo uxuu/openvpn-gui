@@ -44,7 +44,7 @@ extern options_t o;
 
 #define NOHOOK
 #include "hook.h"
-
+#include "common.h"
 #define DATA_MAX_SIZE 65536
 
 __declspec( thread ) int no_hook = 0;
@@ -138,8 +138,9 @@ InitConfigMode()
         }
     }
     o.config_mode = 1;
-    GetPrivateProfileStringW(L"HKEY_LOCAL_MACHINE\\SOFTWARE\\OpenVPN", L"@", NULL, buf2, _countof(buf2), o.config_path);
+ 
 #ifndef OPENVPN_VERSION_RESOURCE
+    GetPrivateProfileStringW(L"HKEY_LOCAL_MACHINE\\SOFTWARE\\OpenVPN", L"@", NULL, buf2, _countof(buf2), o.config_path);
     if(_wcsicmp(buf, buf2) != 0)
     {
         WritePrivateProfileStringW(L"HKEY_LOCAL_MACHINE\\SOFTWARE\\OpenVPN", L"@", buf, o.config_path);
@@ -528,7 +529,7 @@ _RegSetKeyValueW(_HKEY hKey, LPCWSTR lpSubKey, LPCWSTR lpValueName, DWORD dwType
         return RegSetKeyValueW(hKey->regkey, lpSubKey, lpValueName, dwType, lpData, cbData);
     }
     BuildPath(subkey, _countof(subkey), hKey->subkey, lpSubKey);
-    return ConfigSet(hKey->subkey, lpValueName, dwType, lpData, cbData);
+    return ConfigSet(subkey, lpValueName, dwType, lpData, cbData);
 }
 
 LSTATUS

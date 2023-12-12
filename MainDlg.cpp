@@ -76,7 +76,6 @@ void CMainDlg::OnBtnSet()
 void CMainDlg::OnBtnHome()
 {
     ShowPage(_T("home"));
-    m_pTreeAdapter->DeleteAllItems();
 }
 
 void CMainDlg::OnBtnLogin()

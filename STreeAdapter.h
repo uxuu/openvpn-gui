@@ -76,7 +76,7 @@ public:
     void RefreshItems()
     {
         int i;
-        HSTREEITEM* groups = (HSTREEITEM *)_alloca(o.num_groups * sizeof(HSTREEITEM *));
+        HSTREEITEM* groups = (HSTREEITEM *)malloc(o.num_groups * sizeof(HSTREEITEM *));
         DeleteAllItems();
         DbgPrintf(_T("o.num_groups=%d, o.num_configs=%d"), o.num_groups, o.num_configs);
         for (i = 0; i < o.num_groups; i++)
@@ -98,6 +98,7 @@ public:
             InsertItem(data, groups[c->group]);
         }
         notifyBranchChanged(STVI_ROOT);
+        free(groups);
     }
 
     virtual int getViewTypeCount() const
