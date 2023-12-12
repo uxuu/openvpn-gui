@@ -44,7 +44,8 @@ DWORD DlgInitWindow(void *p)
 		pComMgr = new SComMgr2(_T("imgdecoder-png"));
 		CAutoRefPtr<SOUI::IImgDecoderFactory> pImgDecoderFactory;
 		CAutoRefPtr<SOUI::IRenderFactory> pRenderFactory;
-		pComMgr->CreateRender_Skia((IObjRef**)&pRenderFactory);
+		pComMgr->CreateRender_GDI((IObjRef**)&pRenderFactory);
+		//pComMgr->CreateRender_Skia((IObjRef**)&pRenderFactory);
 		pComMgr->CreateImgDecoder((IObjRef**)&pImgDecoderFactory);
 
 		pRenderFactory->SetImgDecoderFactory(pImgDecoderFactory);

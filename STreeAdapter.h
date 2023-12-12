@@ -1,16 +1,21 @@
 ﻿#pragma once
+extern "C" {
+#undef MAX_NAME
+#include "options.h"
+#include "openvpn_config.h"
 
-//#include "GlobalUnits.h"
-
+    extern options_t o;
+}
+#include "StdAfx.h"
 #include <helper/SAdapterBase.h>
 struct TreeItemData
 {
 	TreeItemData():bGroup(false){}
-	INT32 iid;
 	INT32 gid;			//组ID
 	SStringT strImg ;	//图像
 	SStringT strName;	//名称
 	bool bGroup;
+	connection_t* c;
 };
 class STreeAdapter :public STreeAdapterBase<TreeItemData>
 {
@@ -19,19 +24,6 @@ public:
 	STreeAdapter()
 	{
 
-        DbgPrintf(L"STreeAdapter");
-		TreeItemData data;
-		data.strName = L"新朋友";
-		data.gid = 1;
-		data.bGroup = true;
-
-		HSTREEITEM hRoot = InsertItem(data);
-		SetItemExpanded(hRoot, TRUE);
-
-		data.bGroup = FALSE;
-		data.strName = L"新的朋友";
-		data.strImg = L"skin_personal";
-		InsertItem(data, hRoot);
 	}
 
 	~STreeAdapter() {}
@@ -40,7 +32,6 @@ public:
 	{
 		ItemInfo & ii = m_tree.GetItemRef((HSTREEITEM)loc);
 		int itemType = getViewType(loc);
-        DbgPrintf(L"itemType=%d", itemType);
 		if (pItem->GetChildrenCount() == 0)
 		{
 			switch (itemType)
@@ -62,7 +53,7 @@ public:
 		}
 		else
 		{
-			pItem->FindChildByName(L"hr")->SetVisible(ii.data.gid != 1);
+			pItem->FindChildByName(L"hr")->SetVisible(ii.data.gid != 0);
 		}
 		pItem->FindChildByName(L"name")->SetWindowText(ii.data.strName);
 	}
@@ -73,6 +64,41 @@ public:
 		if (ii.data.bGroup) return 0;
 		else return 1;
 	}
+
+    void DeleteAllItems()
+    {
+        while (HasChildren(STVI_ROOT))
+        {
+            DeleteItem(GetFirstChildItem(STVI_ROOT), true);
+        }
+    }
+
+    void RefreshItems()
+    {
+        int i;
+        HSTREEITEM* groups = (HSTREEITEM *)_alloca(o.num_groups * sizeof(HSTREEITEM *));
+        DeleteAllItems();
+        DbgPrintf(_T("o.num_groups=%d, o.num_configs=%d"), o.num_groups, o.num_configs);
+        for (i = 0; i < o.num_groups; i++)
+        {
+            DbgPrintf(_T("o.groups[i].id=%d, o.groups[i].name=%s"), o.groups[i].id, o.groups[i].name);
+            TreeItemData data;
+            data.bGroup = true;
+            data.gid = o.groups[i].id;
+            data.strName = o.groups[i].name;
+            groups[i] = InsertItem(data);
+            SetItemExpanded(groups[i], TRUE);
+        }
+        for (connection_t* c = o.chead; c; c = c->next)
+        {
+            TreeItemData data;
+            data.bGroup = FALSE;
+            data.strName = c->config_name;
+            data.strImg = L"skin_connected32";
+            InsertItem(data, groups[c->group]);
+        }
+        notifyBranchChanged(STVI_ROOT);
+    }
 
 	virtual int getViewTypeCount() const
 	{

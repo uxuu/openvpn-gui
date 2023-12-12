@@ -25,7 +25,7 @@
   <PNG>
     <file name="ID_SKIN_MENU" path="image\skin_menu2.png"/>
     <file name="IDB_PNG_VSCROLL" path="image\vscrollbar.png" />
-    <file name="IDB_PNG_PERSONAL" path="image\personal.png" />
+    <file name="IMG_CONNECTED32" path="image\connected32.png" />
   </PNG>
   <ICON>
     <file name="ICON_LOGO"  path="..\res\openvpn-gui.ico"    />

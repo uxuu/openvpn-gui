@@ -9,7 +9,7 @@
 
   <skin>
     <imglist name="_skin.menu" src="PNG:ID_SKIN_MENU" states="3" />
-    <imgframe name="skin_personal" src="PNG:IDB_PNG_PERSONAL" />
+    <imgframe name="skin_connected32" src="PNG:IMG_CONNECTED32" />
     <vscrollbar name="skin_vscroll" src="PNG:IDB_PNG_VSCROLL" states="1" margin="3"/>
     <imgframe name="img_login_border" src="imgx:IMG_LOGIN_BORDER" left="0" top="0" right="0" bottom="0"/>
     <imglist name="btn_login_setting" src="imgx:BTN_LOGIN_SETTING" states="3"/>

@@ -45,17 +45,6 @@ void CMainDlg::OnShowWindow(BOOL bShow, UINT nStatus)
 BOOL CMainDlg::OnInitDialog(HWND hWnd, LPARAM lParam)
 {
 	m_bLayoutInited = TRUE;
-	//SListView* pList = FindChildByName2<SListView>(L"lv_list_cfg");
-	//SASSERT(pList);
-	//pList->EnableScrollBar(SSB_HORZ, FALSE);
-
-	//m_pListAdapter = new SListAdapter();
-	//pList->SetAdapter(m_pListAdapter);
-	//m_pListAdapter->Release();
-	//for (connection_t *c = o.chead; c; c = c->next)
-	//{
-	//	AddConfigItem(NULL, NULL, NULL);
-	//}
 	STreeView* pTree = FindChildByName2<STreeView>(L"tv_config");
 	SASSERT(pTree);
 	pTree->EnableScrollBar(SSB_HORZ, FALSE);
@@ -63,6 +52,7 @@ BOOL CMainDlg::OnInitDialog(HWND hWnd, LPARAM lParam)
 	m_pTreeAdapter = new STreeAdapter();
 	pTree->SetAdapter(m_pTreeAdapter);
 	m_pTreeAdapter->Release();
+	m_pTreeAdapter->RefreshItems();
 
 	OnLoadConfig();
 	OnChangeStatus(0);
@@ -87,6 +77,7 @@ void CMainDlg::OnBtnSet()
 void CMainDlg::OnBtnHome()
 {
 	ShowPage(_T("home"));
+	m_pTreeAdapter->DeleteAllItems();
 }
 
 void CMainDlg::OnBtnLogin()

@@ -6,7 +6,9 @@
 #include "..\controls.extend\gif\SGifPlayer.h"
 #include "SListAdapter.h"
 #include "STreeAdapter.h"
-
+extern "C" {
+    void CloseApplication(HWND hwnd, BOOL ask_user);
+}
 class CMainDlg : public SHostWnd
 {
 public:
@@ -16,12 +18,14 @@ public:
 	void OnClose()
 	{
 		AnimateHostWindow(200,AW_CENTER|AW_HIDE);
-        PostMessage(WM_QUIT);
+		CloseApplication(m_hWnd, true);
+		//PostMessage(WM_QUIT);
 	}
 	void OnClose2()
 	{
 		AnimateHostWindow(200, AW_CENTER | AW_HIDE);
-		PostMessage(WM_QUIT);
+		CloseApplication(m_hWnd, true);
+		//PostMessage(WM_QUIT);
 	}
 	void OnMaximize()
 	{
