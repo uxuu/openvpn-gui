@@ -330,7 +330,7 @@ _tWinMain(HINSTANCE hThisInstance,
     }
 
     /* The class is registered, let's create the program*/
-    CreateWindowEx(
+    HWND hwnd = CreateWindowEx(
         0,                      /* Extended possibilites for variation */
         szClassName,            /* Classname */
         szTitleText,            /* Title Text */
@@ -344,24 +344,24 @@ _tWinMain(HINSTANCE hThisInstance,
         hThisInstance,          /* Program Instance handler */
         NULL                    /* No Window Creation data */
         );
+    DbgPrintf(_T("%s(%d):"), _T(__FUNCTION__), __LINE__);
+    DlgInitWindow(hwnd);
 
-    DlgInitWindow(NULL);
-
-
+    DbgPrintf(_T("%s(%d):"), _T(__FUNCTION__), __LINE__);
     /* Run the message loop. It will run until GetMessage() returns 0 */
-    while (GetMessage(&messages, NULL, 0, 0))
-    {
-        TranslateMessage(&messages);
-        DispatchMessage(&messages);
-    }
-
+    //while (GetMessage(&messages, NULL, 0, 0))
+    //{
+    //    TranslateMessage(&messages);
+    //    DispatchMessage(&messages);
+    //}
+    DbgPrintf(_T("%s(%d):"), _T(__FUNCTION__), __LINE__);
     CloseSemaphore(o.session_semaphore);
     o.session_semaphore = NULL; /* though we're going to die.. */
     if (o.event_log)
     {
         DeregisterEventSource(o.event_log);
     }
-
+    DbgPrintf(_T("%s(%d):"), _T(__FUNCTION__), __LINE__);
     /* The program return-value is 0 - The value that PostQuitMessage() gave */
     return messages.wParam;
 }
@@ -599,7 +599,7 @@ WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     switch (message)
     {
         case WM_CREATE:
-
+            DbgPrintf(L"[%s]%s", _T(__FUNCTION__), L"WM_CREATE");
             /* Save Window Handle */
             o.hWnd = hwnd;
             dpi_initialize(&o);
@@ -725,10 +725,12 @@ WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             break;
 
         case WM_CLOSE:
+            DbgPrintf(L"[%s]%s", _T(__FUNCTION__), L"WM_CLOSE");
             CloseApplication(hwnd, false); /* do not wait for user confirmation */
             break;
 
         case WM_DESTROY:
+            DbgPrintf(L"[%s]%s", _T(__FUNCTION__), L"WM_DESTROY");
             WTSUnRegisterSessionNotification(hwnd);
             StopAllOpenVPN(true);
             OnDestroyTray();    /* Remove Tray Icon and destroy menus */

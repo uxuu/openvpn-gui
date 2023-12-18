@@ -41,6 +41,13 @@ static mgmt_msg_func rtmsg_handler[mgmt_rtmsg_type_max];
  */
 static const time_t max_connect_time = 15;
 
+void
+ReInitManagement(const mgmt_rtmsg_handler* handler, const mgmt_msg_func *handler2)
+{
+    memcpy((void *)handler2, rtmsg_handler, sizeof(rtmsg_handler));
+    InitManagement(handler);
+}
+
 /*
  * Initialize the real-time notification handlers
  */

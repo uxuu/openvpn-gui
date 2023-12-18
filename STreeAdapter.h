@@ -30,6 +30,7 @@ public:
 
     virtual void getView(HSTREEITEM loc, SItemPanel* pItem, SXmlNode xmlTemplate)
     {
+        WCHAR buf[MAX_NAME] = {0};
         ItemInfo & ii = m_tree.GetItemRef((HSTREEITEM)loc);
         int itemType = getViewType(loc);
         if (pItem->GetChildrenCount() == 0)
@@ -47,9 +48,21 @@ public:
                 pItem->GetEventSet()->setMutedState(true);
             }
         }
-        if(itemType == 1)
+        if (itemType == 1)
         {
-
+            if (ii.data.c->state == connected)
+            {
+                formatTime(ii.data.c->connected_since, buf);
+                pItem->FindChildByName(L"time")->SetWindowText(buf);
+                pItem->FindChildByName(L"ipaddr")->SetWindowText(ii.data.c->ip);
+                formatByte(ii.data.c->bytes_in, ii.data.c->bytes_out, buf);
+                pItem->FindChildByName(L"speed")->SetWindowText(buf);
+            }
+            else {
+                pItem->FindChildByName(L"time")->SetWindowText(L" ");
+                pItem->FindChildByName(L"ipaddr")->SetWindowText(L" ");
+                pItem->FindChildByName(L"speed")->SetWindowText(L" ");
+            }
         }
         else
         {
@@ -78,10 +91,8 @@ public:
         int i;
         HSTREEITEM* groups = (HSTREEITEM *)malloc(o.num_groups * sizeof(HSTREEITEM *));
         DeleteAllItems();
-        DbgPrintf(_T("o.num_groups=%d, o.num_configs=%d"), o.num_groups, o.num_configs);
         for (i = 0; i < o.num_groups; i++)
         {
-            DbgPrintf(_T("o.groups[i].id=%d, o.groups[i].name=%s"), o.groups[i].id, o.groups[i].name);
             TreeItemData data;
             data.bGroup = true;
             data.gid = o.groups[i].id;
@@ -94,7 +105,8 @@ public:
             TreeItemData data;
             data.bGroup = FALSE;
             data.strName = c->config_name;
-            data.strImg = L"skin_connected32";
+            data.strImg = L"skin_connected";
+            data.c = c;
             InsertItem(data, groups[c->group]);
         }
         notifyBranchChanged(STVI_ROOT);
@@ -105,5 +117,57 @@ public:
     {
         return 2;
     }
+protected:
+    void formatTime(const time_t since, WCHAR* buf)
+    {
+        time_t now;
+        time(&now);
+        DWORD diff = difftime(now, since);
+        if (diff > 24 * 3600)
+        {
+            swprintf(buf, L"%d %02d:%02d:%02d", diff / 24, diff / 3600 % 24, diff / 60 % 60, diff % 60);
+        }
+        else
+        {
+            swprintf(buf, L"%02d:%02d:%02d", diff / 3600, diff / 60 % 60, diff % 60);
+        }
 
+    }
+    void formatByte(const long long byte_in, const long long byte_out, WCHAR* buf)
+    {
+        const char* suf[] = { "B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", NULL };
+        const char** s1 = suf;
+        double x1 = byte_in;
+        const char** s2 = suf;
+        double x2 = byte_out;
+
+
+        while (x1 > 1024 && *(s1 + 1))
+        {
+            x1 /= 1024.0;
+            s1++;
+        }
+ 
+        while (x2 > 1024 && *(s2 + 1))
+        {
+            x2 /= 1024.0;
+            s2++;
+        }
+        if (byte_in <= 1024 && byte_out <= 1024)
+        {
+            swprintf(buf, L"%I64uB/%I64uB", byte_in, byte_out);
+        }
+        if (byte_in <= 1024 && byte_out > 1024)
+        {
+            swprintf(buf, L"%I64uB/%.3f%hs", byte_in, x2, *s2);
+        }
+        if (byte_in > 1024 && byte_out < 1024)
+        {
+            swprintf(buf, L"%.3f%hs/%I64uB", x1, *s1, byte_out);
+        }
+        if (byte_in > 1024 && byte_out > 1024)
+        {
+            swprintf(buf, L"%.3f%hs/%.3f%hs", x1, *s1, x2, *s2);
+        } 
+    }
 };
