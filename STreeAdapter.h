@@ -28,7 +28,7 @@ public:
 
     ~STreeAdapter() {}
 
-    virtual void getView(HSTREEITEM loc, SItemPanel* pItem, SXmlNode xmlTemplate)
+    STDMETHOD_(void, getView)(THIS_ HSTREEITEM loc, SItemPanel* pItem, SXmlNode xmlTemplate)
     {
         WCHAR buf[MAX_NAME] = {0};
         ItemInfo & ii = m_tree.GetItemRef((HSTREEITEM)loc);
@@ -71,7 +71,7 @@ public:
         pItem->FindChildByName(L"name")->SetWindowText(ii.data.strName);
     }
 
-    virtual int getViewType(HSTREEITEM hItem) const
+    STDMETHOD_(int, getViewType)(HSTREEITEM hItem) const
     {
         ItemInfo & ii = m_tree.GetItemRef((HSTREEITEM)hItem);
         if (ii.data.bGroup) return 0;
@@ -113,7 +113,7 @@ public:
         free(groups);
     }
 
-    virtual int getViewTypeCount() const
+    STDMETHOD_(int, getViewTypeCount)() const
     {
         return 2;
     }

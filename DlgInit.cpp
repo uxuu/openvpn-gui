@@ -139,7 +139,7 @@ IResProvider *DlgLoadResource(SouiFactory *souiFac, HINSTANCE hInstance)
     pResProvider->Init((WPARAM)hInstance, 0);
     return pResProvider;
 }
-DWORD DlgInitWindow(HWND hWnd)
+DWORD WINAPI DlgInitWindow(HWND hWnd)
 {
     DWORD nRet = 0;
     SouiFactory souiFac;
