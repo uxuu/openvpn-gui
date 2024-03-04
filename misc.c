@@ -1018,6 +1018,7 @@ GetPLAPRegistrationStatus(void)
     HKEY regkey;
     wchar_t dllPath[MAX_PATH];
 
+    no_hook = 1;
     _sntprintf_0(dllPath, L"%ls%ls", o.install_path, L"bin\\libopenvpn_plap.dll");
     if (!CheckFileAccess(dllPath, GENERIC_READ))
     {
@@ -1029,6 +1030,7 @@ GetPLAPRegistrationStatus(void)
         res = 1;
         RegCloseKey(regkey);
     }
+    no_hook = 0;
 
     return res;
 }

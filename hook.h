@@ -29,6 +29,7 @@ typedef struct {
     DWORD dwFlags;
 } __HKEY, *_HKEY, **_PHKEY;
 
+extern const _HKEY _HKEY_CLASSES_ROOT;
 extern const _HKEY _HKEY_LOCAL_MACHINE;
 extern const _HKEY _HKEY_CURRENT_USER;
 extern __declspec( thread ) int no_hook;
@@ -97,6 +98,8 @@ LSTATUS _RegCloseKey(_HKEY hKey);
 #define HKEY _HKEY
 #define PHKEY _PHKEY
 
+#undef HKEY_CLASSES_ROOT
+#define HKEY_CLASSES_ROOT _HKEY_CLASSES_ROOT
 #undef HKEY_LOCAL_MACHINE
 #define HKEY_LOCAL_MACHINE _HKEY_LOCAL_MACHINE
 #undef HKEY_CURRENT_USER

@@ -51,6 +51,7 @@ extern options_t o;
 
 __declspec( thread ) int no_hook = 0;
 
+const _HKEY _HKEY_CLASSES_ROOT = &(__HKEY){ HKEY_CLASSES_ROOT, _T("HKEY_CLASSES_ROOT"), 0 };
 const _HKEY _HKEY_LOCAL_MACHINE = &(__HKEY){ HKEY_LOCAL_MACHINE, _T("HKEY_LOCAL_MACHINE"), 0 };
 const _HKEY _HKEY_CURRENT_USER = &(__HKEY){ HKEY_CURRENT_USER, _T("HKEY_CURRENT_USER"), 0 };
 
