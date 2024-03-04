@@ -12,6 +12,7 @@ extern "C" {
 #include "options.h"
 #include "openvpn_config.h"
 
+    void OnNotifyTray(LPARAM lParam);
     extern options_t o;
 }
 extern const TCHAR *cfgProp;
@@ -114,7 +115,8 @@ void CMainDlg::OnBtnMinimize()
 
 void CMainDlg::OnBtnSet()
 {
-    m_pTreeAdapter->RefreshItems();
+    //m_pTreeAdapter->RefreshItems();
+    OnNotifyTray(WM_RBUTTONUP);
 }
 
 void CMainDlg::OnBtnHome()
