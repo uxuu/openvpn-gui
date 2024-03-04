@@ -594,7 +594,7 @@ SetTrayIcon(conn_state_t state)
         size_t max_msglen = _countof(tip_msg) - (_countof(time) + _countof(ip) + 50);
         if (wcslen(tip_msg)  > max_msglen && traytip)
         {
-            wcsncpy_s(&tip_msg[max_msglen-1], 2, L"…", _TRUNCATE);
+            wcsncpy_s(&tip_msg[max_msglen-1], 2, L"\u2026", _TRUNCATE);
         }
 
         LocalizedTime(cc->connected_since, time, _countof(time));
