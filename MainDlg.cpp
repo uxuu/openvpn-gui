@@ -60,7 +60,7 @@ BOOL CMainDlg::OnInitDialog(HWND hWnd, LPARAM lParam)
     {
         pTree->EnableScrollBar(SSB_HORZ, FALSE);
 
-        m_pTreeAdapter = new STreeAdapter();
+        m_pTreeAdapter = new STreeAdapter(pTree);
         pTree->SetAdapter(m_pTreeAdapter);
         m_pTreeAdapter->Release();
         m_pTreeAdapter->RefreshItems();
@@ -70,8 +70,8 @@ BOOL CMainDlg::OnInitDialog(HWND hWnd, LPARAM lParam)
 
 BOOL CMainDlg::OnTurn3D(EventArgs* pEvt)
 {
-    EventTurn3d* pEvt3dTurn = (EventTurn3d*)pEvt;
-    STabCtrl* pTab = FindChildByName2<STabCtrl>(L"tab_main");
+    //EventTurn3d* pEvt3dTurn = (EventTurn3d*)pEvt;
+    //STabCtrl* pTab = FindChildByName2<STabCtrl>(L"tab_main");
     return TRUE;
 }
 
@@ -124,6 +124,8 @@ void CMainDlg::OnBtnHome()
     ShowPage(_T("page_home"));
     SImageButton* btn = FindChildByName2<SImageButton>(L"btn_home");
     btn->EnableWindow(FALSE, TRUE);
+    BuildFileList();
+    m_pTreeAdapter->RefreshItems();
 }
 
 void CMainDlg::OnBtnLogin()
