@@ -6,6 +6,7 @@ extern "C" {
 
     extern options_t o;
 }
+#include <string>
 #include "StdAfx.h"
 #include <helper/SAdapterBase.h>
 struct TreeItemData
@@ -21,14 +22,18 @@ class STreeAdapter :public STreeAdapterBase<TreeItemData>
 {
 public:
 public:
-    STreeAdapter()
+    explicit STreeAdapter(STreeView *pTreeView)
     {
+        m_treeView = pTreeView;
 
     }
 
-    ~STreeAdapter() {}
+    ~STreeAdapter() override
+    {
+        m_treeView = NULL;
+    }
 
-    STDMETHOD_(void, getView)(THIS_ HSTREEITEM loc, SItemPanel* pItem, SXmlNode xmlTemplate)
+    STDMETHOD_(void, getView)(THIS_ HSTREEITEM loc, SItemPanel* pItem, SXmlNode xmlTemplate) override
     {
         WCHAR buf[MAX_NAME] = {0};
         ItemInfo & ii = m_tree.GetItemRef((HSTREEITEM)loc);
@@ -69,9 +74,12 @@ public:
             pItem->FindChildByName(L"hr")->SetVisible(ii.data.gid != 0);
         }
         pItem->FindChildByName(L"name")->SetWindowText(ii.data.strName);
+        CRect rcItem = m_treeView->GetClientRect();
+        pItem->SetAttribute(L"width", std::to_wstring(rcItem.Width()).c_str());
+
     }
 
-    STDMETHOD_(int, getViewType)(HSTREEITEM hItem) const
+    STDMETHOD_(int, getViewType)(HSTREEITEM hItem) const override
     {
         ItemInfo & ii = m_tree.GetItemRef((HSTREEITEM)hItem);
         if (ii.data.bGroup) return 0;
@@ -170,4 +178,6 @@ protected:
             swprintf(buf, L"%.3f%hs/%.3f%hs", x1, *s1, x2, *s2);
         }
     }
+protected:
+    STreeView *m_treeView;
 };
