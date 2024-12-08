@@ -555,11 +555,6 @@ _RegCopyTree(_HKEY hKeySrc, LPCTSTR lpSubKey, _HKEY hKeyDest)
     {
         return ERROR_NOT_ENOUGH_MEMORY;
     }
-    buff = malloc(DATA_MAX_SIZE * sizeof(WCHAR));
-    if (!buff)
-    {
-        return ERROR_NOT_ENOUGH_MEMORY;
-    }
     BuildPath(subkeySrc, _countof(subkeySrc), hKeySrc->subkey, lpSubKey);
     BuildPath(subkeyDest, _countof(subkeyDest), hKeyDest->subkey, lpSubKey);
     GetPrivateProfileSection(subkeySrc, buff, DATA_MAX_SIZE, o.config_path);

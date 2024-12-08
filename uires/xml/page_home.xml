@@ -2,7 +2,7 @@
 <include>
     <caption pos="0,0,-0,-0">
         <treeview pos="0,0,-0,-0"
-              name="tv_config"
+              name="tv_home"
               indent="0"
               sbSkin="skin_vscroll"
               sbWid="8">
@@ -13,7 +13,7 @@
               </item_group>
               <item_data layout="vbox"  colorSelected="#ffffff" size="-2,48dp" colorHover="#ffffff">
                     <caption size="-2, -2" gravity="center" layout="hbox">
-                        <img extend_left="8dp" name="state" skin="skin_connected"/>
+                        <imgbtn extend_left="8dp" name="btn_state" skin="skin_disconnected" mouseRelay="1" animate="1" cursor="hand"/>
                         <caption size="-2, -2" gravity="center" layout="hbox" extend_left="8dp" extend_right="44dp">
                             <caption width="-2">
                                 <text pos="0,0" name="name" text="" maxWidth="160dp" dotted="1" font="adding:2,bold:0" />

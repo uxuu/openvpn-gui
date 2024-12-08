@@ -38,7 +38,7 @@
 #include "openvpn-gui-res.h"
 #include "localization.h"
 #include "misc.h"
-
+#include "DlgInit.h"
 #ifndef GUID_NULL
 #include <initguid.h>
 DEFINE_GUID(GUID_NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
@@ -419,6 +419,8 @@ OnNotifyTray(LPARAM lParam)
 
         case WM_LBUTTONDBLCLK:
         {
+            DlgShowWindow(TRUE);
+            break;
             int disconnected_conns = CountConnState(disconnected);
 
             RecreatePopupMenus();
