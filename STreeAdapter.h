@@ -3,40 +3,39 @@ extern "C" {
 #undef MAX_NAME
 #include "options.h"
 #include "openvpn_config.h"
+#include "openvpn.h"
 
     extern options_t o;
 }
 #include <string>
 #include "StdAfx.h"
 #include <helper/SAdapterBase.h>
-struct TreeItemData
+struct ItemData
 {
-    TreeItemData():bGroup(false){}
-    INT32 gid;            //组ID
-    SStringT strImg ;    //图像
-    SStringT strName;    //名称
-    bool bGroup;
-    connection_t* c;
+    INT32 gid{};
+    SStringT strImg ;
+    SStringT strName;
+    bool bGroup{};
+    connection_t* c{};
 };
-class STreeAdapter :public STreeAdapterBase<TreeItemData>
+class STreeAdapter final :public STreeAdapterBase<ItemData>
 {
-public:
+
 public:
     explicit STreeAdapter(STreeView *pTreeView)
     {
         m_treeView = pTreeView;
-
     }
 
     ~STreeAdapter() override
     {
-        m_treeView = NULL;
+        m_treeView = nullptr;
     }
 
     STDMETHOD_(void, getView)(THIS_ HSTREEITEM loc, SItemPanel* pItem, SXmlNode xmlTemplate) override
     {
         WCHAR buf[MAX_NAME] = {0};
-        ItemInfo & ii = m_tree.GetItemRef((HSTREEITEM)loc);
+        ItemInfo& ii = CSTree<SOUI::STreeAdapterBase<ItemData>::ItemInfo>::GetItemRef((HSTREEITEM)loc);
         int itemType = getViewType(loc);
         if (pItem->GetChildrenCount() == 0)
         {
@@ -46,6 +45,7 @@ public:
                 break;
             case 1:xmlTemplate = xmlTemplate.child(L"item_data");
                 break;
+            default:break;
             }
             pItem->InitFromXml(&xmlTemplate);
             if(itemType==0)
@@ -53,20 +53,32 @@ public:
                 pItem->GetEventSet()->setMutedState(true);
             }
         }
+
         if (itemType == 1)
         {
+            auto* pBtn = pItem->FindChildByName2<SImageButton>(L"btn_state");
+            pBtn->GetRoot()->SetUserData(loc);
+            pBtn->GetEventSet()->subscribeEvent(EventCmd::EventID, Subscriber(&STreeAdapter::OnButtonClick, this));
             if (ii.data.c->state == connected)
             {
-                formatTime(ii.data.c->connected_since, buf);
+                FormatTime(ii.data.c->connected_since, buf);
                 pItem->FindChildByName(L"time")->SetWindowText(buf);
                 pItem->FindChildByName(L"ipaddr")->SetWindowText(ii.data.c->ip);
-                formatByte(ii.data.c->bytes_in, ii.data.c->bytes_out, buf);
+                FormatByte(ii.data.c->bytes_in, ii.data.c->bytes_out, buf);
                 pItem->FindChildByName(L"speed")->SetWindowText(buf);
+                pBtn->SetAttribute(L"skin", L"skin_connected");
+
             }
-            else {
+            else if (ii.data.c->state == connecting)
+            {
+                pBtn->SetAttribute(L"skin", L"skin_connecting");
+            }
+            else if (ii.data.c->state == disconnected)
+            {
                 pItem->FindChildByName(L"time")->SetWindowText(L" ");
                 pItem->FindChildByName(L"ipaddr")->SetWindowText(L" ");
                 pItem->FindChildByName(L"speed")->SetWindowText(L" ");
+                pBtn->SetAttribute(L"skin", L"skin_disconnected");
             }
         }
         else
@@ -81,12 +93,12 @@ public:
 
     STDMETHOD_(int, getViewType)(HSTREEITEM hItem) const override
     {
-        ItemInfo & ii = m_tree.GetItemRef((HSTREEITEM)hItem);
+        ItemInfo & ii = CSTree<SOUI::STreeAdapterBase<ItemData>::ItemInfo>::GetItemRef((HSTREEITEM)hItem);
         if (ii.data.bGroup) return 0;
         else return 1;
     }
 
-    void DeleteAllItems()
+    void DeleteItems()
     {
         while (HasChildren(STVI_ROOT))
         {
@@ -96,13 +108,12 @@ public:
 
     void RefreshItems()
     {
-        int i;
-        HSTREEITEM* groups = (HSTREEITEM *)malloc(o.num_groups * sizeof(HSTREEITEM *));
-        DeleteAllItems();
-        for (i = 0; i < o.num_groups; i++)
+        ItemData data;
+        auto* groups = static_cast<HSTREEITEM*>(malloc(o.num_groups * sizeof(HSTREEITEM*)));
+        DeleteItems();
+        for (int i = 1; i < o.num_groups; i++)
         {
-            TreeItemData data;
-            data.bGroup = true;
+            data.bGroup = TRUE;
             data.gid = o.groups[i].id;
             data.strName = o.groups[i].name;
             groups[i] = InsertItem(data);
@@ -110,7 +121,6 @@ public:
         }
         for (connection_t* c = o.chead; c; c = c->next)
         {
-            TreeItemData data;
             data.bGroup = FALSE;
             data.strName = c->config_name;
             data.strImg = L"skin_connected";
@@ -121,16 +131,16 @@ public:
         free(groups);
     }
 
-    STDMETHOD_(int, getViewTypeCount)() const
+    STDMETHOD_(int, getViewTypeCount)() const override
     {
         return 2;
     }
 protected:
-    void formatTime(const time_t since, WCHAR* buf)
+    void FormatTime(const time_t since, WCHAR* buf)
     {
         time_t now;
         time(&now);
-        DWORD diff = difftime(now, since);
+        auto diff = static_cast<DWORD>(difftime(now, since));
         if (diff > 24 * 3600)
         {
             swprintf(buf, L"%d %02d:%02d:%02d", diff / 24, diff / 3600 % 24, diff / 60 % 60, diff % 60);
@@ -141,14 +151,13 @@ protected:
         }
 
     }
-    void formatByte(const long long byte_in, const long long byte_out, WCHAR* buf)
+    void FormatByte(const unsigned long long byte_in, const unsigned long long byte_out, WCHAR* buf)
     {
-        const char* suf[] = { "B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", NULL };
+        const char* suf[] = { "B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", nullptr };
         const char** s1 = suf;
-        double x1 = byte_in;
+        auto x1 = static_cast<double>(byte_in);
         const char** s2 = suf;
-        double x2 = byte_out;
-
+        auto x2 = static_cast<double>(byte_out);
 
         while (x1 > 1024 && *(s1 + 1))
         {
@@ -161,22 +170,22 @@ protected:
             x2 /= 1024.0;
             s2++;
         }
-        if (byte_in <= 1024 && byte_out <= 1024)
+        swprintf(buf, L"%.1f%hs/%.1f%hs", x1, *s1, x2, *s2);
+    }
+public:
+    BOOL OnButtonClick(EventCmd* pEvt)
+    {
+        auto* pBtn = sobj_cast<SImageButton>(pEvt->Sender());
+        ItemInfo & ii = CSTree<SOUI::STreeAdapterBase<ItemData>::ItemInfo>::GetItemRef((HSTREEITEM)pBtn->GetRoot()->GetUserData());
+        if (ii.data.c->state == connected)
         {
-            swprintf(buf, L"%I64uB/%I64uB", byte_in, byte_out);
+            StopOpenVPN(ii.data.c);
         }
-        if (byte_in <= 1024 && byte_out > 1024)
+        else if (ii.data.c->state == disconnected)
         {
-            swprintf(buf, L"%I64uB/%.3f%hs", byte_in, x2, *s2);
+            StartOpenVPN(ii.data.c);
         }
-        if (byte_in > 1024 && byte_out < 1024)
-        {
-            swprintf(buf, L"%.3f%hs/%I64uB", x1, *s1, byte_out);
-        }
-        if (byte_in > 1024 && byte_out > 1024)
-        {
-            swprintf(buf, L"%.3f%hs/%.3f%hs", x1, *s1, x2, *s2);
-        }
+        return true;
     }
 protected:
     STreeView *m_treeView;

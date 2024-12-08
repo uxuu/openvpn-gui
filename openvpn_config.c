@@ -434,7 +434,7 @@ BuildFileList()
     static bool issue_warnings = true;
     int recurse_depth = 20; /* maximum number of levels below config_dir to recurse into */
     int flags = 0;
-    static int root_gp, system_gp, persistent_gp;
+    static int root_gp, user_gp, system_gp, persistent_gp;
 
     if (o.silent_connection)
     {
@@ -453,6 +453,7 @@ BuildFileList()
         root_gp = NewConfigGroup(L"ROOT", -1, flags); /* -1 indicates no parent */
         persistent_gp = NewConfigGroup(L"Persistent Profiles", root_gp, flags);
         system_gp = NewConfigGroup(L"System Profiles", root_gp, flags);
+        user_gp = NewConfigGroup(L"User Profiles", root_gp, flags);
     }
     /* else these parent groups use their saved values */
 
@@ -467,7 +468,7 @@ BuildFileList()
         flags |= FLAG_WARN_DUPLICATES | FLAG_WARN_MAX_CONFIGS;
     }
 
-    BuildFileList0(o.config_dir, recurse_depth, root_gp, flags);
+    BuildFileList0(o.config_dir, recurse_depth, user_gp, flags);
 
     if (!IsSamePath(o.global_config_dir, o.config_dir))
     {

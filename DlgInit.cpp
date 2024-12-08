@@ -28,38 +28,24 @@ static mgmt_msg_func rtmsg_handler[mgmt_rtmsg_type_max];
 
 /*  Declare Windows procedure  */
 
-CMainDlg *dlgMain = NULL;
-SComMgr2 *pComMgr = NULL;
+BOOL bCan3DView = FALSE;
+CMainDlg *pDlgMain = nullptr;
+SComMgr2 *pComMgr = nullptr;
 
 void DlgShowWindow(bool bShow)
 {
-    if (dlgMain != NULL)
+    if (pDlgMain != nullptr)
     {
-        dlgMain->ShowWindow(bShow?SW_SHOW:SW_HIDE);
+        pDlgMain->ShowWindow(bShow?SW_SHOW:SW_HIDE);
     }
 }
 
-void DlgInitScale()
-{
-    WORD dpi = GetDpiForWindow(dlgMain->m_hWnd);
-    int nScale = dpi * 100 / 96;
-    CRect rc;
-    GetWindowRect(dlgMain->m_hWnd, &rc);
-    CSize sz = rc.Size();
-    sz.cx = sz.cx * nScale / 100;
-    sz.cy = sz.cy * nScale / 100;
-    CPoint ntl = rc.CenterPoint();
-    ntl.Offset((-sz.cx + rc.Size().cx) / 2, (-sz.cy + rc.Size().cy) / 2);
-    rc = CRect(ntl, sz);
-    dlgMain->SetScale(nScale, rc);
-}
-
-TCHAR *GetImgDecoder()
+const TCHAR *GetImgDecoder()
 {
     DWORD len = MAX_NAME;
     TCHAR buf[MAX_NAME];
     LSTATUS status = RegGetValueW(HKEY_CURRENT_USER, GUI_REGKEY_HKCU, L"decoder",
-        RRF_RT_REG_SZ, NULL, buf, &len);
+        RRF_RT_REG_SZ, nullptr, buf, &len);
     if (status != ERROR_SUCCESS || len == 0)
     {
         return _T("imgdecoder-png");
@@ -89,7 +75,7 @@ void DlgGetRenderFactory(IObjRef** ref)
     TCHAR buf[MAX_NAME];
 
     LSTATUS status = RegGetValueW(HKEY_CURRENT_USER, GUI_REGKEY_HKCU, L"render",
-        RRF_RT_REG_SZ, NULL, buf, &len);
+        RRF_RT_REG_SZ, nullptr, buf, &len);
     if (status != ERROR_SUCCESS || len == 0)
     {
         pComMgr->CreateRender_GDI(ref);
@@ -104,6 +90,7 @@ void DlgGetRenderFactory(IObjRef** ref)
     }
     else if (_tcsicmp(buf, _T("skia")) == 0)
     {
+        bCan3DView = TRUE;
         pComMgr->CreateRender_Skia(ref);
     }
     else
@@ -118,11 +105,11 @@ IResProvider *DlgLoadResource(SouiFactory *souiFac, HINSTANCE hInstance)
     TCHAR buf[MAX_NAME];
     IResProvider* pResProvider;
     LSTATUS status = RegGetValueW(HKEY_CURRENT_USER, GUI_REGKEY_HKCU, L"uires",
-        RRF_RT_REG_SZ, NULL, buf, &len);
+        RRF_RT_REG_SZ, nullptr, buf, &len);
     if (status == ERROR_SUCCESS && len > 0 && PathFileExists(buf))
     {
         pResProvider = souiFac->CreateResProvider(RES_FILE);
-        if (pResProvider->Init((LPARAM)buf, 0))
+        if (pResProvider->Init(reinterpret_cast<LPARAM>(buf), 0))
         {
             return pResProvider;
         }
@@ -130,13 +117,13 @@ IResProvider *DlgLoadResource(SouiFactory *souiFac, HINSTANCE hInstance)
     if (PathFileExists(_T("uires")))
     {
         pResProvider = souiFac->CreateResProvider(RES_FILE);
-        if (pResProvider->Init((LPARAM)_T("uires"), 0))
+        if (pResProvider->Init(reinterpret_cast<LPARAM>(L"uires"), 0))
         {
             return pResProvider;
         }
     }
     pResProvider = souiFac->CreateResProvider(RES_PE);
-    pResProvider->Init((WPARAM)hInstance, 0);
+    pResProvider->Init(reinterpret_cast<WPARAM>(hInstance), 0);
     return pResProvider;
 }
 DWORD WINAPI DlgInitWindow(HWND hWnd)
@@ -145,27 +132,27 @@ DWORD WINAPI DlgInitWindow(HWND hWnd)
     SouiFactory souiFac;
     CAutoRefPtr<IRenderFactory> pRenderFactory;
     CAutoRefPtr<IImgDecoderFactory> pImgDecoderFactory;
-    CAutoRefPtr<IResProvider> sysSesProvider;
-    CAutoRefPtr<IResProvider>   pResProvider;
-    HINSTANCE hInstance = GetModuleHandle(NULL);
-    if (pComMgr == NULL)
+    HINSTANCE hInstance = GetModuleHandle(nullptr);
+    if (pComMgr == nullptr)
     {
-        HRESULT hRes = OleInitialize(NULL);
+        //HRESULT hRes = OleInitialize(NULL);
+        CAutoRefPtr<IResProvider> pResProvider;
         pComMgr = new SComMgr2(GetImgDecoder());
 
-        DlgGetRenderFactory((IObjRef**)&pRenderFactory);
-        pComMgr->CreateImgDecoder((IObjRef**)&pImgDecoderFactory);
+        DlgGetRenderFactory(reinterpret_cast<IObjRef**>(&pRenderFactory));
+        pComMgr->CreateImgDecoder(reinterpret_cast<IObjRef**>(&pImgDecoderFactory));
         pRenderFactory->SetImgDecoderFactory(pImgDecoderFactory);
 
-        SApplication* theApp = new SApplication(pRenderFactory, hInstance, _T(PACKAGE_NAME));
+        auto* theApp = new SApplication(pRenderFactory, hInstance, _T(PACKAGE_NAME));
         theApp->RegisterWindowClass<STurn3dView>();
         theApp->RegisterSkinClass<SSkinVScrollbar>();
 
         HMODULE hSysResource = LoadLibrary(SYS_NAMED_RESOURCE);
         if (hSysResource)
         {
+            CAutoRefPtr<IResProvider> sysSesProvider;
             sysSesProvider.Attach(souiFac.CreateResProvider(RES_PE));
-            sysSesProvider->Init((WPARAM)hSysResource, 0);
+            sysSesProvider->Init(reinterpret_cast<WPARAM>(hSysResource), 0);
             theApp->LoadSystemNamedResource(sysSesProvider);
         }
 
@@ -175,27 +162,27 @@ DWORD WINAPI DlgInitWindow(HWND hWnd)
 
         // BLOCK: Run application
         {
-            if (dlgMain == NULL)
+            if (pDlgMain == nullptr)
             {
-                dlgMain = new CMainDlg();
-                dlgMain->m_hWnd2 = hWnd;
-                dlgMain->Create(GetActiveWindow(), 0, 0, 300, 600);
-                DlgInitScale();
-                dlgMain->SendMessage(WM_INITDIALOG);
-                dlgMain->CenterWindow(dlgMain->m_hWnd);
-                dlgMain->ShowWindow(SW_SHOW);
+                pDlgMain = new CMainDlg();
+                pDlgMain->m_hWnd2 = hWnd;
+                pDlgMain->Create(GetActiveWindow(), 0, 0, 300, 600);
+                pDlgMain->SendMessage(WM_INITDIALOG);
+                pDlgMain->CenterWindow(pDlgMain->m_hWnd);
+                pDlgMain->ShowWindow(SW_SHOW);
+                pDlgMain->FindChildByName(_T("turn3d"))->EnableWindow(bCan3DView);
                 DlgInitManagement();
-                nRet = theApp->Run(dlgMain->m_hWnd);
+                nRet = theApp->Run(pDlgMain->m_hWnd);
             }
             else
             {
-                dlgMain->ShowWindow(SW_SHOW);
+                pDlgMain->ShowWindow(SW_SHOW);
             }
         }
     }
     else
     {
-        dlgMain->ShowWindow(SW_SHOW);
+        pDlgMain->ShowWindow(SW_SHOW);
 
     }
 
@@ -204,7 +191,7 @@ DWORD WINAPI DlgInitWindow(HWND hWnd)
 
 void DlgShowPage(LPCTSTR pszName, BOOL bTitle)
 {
-    dlgMain->ShowPage(pszName, bTitle);
+    pDlgMain->ShowPage(pszName, bTitle);
 }
 
 void DlgInitManagement()
@@ -223,7 +210,7 @@ void DlgInitManagement()
     { bytecount_, DlgOnByteCount },
     { infomsg_,  DlgOnInfoMsg },
     { timeout_,  DlgOnTimeout },
-    { mgmt_rtmsg_type_max, NULL }
+    { mgmt_rtmsg_type_max, nullptr }
     };
     ReInitManagement(handler, rtmsg_handler);
 }
@@ -248,7 +235,7 @@ void DlgOnLogLine(connection_t* c, char* msg)
     MultiByteToWideChar(CP_UTF8, 0, msg, MAX_NAME, buf, _countof(buf) - 1);
     DbgPrintf(_T("%s(%d): %ls"), _T(__FUNCTION__), __LINE__, buf);
     rtmsg_handler[log_](c, msg);
-    STaskHelper::post(dlgMain->GetMsgLoop(), dlgMain, &CMainDlg::onStateChanged);
+    STaskHelper::post(pDlgMain->GetMsgLoop(), pDlgMain, &CMainDlg::OnStateChanged);
 }
 void DlgOnStateChange(connection_t* c, char* msg)
 {
@@ -256,7 +243,7 @@ void DlgOnStateChange(connection_t* c, char* msg)
     MultiByteToWideChar(CP_UTF8, 0, msg, MAX_NAME, buf, _countof(buf) - 1);
     DbgPrintf(_T("%s(%d): %ls"), _T(__FUNCTION__), __LINE__, buf);
     rtmsg_handler[state_](c, msg);
-    STaskHelper::post(dlgMain->GetMsgLoop(), dlgMain, &CMainDlg::onStateChanged);
+    STaskHelper::post(pDlgMain->GetMsgLoop(), pDlgMain, &CMainDlg::OnStateChanged);
 }
 void DlgOnPassword(connection_t* c, char* msg)
 {
@@ -306,7 +293,7 @@ void DlgOnByteCount(connection_t* c, char* msg)
     MultiByteToWideChar(CP_UTF8, 0, msg, MAX_NAME, buf, _countof(buf) - 1);
     DbgPrintf(_T("%s(%d): %ls"), _T(__FUNCTION__), __LINE__, buf);
     rtmsg_handler[bytecount_](c, msg);
-    STaskHelper::post(dlgMain->GetMsgLoop(), dlgMain, &CMainDlg::onStateChanged);
+    STaskHelper::post(pDlgMain->GetMsgLoop(), pDlgMain, &CMainDlg::OnStateChanged);
 }
 void DlgOnInfoMsg(connection_t* c, char* msg)
 {

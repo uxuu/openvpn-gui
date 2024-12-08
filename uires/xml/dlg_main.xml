@@ -12,7 +12,7 @@
                     <imgbtn animate="1" name="btn_restore" pos="-64dp,1dp" show="0" skin="_skin.btn.restore" cursor="hand"/>
                     <imgbtn animate="1" name="btn_min" pos="-96dp,1dp" skin="_skin.btn.min" cursor="hand"/>
                     <imgbtn animate="1" name="btn_set" pos="-128dp,1dp" skin="_skin.btn.set" cursor="hand"/>
-                    <imgbtn animate="1" name="btn_msg" pos="-160dp,1dp" show="0" skin="_skin.btn.msg" cursor="hand"/>
+                    <imgbtn animate="1" name="btn_msg" pos="-160dp,1dp" show="1" skin="_skin.btn.msg" cursor="hand"/>
                 </caption>
                 <caption pos="0dp,[0dp,-0,-45dp" colorBkgnd="#ffffff"  margin="1dp,0dp">
                     <tabctrl name="tab_main" pos="0,0,-0,-0" tabHeight="0">

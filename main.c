@@ -61,7 +61,7 @@
 /*  Declare Windows procedure  */
 LRESULT CALLBACK WindowProcedure(HWND, UINT, WPARAM, LPARAM);
 
-static void ShowSettingsDialog();
+void ShowSettingsDialog();
 
 void CloseApplication(HWND hwnd, BOOL ask_user);
 
@@ -344,7 +344,7 @@ _tWinMain(HINSTANCE hThisInstance,
         hThisInstance,          /* Program Instance handler */
         NULL                    /* No Window Creation data */
         );
-    DlgInitWindow(hwnd);
+    messages.wParam = DlgInitWindow(hwnd);
 
     /* Run the message loop. It will run until GetMessage() returns 0 */
     //while (GetMessage(&messages, NULL, 0, 0))
@@ -832,7 +832,7 @@ SettingsPsCallback(HWND hwnd, UINT msg, UNUSED LPARAM lParam)
     return 0;
 }
 
-static void
+void
 ShowSettingsDialog()
 {
     PROPSHEETPAGE psp[4];

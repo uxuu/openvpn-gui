@@ -3,6 +3,9 @@
     <UIDEF>
         <file name="XML_INIT" path="uidef\init.xml"/>
     </UIDEF>
+	<SMENU>
+		<file name="menu" path="xml\menu.xml" />
+	</SMENU>
     <LAYOUT>
         <file name="XML_MAINWND" path="xml\dlg_main.xml"/>
         <file name="PAGE_HOME" path="xml\page_home.xml"/>
@@ -27,6 +30,8 @@
     </IMG>
     <PNG>
         <file name="IMG_CONNECTED" path="image\connected48.png" />
+        <file name="IMG_CONNECTING" path="image\connecting48.png" />
+        <file name="IMG_DISCONNECTED" path="image\disconnected48.png" />
         <file name="IDB_PNG_VSCROLL" path="image\vscrollbar.png" />
     </PNG>
     <ICON>
