@@ -34,6 +34,7 @@ add_executable(${PROJECT_NAME} WIN32
     config_parser.c
     DlgInit.cpp
     MainDlg.cpp
+    STabCtrlEx.cpp
     ${SOUI_ROOT}/controls.extend/gif/SGifPlayer.cpp
     ${SOUI_ROOT}/controls.extend/gif/SSkinGif.cpp
     ${SOUI_ROOT}/controls.extend/STurn3DView.cpp
@@ -87,7 +88,11 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     Cryptui.lib
     Wininet.lib)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE soui4 utilities4)
+if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+    target_link_libraries(${PROJECT_NAME} PRIVATE soui4d utilities4d)
+else ()
+    target_link_libraries(${PROJECT_NAME} PRIVATE soui4 utilities4)
+endif ()
 
 #target_include_directories(${PROJECT_NAME} PUBLIC ${SOUI_ROOT}/config)
 target_include_directories(${PROJECT_NAME} PUBLIC ${SOUI_ROOT}/components)
@@ -137,6 +142,12 @@ if (${CLI_OVPN3})
     target_compile_definitions(${PROJECT_NAME} PRIVATE
         ENABLE_OVPN3)
 endif ()
+
+add_custom_command(
+        TARGET ${PROJECT_NAME}
+        PRE_BUILD
+        COMMAND ${SOUI_ROOT}/tools/uiresbuilder.exe -i ${PROJECT_SOURCE_DIR}/uires/uires.idx -p uires -r ${PROJECT_SOURCE_DIR}/res/soui_res.rc2
+)
 
 if (NOT PROJECT_NAME_PLAP)
     set(PROJECT_NAME_PLAP "libopenvpn_plap")

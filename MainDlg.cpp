@@ -7,6 +7,7 @@
 
 extern "C" {
 #undef MAX_NAME
+#include "main.h"
 #include "options.h"
 #include "openvpn_config.h"
 
@@ -88,6 +89,83 @@ void CMainDlg::OnStateChanged()
     RefreshTree();
 }
 
+void CMainDlg::OnLogLine(char *msg)
+{
+    char *flags, *message;
+    time_t timestamp;
+    wchar_t datetime[24];
+    const SETTEXTEX ste = {ST_SELECTION, CP_UTF8 };
+
+    auto* pLogWnd = FindChildByName2<SRichEdit>(L"log_viewer");
+    if (!pLogWnd)
+    {
+        return;
+    }
+
+    flags = strchr(msg, ',') + 1;
+    if (flags - 1 == nullptr)
+    {
+        return;
+    }
+
+    message = strchr(flags, ',') + 1;
+    if (message - 1 == nullptr)
+    {
+        return;
+    }
+    size_t flag_size = message - flags - 1; /* message is always > flags */
+
+    /* Remove lines from log window if it is getting full */
+    if (pLogWnd->SSendMessage(EM_GETLINECOUNT, 0, 0) > MAX_LOG_LINES)
+    {
+        auto pos = pLogWnd->SSendMessage(EM_LINEINDEX, DEL_LOG_LINES, 0);
+        pLogWnd->SSendMessage(EM_SETSEL, 0, pos);
+        pLogWnd->SSendMessage(EM_REPLACESEL, FALSE, (LPARAM) _T(""));
+    }
+
+    timestamp = strtol(msg, nullptr, 10);
+    struct tm *tm = localtime(&timestamp);
+
+    wsprintf(datetime, L"%04d-%02d-%02d %02d:%02d:%02d ",
+               tm->tm_year+1900, tm->tm_mon+1, tm->tm_mday,
+               tm->tm_hour, tm->tm_min, tm->tm_sec);
+
+    /* deselect current selection, if any */
+    pLogWnd->SSendMessage(EM_SETSEL, (WPARAM) -1, (LPARAM) -1);
+
+    /* change text color if Warning or Error */
+    COLORREF text_clr = 0;
+
+    if (memchr(flags, 'N', flag_size) || memchr(flags, 'F', flag_size))
+    {
+        text_clr = o.clr_error;
+    }
+    else if (memchr(flags, 'W', flag_size))
+    {
+        text_clr = o.clr_warning;
+    }
+
+    if (text_clr != 0)
+    {
+        CHARFORMAT cfm = { sizeof(CHARFORMAT),
+                    CFM_COLOR|CFM_BOLD,
+                    0,
+                    0,
+                    0,
+                    text_clr,
+        };
+        pLogWnd->SSendMessage(EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM) &cfm);
+    }
+
+    /* Append line to log window */
+    pLogWnd->SSendMessage(EM_REPLACESEL, FALSE, (LPARAM) datetime);
+    pLogWnd->SSendMessage(EM_SETTEXTEX, (WPARAM) &ste, (LPARAM) message);
+    pLogWnd->SSendMessage(EM_REPLACESEL, FALSE, (LPARAM) L"\n");
+
+    /* scroll to the caret */
+    pLogWnd->SSendMessage(EM_SCROLLCARET, 0, 0);
+}
+
 void CMainDlg::OnHotKey(int nHotKeyID, UINT uModifiers, UINT uVirtKey)
 {
     SetMsgHandled(FALSE);
@@ -156,13 +234,23 @@ void CMainDlg::OnBtnDetail()
 
 void CMainDlg::OnBtnOption()
 {
-    ShowPage(_T("page_option"));
-    auto* btn = FindChildByName2<SImageButton>(L"btn_option");
-    btn->EnableWindow(FALSE, TRUE);
+    auto* pTab = FindChildByName2<STabCtrlEx>(L"tab_main");
+    int nIndex = pTab->InsertItem();
+    DbgPrintf(_T("nIndex=%d\n"), nIndex);
+    pTab->SetItemTitle(nIndex, L"about");
+    ShowPage(nIndex);
+    //ShowPage(_T("page_option"));
+    //auto* btn = FindChildByName2<SImageButton>(L"btn_option");
+    //btn->EnableWindow(FALSE, TRUE);
 }
 
 void CMainDlg::OnCommand2( UINT uNotifyCode, int nID, HWND wndCtl )
 {
+
+    // 获取屏幕信息
+    MONITORINFO mi;
+    HMONITOR hm = MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTONEAREST);
+    GetMonitorInfo(hm, &mi);
     if(uNotifyCode==0)
     {
         switch (nID)
@@ -183,6 +271,7 @@ void CMainDlg::OnCommand2( UINT uNotifyCode, int nID, HWND wndCtl )
             ShowSettingsDialog();
             break;
         case 7:
+            BuildFileList();
             RefreshTree();
             break;
         default:
@@ -192,7 +281,7 @@ void CMainDlg::OnCommand2( UINT uNotifyCode, int nID, HWND wndCtl )
     }
 }
 
-void CMainDlg::ShowPage(LPCTSTR pszName, BOOL bTitle)
+void CMainDlg::ShowPage(int nIndex)
 {
     auto *pTab = FindChildByName2<STabCtrl>(L"tab_main");
     if (pTab)
@@ -200,17 +289,25 @@ void CMainDlg::ShowPage(LPCTSTR pszName, BOOL bTitle)
         STurn3dView * pTurn3d = FindChildByName2<STurn3dView>(L"turn3d");
         if (pTurn3d && !pTurn3d->IsDisabled())
         {
-            auto *pWnd = pTab->GetPage(pszName);
+            auto *pWnd = dynamic_cast<SWindow*>(pTab->GetPage(nIndex));
             auto *pWnd2 = dynamic_cast<SWindow*>(pTab->GetPage(pTab->GetCurSel()));
-            pTurn3d->Turn(pWnd2, pWnd, bTitle);
+            pTurn3d->Turn(pWnd2, pWnd, TRUE);
+            pTab->SetCurSel(nIndex);
         }
         else
         {
-            AnimateHostWindow(100, AW_CENTER | AW_HIDE);
-            pTab->SetCurSel(pszName);
-            AnimateHostWindow(100, AW_CENTER);
+            ShowWindow(SW_HIDE);
+            pTab->SetCurSel(nIndex);
+            ShowWindow(SW_SHOW);
         }
     }
+}
+
+void CMainDlg::ShowPage(LPCTSTR pszName, BOOL bTitle)
+{
+    auto *pTab = FindChildByName2<STabCtrl>(L"tab_main");
+    int nIndex = pTab->GetPageIndex(pszName, bTitle);
+    ShowPage(nIndex);
     auto* btn = FindChildByName2<SImageButton>(L"btn_home");
     btn->EnableWindow(TRUE, TRUE);
     btn = FindChildByName2<SImageButton>(L"btn_login");

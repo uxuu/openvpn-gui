@@ -1,6 +1,9 @@
 <?xml version="1.0"?>
 <include>
     <caption pos="0,0,-0,-0">
-
+        <richedit name="log_viewer" height="160dp" width="-2" bkgndBlend="0" class="cls_edit"
+                  font="face:Microsoft Sans Serif" sbSkin="skin_scrollbar" multiLines="1"
+                  hscrollBar="1" vscrollBar="1" autoHscroll="1" autoVscroll="1" wordWrap="0"
+                  wantTab="1"   wantReturn="1"  maxBuf="6400000" readOnly="0" />
     </caption>
 </include>

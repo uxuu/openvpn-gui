@@ -31,9 +31,11 @@ public:
     BOOL OnTurn3D(EventArgs *pEvt);
     void OnChangeStatus(int state);
     void OnHotKey(int nHotKeyID, UINT uModifiers, UINT uVirtKey);
+    void ShowPage(int nIndex);
     void ShowPage(LPCTSTR pszName, BOOL bTitle = TRUE);
     void RefreshTree();
     STDMETHOD_(void, OnStateChanged)(THIS_);
+    STDMETHOD_(void, OnLogLine)(THIS_ char *msg);
 
 protected:
 

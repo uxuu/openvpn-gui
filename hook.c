@@ -271,6 +271,7 @@ ConfigGet(LPCTSTR lpSubkey, LPCTSTR lpValueName, LPDWORD lpType, LPBYTE lpData, 
     }
     if (*lpType == REG_SZ)
     {
+        memset(lpData, 0, *lpcbData);
         _tcsncpy((LPTSTR)lpData, buff, len);
         *lpcbData = (len +1) * sizeof(buff[0]);
         free(buff);

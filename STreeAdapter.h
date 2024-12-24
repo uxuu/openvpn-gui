@@ -6,6 +6,8 @@ extern "C" {
 #include "openvpn.h"
 
     extern options_t o;
+#define USE_NESTED_CONFIG_MENU ((o.config_menu_view == CONFIG_VIEW_AUTO && o.num_configs > 25)   \
+                                || (o.config_menu_view == CONFIG_VIEW_NESTED))
 }
 #include <string>
 #include "StdAfx.h"
@@ -13,9 +15,9 @@ extern "C" {
 struct ItemData
 {
     INT32 gid{};
+    bool bGroup{};
     SStringT strImg ;
     SStringT strName;
-    bool bGroup{};
     connection_t* c{};
 };
 class STreeAdapter final :public STreeAdapterBase<ItemData>
@@ -48,47 +50,73 @@ public:
             default:break;
             }
             pItem->InitFromXml(&xmlTemplate);
-            if(itemType==0)
-            {
-                pItem->GetEventSet()->setMutedState(true);
-            }
         }
 
         if (itemType == 1)
         {
-            auto* pBtn = pItem->FindChildByName2<SImageButton>(L"btn_state");
-            pBtn->GetRoot()->SetUserData(loc);
-            pBtn->GetEventSet()->subscribeEvent(EventCmd::EventID, Subscriber(&STreeAdapter::OnButtonClick, this));
+            auto* pImg = pItem->FindChildByName(L"img_state");
+            auto* pGif = pItem->FindChildByName(L"gif_state");
+            auto* pBtnConn = pItem->FindChildByName2<SButton>(L"btn_conn");
+            pBtnConn->GetRoot()->SetUserData(loc);
+            pBtnConn->GetEventSet()->subscribeEvent(EventCmd::EventID, Subscriber(&STreeAdapter::OnButtonConnClick, this));
+            auto* pBtnDisconn = pItem->FindChildByName2<SButton>(L"btn_disconn");
+            pBtnDisconn->GetEventSet()->subscribeEvent(EventCmd::EventID, Subscriber(&STreeAdapter::OnButtonDisconnClick, this));
+            auto* pBtnReconn = pItem->FindChildByName2<SButton>(L"btn_reconn");
+            pBtnReconn->GetEventSet()->subscribeEvent(EventCmd::EventID, Subscriber(&STreeAdapter::OnButtonReconnClick, this));
+            auto* pBtnOption = pItem->FindChildByName2<SButton>(L"btn_option");
+            pBtnOption->GetEventSet()->subscribeEvent(EventCmd::EventID, Subscriber(&STreeAdapter::OnButtonOptionClick, this));
+            auto* pBtnStatus = pItem->FindChildByName2<SButton>(L"btn_status");
+            pBtnStatus->GetEventSet()->subscribeEvent(EventCmd::EventID, Subscriber(&STreeAdapter::OnButtonStatusClick, this));
             if (ii.data.c->state == connected)
             {
+                pImg->SetAttribute(L"skin", L"skin_connected");
+                pImg->SetVisible(TRUE);
+                pGif->SetVisible(FALSE);
                 FormatTime(ii.data.c->connected_since, buf);
-                pItem->FindChildByName(L"time")->SetWindowText(buf);
-                pItem->FindChildByName(L"ipaddr")->SetWindowText(ii.data.c->ip);
+                pItem->FindChildByName(L"txt_time")->SetWindowText(buf);
+                pItem->FindChildByName(L"txt_ipaddr")->SetWindowText(ii.data.c->ip);
                 FormatByte(ii.data.c->bytes_in, ii.data.c->bytes_out, buf);
-                pItem->FindChildByName(L"speed")->SetWindowText(buf);
-                pBtn->SetAttribute(L"skin", L"skin_connected");
-
+                pItem->FindChildByName(L"txt_speed")->SetWindowText(buf);
+                pBtnConn->SetVisible(FALSE);
+                pBtnDisconn->SetVisible(TRUE);
+                pBtnReconn->SetVisible(TRUE);
+                pBtnOption->SetVisible(FALSE);
+                pBtnStatus->SetVisible(TRUE);
             }
             else if (ii.data.c->state == connecting)
             {
-                pBtn->SetAttribute(L"skin", L"skin_connecting");
+                pGif->SetVisible(TRUE);
+                pImg->SetVisible(FALSE);
+                pBtnConn->SetVisible(FALSE);
+                pBtnDisconn->SetVisible(TRUE);
+                pBtnReconn->SetVisible(TRUE);
+                pBtnOption->SetVisible(FALSE);
+                pBtnStatus->SetVisible(FALSE);
             }
             else if (ii.data.c->state == disconnected)
             {
-                pItem->FindChildByName(L"time")->SetWindowText(L" ");
-                pItem->FindChildByName(L"ipaddr")->SetWindowText(L" ");
-                pItem->FindChildByName(L"speed")->SetWindowText(L" ");
-                pBtn->SetAttribute(L"skin", L"skin_disconnected");
+                pImg->SetAttribute(L"skin", L"skin_disconnected");
+                pImg->SetVisible(TRUE);
+                pGif->SetVisible(FALSE);
+                pItem->FindChildByName(L"txt_time")->SetWindowText(L"");
+                pItem->FindChildByName(L"txt_ipaddr")->SetWindowText(L"");
+                pItem->FindChildByName(L"txt_speed")->SetWindowText(L"");
+                pBtnConn->SetVisible(TRUE);
+                pBtnDisconn->SetVisible(FALSE);
+                pBtnReconn->SetVisible(FALSE);
+                pBtnOption->SetVisible(TRUE);
+                pBtnStatus->SetVisible(FALSE);
             }
         }
         else
         {
             pItem->FindChildByName(L"hr")->SetVisible(ii.data.gid != 0);
+            pItem->SetUserData(loc);
+            pItem->GetEventSet()->subscribeEvent(EventItemPanelDbclick::EventID, Subscriber(&STreeAdapter::OnItemPanelDbclick, this));
         }
-        pItem->FindChildByName(L"name")->SetWindowText(ii.data.strName);
+        pItem->FindChildByName(L"txt_name")->SetWindowText(ii.data.strName);
         CRect rcItem = m_treeView->GetClientRect();
         pItem->SetAttribute(L"width", std::to_wstring(rcItem.Width()).c_str());
-
     }
 
     STDMETHOD_(int, getViewType)(HSTREEITEM hItem) const override
@@ -102,33 +130,50 @@ public:
     {
         while (HasChildren(STVI_ROOT))
         {
-            DeleteItem(GetFirstChildItem(STVI_ROOT), true);
+            DeleteItem(GetFirstChildItem(STVI_ROOT), false);
         }
+        notifyBranchChanged(STVI_ROOT);
     }
 
     void RefreshItems()
     {
         ItemData data;
         auto* groups = static_cast<HSTREEITEM*>(malloc(o.num_groups * sizeof(HSTREEITEM*)));
-        DeleteItems();
-        for (int i = 1; i < o.num_groups; i++)
+        if (USE_NESTED_CONFIG_MENU)
         {
-            data.bGroup = TRUE;
-            data.gid = o.groups[i].id;
-            data.strName = o.groups[i].name;
-            groups[i] = InsertItem(data);
-            SetItemExpanded(groups[i], TRUE);
+            DeleteItems();
+            groups[0] = STVI_ROOT;
+            for (int i = 1; i < o.num_groups; i++)
+            {
+                if (o.groups[i].active == 0)
+                    continue;
+                data.bGroup = TRUE;
+                data.gid = o.groups[i].id;
+                data.strName = o.groups[i].name;
+                groups[i] = InsertItem(data, groups[o.groups[i].parent]);
+                SetItemExpanded(groups[i], TRUE);
+            }
+            for (connection_t* c = o.chead; c; c = c->next)
+            {
+                data.bGroup = FALSE;
+                data.strName = c->config_name;
+                data.c = c;
+                InsertItem(data, groups[c->group]);
+            }
+            free(groups);
         }
-        for (connection_t* c = o.chead; c; c = c->next)
+        else
         {
-            data.bGroup = FALSE;
-            data.strName = c->config_name;
-            data.strImg = L"skin_connected";
-            data.c = c;
-            InsertItem(data, groups[c->group]);
+            DeleteItems();
+            for (connection_t* c = o.chead; c; c = c->next)
+            {
+                data.bGroup = FALSE;
+                data.strName = c->config_name;
+                data.c = c;
+                InsertItem(data, STVI_ROOT);
+            }
         }
         notifyBranchChanged(STVI_ROOT);
-        free(groups);
     }
 
     STDMETHOD_(int, getViewTypeCount)() const override
@@ -173,18 +218,50 @@ protected:
         swprintf(buf, L"%.1f%hs/%.1f%hs", x1, *s1, x2, *s2);
     }
 public:
-    BOOL OnButtonClick(EventCmd* pEvt)
+    BOOL OnButtonConnClick(EventCmd* pEvt)
     {
-        auto* pBtn = sobj_cast<SImageButton>(pEvt->Sender());
-        ItemInfo & ii = CSTree<SOUI::STreeAdapterBase<ItemData>::ItemInfo>::GetItemRef((HSTREEITEM)pBtn->GetRoot()->GetUserData());
-        if (ii.data.c->state == connected)
+        auto* pBtn = sobj_cast<SButton>(pEvt->Sender());
+        ItemInfo & ii = CSTree<SOUI::STreeAdapterBase<ItemData>::ItemInfo>::GetItemRef(pBtn->GetRoot()->GetUserData());
+        StartOpenVPN(ii.data.c);
+        return true;
+    }
+    BOOL OnButtonDisconnClick(EventCmd* pEvt)
+    {
+        auto* pBtn = sobj_cast<SButton>(pEvt->Sender());
+        ItemInfo & ii = CSTree<SOUI::STreeAdapterBase<ItemData>::ItemInfo>::GetItemRef(pBtn->GetRoot()->GetUserData());
+        StopOpenVPN(ii.data.c);
+        return true;
+    }
+    BOOL OnButtonReconnClick(EventCmd* pEvt)
+    {
+        auto* pBtn = sobj_cast<SButton>(pEvt->Sender());
+        ItemInfo & ii = CSTree<SOUI::STreeAdapterBase<ItemData>::ItemInfo>::GetItemRef(pBtn->GetRoot()->GetUserData());
+        RestartOpenVPN(ii.data.c);
+        return true;
+    }
+    BOOL OnButtonOptionClick(EventCmd* pEvt)
+    {
+
+        return true;
+    }
+    BOOL OnButtonStatusClick(EventCmd* pEvt)
+    {
+
+        return true;
+    }
+    BOOL OnItemPanelDbclick(EventItemPanelDbclick* pEvt)
+    {
+        auto* pItem = sobj_cast<SItemPanel>(pEvt->Sender());
+        auto *pImg = pItem->FindChildByName2<SImageWnd>(L"img_expand");
+        if (this->IsItemExpanded(pItem->GetUserData()))
         {
-            StopOpenVPN(ii.data.c);
+            pImg->SetAttribute(L"iconIndex", L"0");
         }
-        else if (ii.data.c->state == disconnected)
+        else
         {
-            StartOpenVPN(ii.data.c);
+            pImg->SetAttribute(L"iconIndex", L"1");
         }
+        this->ExpandItem(pItem->GetUserData(), TVC_TOGGLE);
         return true;
     }
 protected:

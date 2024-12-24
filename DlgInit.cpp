@@ -135,17 +135,22 @@ DWORD WINAPI DlgInitWindow(HWND hWnd)
     HINSTANCE hInstance = GetModuleHandle(nullptr);
     if (pComMgr == nullptr)
     {
-        //HRESULT hRes = OleInitialize(NULL);
+        HRESULT hRes = OleInitialize(NULL);
         CAutoRefPtr<IResProvider> pResProvider;
         pComMgr = new SComMgr2(GetImgDecoder());
 
         DlgGetRenderFactory(reinterpret_cast<IObjRef**>(&pRenderFactory));
         pComMgr->CreateImgDecoder(reinterpret_cast<IObjRef**>(&pImgDecoderFactory));
         pRenderFactory->SetImgDecoderFactory(pImgDecoderFactory);
-
+        pImgDecoderFactory = nullptr;
         auto* theApp = new SApplication(pRenderFactory, hInstance, _T(PACKAGE_NAME));
+        pRenderFactory = nullptr;
         theApp->RegisterWindowClass<STurn3dView>();
+        theApp->RegisterWindowClass<STabCtrlEx>();
+        theApp->RegisterWindowClass<SGifPlayer>();
+        theApp->RegisterSkinClass<SSkinGif>();
         theApp->RegisterSkinClass<SSkinVScrollbar>();
+        SSkinGif::Gdiplus_Startup();
 
         HMODULE hSysResource = LoadLibrary(SYS_NAMED_RESOURCE);
         if (hSysResource)
@@ -169,7 +174,7 @@ DWORD WINAPI DlgInitWindow(HWND hWnd)
                 pDlgMain->Create(GetActiveWindow(), 0, 0, 300, 600);
                 pDlgMain->SendMessage(WM_INITDIALOG);
                 pDlgMain->CenterWindow(pDlgMain->m_hWnd);
-                pDlgMain->ShowWindow(SW_SHOW);
+                pDlgMain->ShowWindow(SW_SHOWNORMAL);
                 pDlgMain->FindChildByName(_T("turn3d"))->EnableWindow(bCan3DView);
                 DlgInitManagement();
                 nRet = theApp->Run(pDlgMain->m_hWnd);
@@ -179,13 +184,16 @@ DWORD WINAPI DlgInitWindow(HWND hWnd)
                 pDlgMain->ShowWindow(SW_SHOW);
             }
         }
+        theApp->UnregisterWindowClass<SGifPlayer>();
+        delete theApp;
+        SSkinGif::Gdiplus_Shutdown();
     }
     else
     {
         pDlgMain->ShowWindow(SW_SHOW);
-
     }
-
+    delete pComMgr;
+    OleUninitialize();
     return nRet;
 }
 
@@ -235,7 +243,7 @@ void DlgOnLogLine(connection_t* c, char* msg)
     MultiByteToWideChar(CP_UTF8, 0, msg, MAX_NAME, buf, _countof(buf) - 1);
     DbgPrintf(_T("%s(%d): %ls"), _T(__FUNCTION__), __LINE__, buf);
     rtmsg_handler[log_](c, msg);
-    STaskHelper::post(pDlgMain->GetMsgLoop(), pDlgMain, &CMainDlg::OnStateChanged);
+    //STaskHelper::post(pDlgMain->GetMsgLoop(), pDlgMain, &CMainDlg::OnLogLine, msg);
 }
 void DlgOnStateChange(connection_t* c, char* msg)
 {
