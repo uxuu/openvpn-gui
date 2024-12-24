@@ -8,14 +8,14 @@
                         <text valign="middle" colorText="#ffffff">@string/title</text>
                     </caption>
                     <imgbtn animate="1" name="btn_close" pos="-32dp,1dp" skin="_skin.btn.close" tip="close" cursor="hand"/>
-                    <imgbtn animate="1" name="btn_max" pos="-64dp,1dp" skin="_skin.btn.max" cursor="hand"/>
-                    <imgbtn animate="1" name="btn_restore" pos="-64dp,1dp" show="0" skin="_skin.btn.restore" cursor="hand"/>
-                    <imgbtn animate="1" name="btn_min" pos="-96dp,1dp" skin="_skin.btn.min" cursor="hand"/>
-                    <imgbtn animate="1" name="btn_set" pos="-128dp,1dp" skin="_skin.btn.set" cursor="hand"/>
-                    <imgbtn animate="1" name="btn_msg" pos="-160dp,1dp" show="1" skin="_skin.btn.msg" cursor="hand"/>
+                    <imgbtn animate="1" name="btn_max" pos="{-32dp,1dp" display="0" skin="_skin.btn.max" cursor="hand"/>
+                    <imgbtn animate="1" name="btn_restore" pos="{-32dp,1dp" show="0" display="0" skin="_skin.btn.restore" cursor="hand"/>
+                    <imgbtn animate="1" name="btn_min" pos="{-32dp,1dp" skin="_skin.btn.min" cursor="hand"/>
+                    <imgbtn animate="1" name="btn_set" pos="{-32dp,1dp" skin="_skin.btn.set" cursor="hand"/>
+                    <imgbtn animate="1" name="btn_msg" pos="{-32dp,1dp" show="1" display="0" skin="_skin.btn.msg" cursor="hand"/>
                 </caption>
                 <caption pos="0dp,[0dp,-0,-45dp" colorBkgnd="#ffffff"  margin="1dp,0dp">
-                    <tabctrl name="tab_main" pos="0,0,-0,-0" tabHeight="0">
+                    <tabctrlex name="tab_main" pos="0,0,-0,-0" tabHeight="0">
                         <page title="page_home">
                             <include src="LAYOUT:page_home"/>
                         </page>
@@ -25,13 +25,15 @@
                         <page title="page_detail">
                             <include src="LAYOUT:page_detail"/>
                         </page>
-                        <page title="page_config">
+                        <page title="page_option">
                             <include src="LAYOUT:page_option"/>
                         </page>
-                        <page title="page_option">
-
-                        </page>
-                    </tabctrl>
+                        <pageTemplate>
+                            <page>
+                                <include src="LAYOUT:page_detail"/>
+                            </page>
+                        </pageTemplate>
+                    </tabctrlex>
                 </caption>
                 <caption pos="0,-45dp,-0,-0" colorBkgnd="#ffffff" margin="1dp,0dp,1dp,1dp">
                     <imgbtn animate="1" skin="btn_bottom" name="btn_home" pos="0,0,%25,-0" mouseRelay="1" text="home" enable="0" cursor="hand"/>

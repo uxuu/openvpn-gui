@@ -8,8 +8,11 @@
     <imglist name="_skin.btn.msg" src="IMG:ID_MENU_BTN_MSG" states="3" vertical="1"/>
     <imglist name="_skin.btn.set" src="IMG:ID_MENU_BTN_SET" states="3" vertical="1"/>
     <imglist name="btn_bottom" src="IMG:ID_BTN_BOTTOM" states="3"/>
-    <imglist name="skin_connected" src="PNG:IMG_CONNECTED" states="3"/>
-    <imglist name="skin_connecting" src="PNG:IMG_CONNECTING" states="3"/>
-    <imglist name="skin_disconnected" src="PNG:IMG_DISCONNECTED" states="3"/>
-    <vscrollbar name="skin_vscroll" src="PNG:IDB_PNG_VSCROLL" states="1" margin="3"/>
+    <imglist name="btn_send" src="IMG:ID_BTN_SEND" states="4"/>
+    <imglist name="skin_list_icons" src="PNG:IMG_LIST_ICONS" states="9"/>
+    <scrollbar name="skin_scrollbar" src="PNG:PNG_SCROLLBAR" margin="3" hasgripper="1"/>
+    <imglist name="skin_folder" src="PNG:PNG_FOLDER" states="2"/>
+    <gif name="skin_connecting" src="IMG:ID_GIF_CONNECTING" />
+    <imglist name="skin_connected" src="PNG:PNG_CONNECTED" states="1" />
+    <imglist name="skin_disconnected" src="PNG:PNG_DISCONNECTED" states="1" />
 </skin>

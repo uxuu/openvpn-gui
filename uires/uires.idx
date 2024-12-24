@@ -27,12 +27,16 @@
         <file name="ID_MENU_BTN_MSG" path="image\menubtn_msg_non.png"/>
         <file name="ID_MENU_BTN_SET" path="image\menubtn_set.png"/>
         <file name="ID_BTN_BOTTOM" path="image\btn_bottom.png" />
+        <file name="ID_BTN_SEND" path="image\send.png" />
+        <file name="ID_GIF_CONNECTING" path="image\connecting.gif" />
     </IMG>
     <PNG>
-        <file name="IMG_CONNECTED" path="image\connected48.png" />
-        <file name="IMG_CONNECTING" path="image\connecting48.png" />
-        <file name="IMG_DISCONNECTED" path="image\disconnected48.png" />
-        <file name="IDB_PNG_VSCROLL" path="image\vscrollbar.png" />
+        <file name="IMG_LIST_ICONS" path="image\list_icons.png" />
+        <file name="PNG_VSCROLL" path="image\vscrollbar.png" />
+        <file name="PNG_SCROLLBAR" path="image\scrollbar.png" />
+        <file name="PNG_FOLDER" path="image\folder.png" />
+        <file name="PNG_CONNECTED" path="image\connected.png" />
+        <file name="PNG_DISCONNECTED" path="image\disconnected.png" />
     </PNG>
     <ICON>
         <file name="ICON_LOGO" path="image\logo.ico"/>
