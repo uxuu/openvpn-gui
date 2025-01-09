@@ -9,6 +9,8 @@ extern "C"{
     void DlgShowWindow(bool bTrue);
     void DlgShowPage(LPCTSTR pszName, BOOL bTitle);
     void DlgInitManagement();
+    int DlgInitStatusPage(connection_t* c);
+    int DlgRemoveStatusPage(connection_t* c);
 
     void DlgOnReady(connection_t*, char*);
     void DlgOnHold(connection_t*, char*);

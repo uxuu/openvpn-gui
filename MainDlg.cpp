@@ -89,29 +89,35 @@ void CMainDlg::OnStateChanged()
     RefreshTree();
 }
 
-void CMainDlg::OnLogLine(char *msg)
+void CMainDlg::OnLogLine(int iId, char *msg)
 {
-    char *flags, *message;
     time_t timestamp;
+    TCHAR pageName[16];
     wchar_t datetime[24];
     const SETTEXTEX ste = {ST_SELECTION, CP_UTF8 };
-
-    auto* pLogWnd = FindChildByName2<SRichEdit>(L"log_viewer");
+    _stprintf_s(pageName, _countof(pageName), _T("page_%08x"), iId);
+    auto* pTab = FindChildByName2<STabCtrlEx>(L"tab_main");
+    auto* pPage = pTab->GetPage(pageName, TRUE);
+    if (!pPage)
+    {
+        goto exit;
+    }
+    auto* pLogWnd = pPage->FindChildByName2<SRichEdit>(L"log_viewer");
     if (!pLogWnd)
     {
-        return;
+        goto exit;
     }
 
-    flags = strchr(msg, ',') + 1;
+    char *flags = strchr(msg, ',') + 1;
     if (flags - 1 == nullptr)
     {
-        return;
+        goto exit;
     }
 
-    message = strchr(flags, ',') + 1;
+    char *message = strchr(flags, ',') + 1;
     if (message - 1 == nullptr)
     {
-        return;
+        goto exit;
     }
     size_t flag_size = message - flags - 1; /* message is always > flags */
 
@@ -164,6 +170,43 @@ void CMainDlg::OnLogLine(char *msg)
 
     /* scroll to the caret */
     pLogWnd->SSendMessage(EM_SCROLLCARET, 0, 0);
+exit:
+    free(msg);
+}
+
+int CMainDlg::OnInitStatusPage(int iId)
+{
+    TCHAR pageName[16];
+    _stprintf_s(pageName, _countof(pageName), _T("page_%08x"), iId);
+    auto* pTab = FindChildByName2<STabCtrlEx>(L"tab_main");
+    int nIndex = pTab->GetPageIndex(pageName, TRUE);
+    if (nIndex >= 0)
+    {
+        ShowPage(nIndex);
+        return nIndex;
+    }
+    nIndex = pTab->InsertItem();
+    pTab->SetItemTitle(nIndex, pageName);
+    ShowPage(nIndex);
+    return nIndex;
+}
+
+int CMainDlg::OnRemoveStatusPage(int iId)
+{
+    TCHAR pageName[16];
+    _stprintf_s(pageName, _countof(pageName), _T("page_%08x"), iId);
+    auto* pTab = FindChildByName2<STabCtrlEx>(L"tab_main");
+    int nIndex = pTab->GetPageIndex(pageName, TRUE);
+    if (nIndex >= 0)
+    {
+        if (pTab->GetCurSel() == nIndex)
+        {
+            ShowPage(_T("page_home"));
+        }
+        pTab->RemoveItem(nIndex);
+        return nIndex;
+    }
+    return -1;
 }
 
 void CMainDlg::OnHotKey(int nHotKeyID, UINT uModifiers, UINT uVirtKey)
@@ -264,8 +307,11 @@ void CMainDlg::OnCommand2( UINT uNotifyCode, int nID, HWND wndCtl )
         case 23:
             ImportConfigFromURL();
             break;
-        case 9:
+        case 10:
             SendMessage(WM_SYSCOMMAND, SC_CLOSE);
+            break;
+        case 9:
+            ShowPage(_T("page_about"));
             break;
         case 8:
             ShowSettingsDialog();

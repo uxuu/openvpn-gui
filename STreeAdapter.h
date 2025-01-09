@@ -67,6 +67,9 @@ public:
             pBtnOption->GetEventSet()->subscribeEvent(EventCmd::EventID, Subscriber(&STreeAdapter::OnButtonOptionClick, this));
             auto* pBtnStatus = pItem->FindChildByName2<SButton>(L"btn_status");
             pBtnStatus->GetEventSet()->subscribeEvent(EventCmd::EventID, Subscriber(&STreeAdapter::OnButtonStatusClick, this));
+            auto* pBtnLogview = pItem->FindChildByName2<SButton>(L"btn_logview");
+            pBtnLogview->GetEventSet()->subscribeEvent(EventCmd::EventID, Subscriber(&STreeAdapter::OnButtonLogviewClick, this));
+
             if (ii.data.c->state == connected)
             {
                 pImg->SetAttribute(L"skin", L"skin_connected");
@@ -82,6 +85,7 @@ public:
                 pBtnReconn->SetVisible(TRUE);
                 pBtnOption->SetVisible(FALSE);
                 pBtnStatus->SetVisible(TRUE);
+                pBtnLogview->SetVisible(FALSE);
             }
             else if (ii.data.c->state == connecting)
             {
@@ -92,6 +96,7 @@ public:
                 pBtnReconn->SetVisible(TRUE);
                 pBtnOption->SetVisible(FALSE);
                 pBtnStatus->SetVisible(FALSE);
+                pBtnLogview->SetVisible(FALSE);
             }
             else if (ii.data.c->state == disconnected)
             {
@@ -106,6 +111,7 @@ public:
                 pBtnReconn->SetVisible(FALSE);
                 pBtnOption->SetVisible(TRUE);
                 pBtnStatus->SetVisible(FALSE);
+                pBtnLogview->SetVisible(TRUE);
             }
         }
         else
@@ -245,6 +251,11 @@ public:
         return true;
     }
     BOOL OnButtonStatusClick(EventCmd* pEvt)
+    {
+
+        return true;
+    }
+    BOOL OnButtonLogviewClick(EventCmd* pEvt)
     {
 
         return true;

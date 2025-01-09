@@ -14,7 +14,7 @@
                     <imgbtn animate="1" name="btn_set" pos="{-32dp,1dp" skin="_skin.btn.set" cursor="hand"/>
                     <imgbtn animate="1" name="btn_msg" pos="{-32dp,1dp" show="1" display="0" skin="_skin.btn.msg" cursor="hand"/>
                 </caption>
-                <caption pos="0dp,[0dp,-0,-45dp" colorBkgnd="#ffffff"  margin="1dp,0dp">
+                <caption pos="0dp,[0dp,-0,-0dp" colorBkgnd="#ffffff"  margin="1dp, 0, 1dp, 1dp">
                     <tabctrlex name="tab_main" pos="0,0,-0,-0" tabHeight="0">
                         <page title="page_home">
                             <include src="LAYOUT:page_home"/>
@@ -22,8 +22,11 @@
                         <page title="page_login">
                             <include src="LAYOUT:page_login"/>
                         </page>
+                        <page title="page_about">
+                            <include src="LAYOUT:page_about"/>
+                        </page>
                         <page title="page_detail">
-                            <include src="LAYOUT:page_detail"/>
+
                         </page>
                         <page title="page_option">
                             <include src="LAYOUT:page_option"/>
@@ -35,7 +38,7 @@
                         </pageTemplate>
                     </tabctrlex>
                 </caption>
-                <caption pos="0,-45dp,-0,-0" colorBkgnd="#ffffff" margin="1dp,0dp,1dp,1dp">
+                <caption pos="0,-45dp,-0,-0" colorBkgnd="#ffffff" margin="1dp,0dp,1dp,1dp" show="0" display="0">
                     <imgbtn animate="1" skin="btn_bottom" name="btn_home" pos="0,0,%25,-0" mouseRelay="1" text="home" enable="0" cursor="hand"/>
                     <imgbtn animate="1" skin="btn_bottom" name="btn_login" pos="%25,0,%50,-0" mouseRelay="1" text="login" cursor="hand"/>
                     <imgbtn animate="1" skin="btn_bottom" name="btn_detail" pos="%50,0,%75,-0" mouseRelay="1" text="detail" cursor="hand"/>
