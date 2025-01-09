@@ -47,6 +47,9 @@
 #include "tray.h"
 #include "main.h"
 #include "openvpn.h"
+
+#include <common.h>
+
 #include "openvpn_config.h"
 #include "openvpn-gui-res.h"
 #include "options.h"
@@ -62,6 +65,7 @@
 #include "pkcs11.h"
 #include "service.h"
 
+#include "DlgInit.h"
 #define OPENVPN_SERVICE_PIPE_NAME_OVPN2 L"\\\\.\\pipe\\openvpn\\service"
 #define OPENVPN_SERVICE_PIPE_NAME_OVPN3 L"\\\\.\\pipe\\ovpnagent"
 
@@ -121,8 +125,10 @@ void
 OnReady(connection_t *c, UNUSED char *msg)
 {
     ManagementCommand(c, "state on", NULL, regular);
-    ManagementCommand(c, "log on all", OnLogLine, combined);
-    ManagementCommand(c, "echo on all", OnEcho, combined);
+    //ManagementCommand(c, "log on all", OnLogLine, combined);
+    ManagementCommand(c, "log on all", DlgOnLogLine, combined);
+    //ManagementCommand(c, "echo on all", OnEcho, combined);
+    ManagementCommand(c, "echo on all", DlgOnEcho, combined);
     ManagementCommand(c, "bytecount 5", NULL, regular);
 
     /* ask for the current state, especially useful when the daemon was prestarted */
@@ -2225,9 +2231,10 @@ StatusDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
                               __func__, __LINE__, GetLastError());
                 DisconnectDaemon(c);
                 DestroyWindow(hwndDlg);
+                DlgRemoveStatusPage(c);
                 break;
             }
-
+            DlgInitStatusPage(c);
             /* Create log window */
             HWND hLogWnd = CreateWindowEx(0, RICHEDIT_CLASS, NULL,
                                           WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL|ES_SUNKEN|ES_LEFT
@@ -2310,6 +2317,7 @@ StatusDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
                     else
                     {
                         DestroyWindow(hwndDlg);
+                        DlgRemoveStatusPage(c);
                     }
                     return TRUE;
 
@@ -2341,6 +2349,7 @@ StatusDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
             else
             {
                 DestroyWindow(hwndDlg);
+                DlgRemoveStatusPage(c);
             }
             return TRUE;
 

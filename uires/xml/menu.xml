@@ -6,7 +6,8 @@
     <item id="23" icon="2">从URL导入...</item>
   </item>
   <item id="7">刷新(&R)</item>
-  <item id="8">选项(&S)...</item>
+  <item id="8">选项(&S)</item>
+  <item id="9">关于(&A)</item>
   <sep/>
-  <item id="9">退出(&X)</item>
+  <item id="10">退出(&X)</item>
 </menu>

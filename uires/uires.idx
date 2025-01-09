@@ -9,6 +9,7 @@
     <LAYOUT>
         <file name="XML_MAINWND" path="xml\dlg_main.xml"/>
         <file name="PAGE_HOME" path="xml\page_home.xml"/>
+        <file name="PAGE_ABOUT" path="xml\page_about.xml"/>
         <file name="PAGE_LOGIN" path="xml\page_login.xml"/>
         <file name="PAGE_DETAIL" path="xml\page_detail.xml"/>
         <file name="PAGE_OPTION" path="xml\page_option.xml"/>

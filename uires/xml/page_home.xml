@@ -9,7 +9,7 @@
             <template>
                 <item_group focusable="0" layout="vbox" size="-2, 24dp" colorSelected="#ffffff" colorHover="#ffffff">
                     <hr name="hr" height="1dp" width="-2" margin="0,0,0,0" colorLine="#c9c7c6" show="0" />
-                    <caption size="-2, -1" gravity="center" layout="hbox" colorBkgnd="#cccccc">
+                    <caption size="-2, -1" gravity="center" layout="hbox" colorBkgnd="#cdcccc">
                         <img extend_left="4dp" name="img_expand" skin="skin_folder" iconIndex="1"/>
                         <text extend_left="4dp" extend_right="12dp" size="-2, 23dp" valign="middle" name="txt_name" dotted="1"/>
                     </caption>
@@ -31,12 +31,13 @@
                     <caption size="-2, -1">
                         <button pos="-0dp, 0, 0, @15dp" visible="0"/>
                         <button pos="{-31dp, 0, @30dp, @-1" skin="btn_send" mouseRelay="1" text="状态" colorText="#70aeff" display="0" name="btn_status" />
+                        <button pos="{-31dp, 0, @30dp, @-1" skin="btn_send" mouseRelay="1" text="日志" colorText="#70aeff" display="0" name="btn_logview" />
                         <button pos="{-31dp, 0, @30dp, @-1" skin="btn_send" mouseRelay="1" text="选项" colorText="#70aeff" display="0" name="btn_option" />
                         <button pos="{-31dp, 0, @30dp, @-1" skin="btn_send" mouseRelay="1" text="断开" colorText="#cc0000" display="0" name="btn_disconn" />
                         <button pos="{-31dp, 0, @30dp, @-1" skin="btn_send" mouseRelay="1" text="连接" colorText="#02ce01" display="0" name="btn_conn" />
                         <button pos="{-31dp, 0, @30dp, @-1" skin="btn_send" mouseRelay="1" text="重连" colorText="#d4a954" display="0" name="btn_reconn" />
                     </caption>
-                    <hr name="hr" height="1dp" width="-2" lineSize="1dp" colorLine="#c9c7c6" lineStyle="dash" clipClient="1" />
+                    <hr name="hr" height="1dp" width="-2" lineSize="1dp" colorLine="#0694F3" lineStyle="dash" clipClient="1" />
                 </item_data>
             </template>
         </treeview>

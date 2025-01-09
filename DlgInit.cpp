@@ -202,6 +202,21 @@ void DlgShowPage(LPCTSTR pszName, BOOL bTitle)
     pDlgMain->ShowPage(pszName, bTitle);
 }
 
+int DlgInitStatusPage(connection_t* c)
+{
+    //STaskHelper::post(pDlgMain->GetMsgLoop(), pDlgMain, &CMainDlg::OnInitStatusPage, c->id);
+    STaskHelper::sendTask(pDlgMain, pDlgMain, &CMainDlg::OnInitStatusPage, c->id);
+    return 0;
+}
+
+int DlgRemoveStatusPage(connection_t* c)
+{
+    TCHAR buf[MAX_NAME];
+    _stprintf_s(buf, _countof(buf), _T("page_%08x"), c->id);
+    STaskHelper::post(pDlgMain->GetMsgLoop(), pDlgMain, &CMainDlg::OnRemoveStatusPage, c->id);
+    return 0;
+}
+
 void DlgInitManagement()
 {
     mgmt_rtmsg_handler handler[] = {
@@ -243,7 +258,10 @@ void DlgOnLogLine(connection_t* c, char* msg)
     MultiByteToWideChar(CP_UTF8, 0, msg, MAX_NAME, buf, _countof(buf) - 1);
     DbgPrintf(_T("%s(%d): %ls"), _T(__FUNCTION__), __LINE__, buf);
     rtmsg_handler[log_](c, msg);
-    //STaskHelper::post(pDlgMain->GetMsgLoop(), pDlgMain, &CMainDlg::OnLogLine, msg);
+    char *message = static_cast<char*>(malloc(256));
+    memcpy(message,  msg, 256);
+    STaskHelper::post(pDlgMain->GetMsgLoop(), pDlgMain, &CMainDlg::OnLogLine, c->id, message);
+    //STaskHelper::sendTask(pDlgMain, pDlgMain, &CMainDlg::OnLogLine, c->id, msg);
 }
 void DlgOnStateChange(connection_t* c, char* msg)
 {
