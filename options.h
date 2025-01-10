@@ -35,6 +35,7 @@ typedef struct connection connection_t;
 #include "manage.h"
 #include "echo.h"
 #include "pkcs11.h"
+#include "mempool.h"
 
 #define MAX_NAME (UNLEN + 1)
 
@@ -151,6 +152,7 @@ struct connection {
         size_t saved_size;
         mgmt_cmd_t *cmd_queue;
         DWORD connected;             /* 1: management interface connected, 2: connected and ready */
+        mempool_t mempool;
     } manage;
 
     HANDLE hProcess;                /* Handle of openvpn process if directly started */
