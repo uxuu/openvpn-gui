@@ -100,24 +100,24 @@ void CMainDlg::OnLogLine(int iId, char *msg)
     auto* pPage = pTab->GetPage(pageName, TRUE);
     if (!pPage)
     {
-        goto exit;
+        return;
     }
     auto* pLogWnd = pPage->FindChildByName2<SRichEdit>(L"log_viewer");
     if (!pLogWnd)
     {
-        goto exit;
+        return;
     }
 
     char *flags = strchr(msg, ',') + 1;
     if (flags - 1 == nullptr)
     {
-        goto exit;
+        return;
     }
 
     char *message = strchr(flags, ',') + 1;
     if (message - 1 == nullptr)
     {
-        goto exit;
+        return;
     }
     size_t flag_size = message - flags - 1; /* message is always > flags */
 
@@ -170,8 +170,6 @@ void CMainDlg::OnLogLine(int iId, char *msg)
 
     /* scroll to the caret */
     pLogWnd->SSendMessage(EM_SCROLLCARET, 0, 0);
-exit:
-    free(msg);
 }
 
 int CMainDlg::OnInitStatusPage(int iId)

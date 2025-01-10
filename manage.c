@@ -267,25 +267,28 @@ OnManagement(SOCKET sk, LPARAM lParam)
                 return;
             }
 
-            data = malloc(c->manage.saved_size + data_size);
-            if (data == NULL)
+            size_t node_count = RING_NEED(c->manage.saved_size + data_size);
+            if (node_count > c->manage.buffer.size)
             {
-                return;
+                RING_REINIT(c->manage.buffer, node_count);
+            }
+            RING_NEXT(c->manage.buffer, node_count);
+            data = c->manage.buffer.ring[c->manage.buffer.head];
+            if (c->manage.saved_size && data != c->manage.saved_data)
+            {
+                memcpy(data, c->manage.saved_data, c->manage.saved_size);
             }
 
             res = recv(c->manage.sk, data + c->manage.saved_size, data_size, 0);
             if (res != (int) data_size)
             {
-                free(data);
                 return;
             }
 
             /* Copy previously saved management data */
             if (c->manage.saved_size)
             {
-                memcpy(data, c->manage.saved_data, c->manage.saved_size);
                 data_size += c->manage.saved_size;
-                free(c->manage.saved_data);
                 c->manage.saved_data = NULL;
                 c->manage.saved_size = 0;
             }
@@ -312,12 +315,14 @@ OnManagement(SOCKET sk, LPARAM lParam)
 
                 if (pos == NULL)
                 {
-                    c->manage.saved_data = malloc(line_size);
-                    if (c->manage.saved_data)
+                    node_count = RING_NEED(line_size);
+                    if (node_count + c->manage.buffer.next > c->manage.buffer.size)
                     {
+                        c->manage.buffer.next = 0;
+                    }
+                    c->manage.saved_data = c->manage.buffer.ring[c->manage.buffer.next];
                         c->manage.saved_size = line_size;
                         memcpy(c->manage.saved_data, line, c->manage.saved_size);
-                    }
                     break;
                 }
 
@@ -481,7 +486,7 @@ OnManagement(SOCKET sk, LPARAM lParam)
                     }
                 }
             }
-            free(data);
+
             break;
 
         case FD_WRITE:
