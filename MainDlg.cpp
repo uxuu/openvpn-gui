@@ -172,6 +172,70 @@ void CMainDlg::OnLogLine(int iId, char *msg)
     pLogWnd->SSendMessage(EM_SCROLLCARET, 0, 0);
 }
 
+void CMainDlg::OnWriteStatusLog(int iId, LPCWSTR prefix, LPCWSTR msg)
+{
+    time_t now;
+    TCHAR pageName[16];
+    wchar_t datetime[24];
+    const SETTEXTEX ste = {ST_SELECTION, CP_UTF8 };
+    _stprintf_s(pageName, _countof(pageName), _T("page_%08x"), iId);
+    auto* pTab = FindChildByName2<STabCtrlEx>(L"tab_main");
+    auto* pPage = pTab->GetPage(pageName, TRUE);
+    if (!pPage)
+    {
+        return;
+    }
+    auto* pLogWnd = pPage->FindChildByName2<SRichEdit>(L"log_viewer");
+    if (!pLogWnd)
+    {
+        return;
+    }
+
+    now = time(nullptr);
+    struct tm *tm = localtime(&now);
+
+    wsprintf(datetime, L"%04d-%02d-%02d %02d:%02d:%02d ",
+               tm->tm_year+1900, tm->tm_mon+1, tm->tm_mday,
+               tm->tm_hour, tm->tm_min, tm->tm_sec);
+    /* change text color if Warning or Error */
+    COLORREF text_clr = 0;
+
+    if (wcsstr(prefix, L"ERROR"))
+    {
+        text_clr = o.clr_error;
+    }
+    else if (wcsstr(prefix, L"WARNING"))
+    {
+        text_clr = o.clr_warning;
+    }
+
+    if (text_clr != 0)
+    {
+        CHARFORMAT cfm = { sizeof(CHARFORMAT),
+                           CFM_COLOR|CFM_BOLD,
+                           0,
+                            0,
+                             0,
+                           text_clr,
+        };
+        pLogWnd->SSendMessage(EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM) &cfm);
+    }
+
+
+    /* Remove lines from log window if it is getting full */
+    if (pLogWnd->SSendMessage(EM_GETLINECOUNT, 0, 0) > MAX_LOG_LINES)
+    {
+        int pos = pLogWnd->SSendMessage(EM_LINEINDEX, DEL_LOG_LINES, 0);
+        pLogWnd->SSendMessage(EM_SETSEL, 0, pos);
+        pLogWnd->SSendMessage(EM_REPLACESEL, FALSE, (LPARAM) _T(""));
+    }
+    /* Append line to log window */
+    pLogWnd->SSendMessage(EM_SETSEL, (WPARAM) -1, (LPARAM) -1);
+    pLogWnd->SSendMessage(EM_REPLACESEL, FALSE, (LPARAM) datetime);
+    pLogWnd->SSendMessage(EM_REPLACESEL, FALSE, (LPARAM) prefix);
+    pLogWnd->SSendMessage(EM_REPLACESEL, FALSE, (LPARAM) msg);
+    pLogWnd->SSendMessage(EM_REPLACESEL, FALSE, (LPARAM) L"\n");
+}
 int CMainDlg::OnInitStatusPage(int iId)
 {
     TCHAR pageName[16];
@@ -189,7 +253,7 @@ int CMainDlg::OnInitStatusPage(int iId)
     return nIndex;
 }
 
-int CMainDlg::OnRemoveStatusPage(int iId)
+int CMainDlg::OnUninitStatusPage(int iId)
 {
     TCHAR pageName[16];
     _stprintf_s(pageName, _countof(pageName), _T("page_%08x"), iId);

@@ -543,3 +543,16 @@ RunProgressDialog(connection_t *c, PFTASKDIALOGCALLBACK cb_fn, LONG_PTR cb_data)
     TaskDialogIndirect(&taskcfg, &button_clicked, NULL, NULL);
     return button_clicked;
 }
+
+int DlgInitStatusPage(connection_t* c)
+{
+    return 0;
+}
+int DlgReleaseStatusPage(connection_t* c)
+{
+    return 0;
+}
+void DlgOnWriteStatusLog(connection_t *c, const WCHAR *prefix, const WCHAR *line)
+{
+
+}

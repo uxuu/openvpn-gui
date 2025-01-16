@@ -10,7 +10,7 @@ extern "C"{
     void DlgShowPage(LPCTSTR pszName, BOOL bTitle);
     void DlgInitManagement();
     int DlgInitStatusPage(connection_t* c);
-    int DlgRemoveStatusPage(connection_t* c);
+    int DlgReleaseStatusPage(connection_t* c);
 
     void DlgOnReady(connection_t*, char*);
     void DlgOnHold(connection_t*, char*);
@@ -24,7 +24,8 @@ extern "C"{
     void DlgOnByteCount(connection_t*, char*);
     void DlgOnInfoMsg(connection_t*, char*);
     void DlgOnTimeout(connection_t*, char*);
-    void DlgOnProxy(connection_t* c, char* line);
+    void DlgOnProxy(connection_t*, char* );
+    void DlgOnWriteStatusLog(connection_t *, LPCWSTR, LPCWSTR);
 
 #ifdef __cplusplus
 }

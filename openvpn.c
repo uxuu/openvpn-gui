@@ -70,6 +70,7 @@
 #define OPENVPN_SERVICE_PIPE_NAME_OVPN3 L"\\\\.\\pipe\\ovpnagent"
 
 extern options_t o;
+extern mgmt_msg_func rtmsg_handler[mgmt_rtmsg_type_max];
 
 static BOOL TerminateOpenVPN(connection_t *c);
 
@@ -126,9 +127,9 @@ OnReady(connection_t *c, UNUSED char *msg)
 {
     ManagementCommand(c, "state on", NULL, regular);
     //ManagementCommand(c, "log on all", OnLogLine, combined);
-    ManagementCommand(c, "log on all", DlgOnLogLine, combined);
+    ManagementCommand(c, "log on all", rtmsg_handler[log_], combined);
     //ManagementCommand(c, "echo on all", OnEcho, combined);
-    ManagementCommand(c, "echo on all", DlgOnEcho, combined);
+    ManagementCommand(c, "echo on all", rtmsg_handler[echo_], combined);
     ManagementCommand(c, "bytecount 5", NULL, regular);
 
     /* ask for the current state, especially useful when the daemon was prestarted */
@@ -1763,6 +1764,7 @@ WriteStatusLog(connection_t *c, const WCHAR *prefix, const WCHAR *line, BOOL fil
     WCHAR datetime[26];
 
     time(&now);
+    DlgOnWriteStatusLog(c, prefix, line);
     /* TODO: change this to use _wctime_s when mingw supports it */
     wcsncpy(datetime, _wctime(&now), _countof(datetime));
     datetime[24] = L' ';
@@ -2231,10 +2233,8 @@ StatusDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
                               __func__, __LINE__, GetLastError());
                 DisconnectDaemon(c);
                 DestroyWindow(hwndDlg);
-                DlgRemoveStatusPage(c);
                 break;
             }
-            DlgInitStatusPage(c);
             /* Create log window */
             HWND hLogWnd = CreateWindowEx(0, RICHEDIT_CLASS, NULL,
                                           WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL|ES_SUNKEN|ES_LEFT
@@ -2317,7 +2317,6 @@ StatusDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
                     else
                     {
                         DestroyWindow(hwndDlg);
-                        DlgRemoveStatusPage(c);
                     }
                     return TRUE;
 
@@ -2349,7 +2348,7 @@ StatusDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
             else
             {
                 DestroyWindow(hwndDlg);
-                DlgRemoveStatusPage(c);
+                //DlgUninitStatusPage(c);
             }
             return TRUE;
 
@@ -2463,6 +2462,7 @@ ThreadOpenVPNStatus(void *p)
     conn_name[_tcslen(conn_name) - _tcslen(o.ext_string) - 1] = _T('\0');
 
     /* Create and Show Status Dialog */
+    DlgInitStatusPage(c);
     c->hwndStatus = CreateLocalizedDialogParam(ID_DLG_STATUS, StatusDialogFunc, (LPARAM) c);
     if (!c->hwndStatus)
     {
@@ -2549,6 +2549,7 @@ ThreadOpenVPNStatus(void *p)
         }
     }
 
+    DlgReleaseStatusPage(c);
     /* release handles etc.*/
     Cleanup(c);
     c->hwndStatus = NULL;

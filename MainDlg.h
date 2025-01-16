@@ -36,8 +36,9 @@ public:
     void RefreshTree();
     STDMETHOD_(void, OnStateChanged)(THIS_);
     STDMETHOD_(void, OnLogLine)(THIS_ int iId, char *msg);
+    STDMETHOD_(void, OnWriteStatusLog)(THIS_ int iId, LPCWSTR prefix, LPCWSTR msg);
     STDMETHOD_(int, OnInitStatusPage)(THIS_ int iId);
-    STDMETHOD_(int, OnRemoveStatusPage)(THIS_ int iId);
+    STDMETHOD_(int, OnUninitStatusPage)(THIS_ int iId);
 
 
 protected:
