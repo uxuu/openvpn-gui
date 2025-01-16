@@ -205,17 +205,15 @@ void DlgShowPage(LPCTSTR pszName, BOOL bTitle)
 int DlgInitStatusPage(connection_t* c)
 {
     RING_INIT(c->manage.buffer, 64);
-    //STaskHelper::post(pDlgMain->GetMsgLoop(), pDlgMain, &CMainDlg::OnInitStatusPage, c->id);
     STaskHelper::sendTask(pDlgMain, pDlgMain, &CMainDlg::OnInitStatusPage, c->id);
     return 0;
 }
 
-int DlgRemoveStatusPage(connection_t* c)
+int DlgUninitStatusPage(connection_t* c)
 {
     TCHAR buf[MAX_NAME];
     _stprintf_s(buf, _countof(buf), _T("page_%08x"), c->id);
-    STaskHelper::post(pDlgMain->GetMsgLoop(), pDlgMain, &CMainDlg::OnRemoveStatusPage, c->id);
-    RING_FREE(c->manage.buffer);
+    STaskHelper::sendTask(pDlgMain, pDlgMain, &CMainDlg::OnUninitStatusPage, c->id);
     return 0;
 }
 
@@ -336,4 +334,10 @@ void DlgOnTimeout(connection_t* c, char* msg)
     MultiByteToWideChar(CP_UTF8, 0, msg, MAX_NAME, buf, _countof(buf) - 1);
     DbgPrintf(_T("%s(%d): %ls"), _T(__FUNCTION__), __LINE__, buf);
     rtmsg_handler[timeout_](c, msg);
+}
+
+void DlgOnWriteStatusLog(connection_t *c, LPCWSTR prefix, LPCWSTR msg)
+{
+    DbgPrintf(_T("%s(%d): %ls%ls"), _T(__FUNCTION__), __LINE__, prefix, msg);
+    STaskHelper::sendTask(pDlgMain, pDlgMain, &CMainDlg::OnWriteStatusLog, c->id, prefix,  msg);
 }

@@ -143,11 +143,11 @@ if (${CLI_OVPN3})
         ENABLE_OVPN3)
 endif ()
 
-add_custom_command(
-        TARGET ${PROJECT_NAME}
-        PRE_BUILD
-        COMMAND ${SOUI_ROOT}/tools/uiresbuilder.exe -i ..\\uires\\uires.idx -p uires -r ..\\res\\soui_res.rc2
-)
+#add_custom_command(
+#        TARGET ${PROJECT_NAME}
+#        PRE_BUILD
+#        COMMAND ${SOUI_ROOT}/tools/uiresbuilder.exe -i ..\\uires\\uires.idx -p uires -r ..\\res\\soui_res.rc2
+#)
 
 if (NOT PROJECT_NAME_PLAP)
     set(PROJECT_NAME_PLAP "libopenvpn_plap")

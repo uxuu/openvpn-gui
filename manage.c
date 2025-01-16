@@ -34,7 +34,7 @@
 
 extern options_t o;
 
-static mgmt_msg_func rtmsg_handler[mgmt_rtmsg_type_max];
+mgmt_msg_func rtmsg_handler[mgmt_rtmsg_type_max];
 
 /*
  * Number of seconds to try connecting to management interface
@@ -521,5 +521,6 @@ CloseManagement(connection_t *c)
         {
         }
         WSACleanup();
+        RING_FREE(c->manage.buffer);
     }
 }
