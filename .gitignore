@@ -33,6 +33,7 @@ libtool
 ltmain.sh
 missing
 
+res/soui_res.rc2
 plap/credentialprovider.h
 
 .vs
