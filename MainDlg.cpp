@@ -35,13 +35,13 @@ void CMainDlg::OnClose()
     CloseApplication(m_hWnd2, true);
 }
 
-int CMainDlg::OnCreate2(LPCREATESTRUCT lpCreateStruct)
+int CMainDlg::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
     SetMsgHandled(FALSE);
     return 0;
 }
 
-void CMainDlg::OnDestroy2()
+void CMainDlg::OnDestroy()
 {
     SetMsgHandled(FALSE);
 }

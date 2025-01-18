@@ -13,8 +13,8 @@ public:
     ~CMainDlg() override;
 
     void OnClose();
-    int OnCreate2(LPCREATESTRUCT lpCreateStruct);
-    void OnDestroy2();
+    int OnCreate(LPCREATESTRUCT lpCreateStruct);
+    void OnDestroy();
     void OnShowWindow(BOOL bShow, UINT nStatus);
     BOOL OnInitDialog(HWND wndFocus, LPARAM lInitParam);
     void OnCommand2(UINT uNotifyCode, int nID, HWND wndCtl);
@@ -58,8 +58,8 @@ protected:
 
     BEGIN_MSG_MAP_EX(CMainDlg)
         MSG_WM_HOTKEY(OnHotKey)
-        MSG_WM_CREATE(OnCreate2)
-        MSG_WM_DESTROY(OnDestroy2)
+        MSG_WM_CREATE(OnCreate)
+        MSG_WM_DESTROY(OnDestroy)
         MSG_WM_INITDIALOG(OnInitDialog)
         MSG_WM_CLOSE(OnClose)
         MSG_WM_SHOWWINDOW(OnShowWindow)
