@@ -627,19 +627,6 @@ WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 ImportConfigFile(o.action_arg, true); /* prompt user */
             }
 
-            if (o.enable_auto_restart)
-            {
-                LoadAutoRestartList();
-            }
-
-            if (!AutoStartConnections())
-            {
-                SendMessage(hwnd, WM_CLOSE, 0, 0);
-                break;
-            }
-            /* A timer to periodically tend to persistent connections */
-            SetTimer(hwnd, 1, 100, ManagePersistent);
-
             break;
 
         case WM_NOTIFYICONTRAY:
@@ -1162,4 +1149,21 @@ LoadAutoRestartList()
         }
         c->auto_connect = true;
     }
+}
+
+void
+LoadAutoStartConnections(HWND hwnd)
+{
+    if (o.enable_auto_restart)
+    {
+        LoadAutoRestartList();
+    }
+
+    if (!AutoStartConnections())
+    {
+        SendMessage(hwnd, WM_CLOSE, 0, 0);
+    }
+
+    /* A timer to periodically tend to persistent connections */
+    SetTimer(hwnd, 1, 100, ManagePersistent);
 }

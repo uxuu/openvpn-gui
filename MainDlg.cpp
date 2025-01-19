@@ -15,6 +15,7 @@ extern "C" {
     void ImportConfigFileFromDisk();
     void ShowSettingsDialog();
     void OnNotifyTray(LPARAM lParam);
+    void LoadAutoStartConnections(HWND hwnd);
 
 }
 
@@ -73,6 +74,7 @@ BOOL CMainDlg::OnInitDialog(HWND hWnd, LPARAM lParam)
         pAdapter->RefreshItems();
         pAdapter->Release();
     }
+    LoadAutoStartConnections(m_hWnd2);
     SetMsgHandled(FALSE);
     return 0;
 }
