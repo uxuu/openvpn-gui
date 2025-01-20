@@ -21,9 +21,9 @@ static mgmt_msg_func rtmsg_handler[mgmt_rtmsg_type_max];
 }
 
 #ifdef _DEBUG
-#define SYS_NAMED_RESOURCE _T("soui-sys-resourced.dll")
+#define SYS_NAMED_RESOURCE _T("soui-sys-resource2d.dll")
 #else
-#define SYS_NAMED_RESOURCE _T("soui-sys-resource.dll")
+#define SYS_NAMED_RESOURCE _T("soui-sys-resource2.dll")
 #endif
 
 /*  Declare Windows procedure  */
