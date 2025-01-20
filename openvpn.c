@@ -356,8 +356,8 @@ OnStateChange(connection_t *c, char *data)
 
         if (!success) /* connection completed with errors */
         {
-            SetForegroundWindow(c->hwndStatus);
-            ShowWindow(c->hwndStatus, SW_SHOW);
+            //SetForegroundWindow(c->hwndStatus);
+            //ShowWindow(c->hwndStatus, SW_SHOW);
             /* The daemon does not currently log this error. Add a line to the status window */
             if (!strcmp(message, "ROUTE_ERROR"))
             {
@@ -1495,8 +1495,8 @@ OnTimeout(connection_t *c, UNUSED char *msg)
      */
     if (o.silent_connection == 0)
     {
-        SetForegroundWindow(c->hwndStatus);
-        ShowWindow(c->hwndStatus, SW_SHOW);
+        //SetForegroundWindow(c->hwndStatus);
+        //ShowWindow(c->hwndStatus, SW_SHOW);
     }
     WriteStatusLog(c, L"GUI> ", LoadLocalizedString(IDS_NFO_CONN_TIMEOUT, c->log_path), false);
     WriteStatusLog(c, L"GUI> ", L"Retrying. Press disconnect to abort", false);
@@ -1533,8 +1533,8 @@ OnStop(connection_t *c, UNUSED char *msg)
             EnableWindow(GetDlgItem(c->hwndStatus, ID_RESTART), FALSE);
             if (o.silent_connection == 0)
             {
-                SetForegroundWindow(c->hwndStatus);
-                ShowWindow(c->hwndStatus, SW_SHOW);
+                //SetForegroundWindow(c->hwndStatus);
+                //ShowWindow(c->hwndStatus, SW_SHOW);
             }
             MessageBoxExW(c->hwndStatus, LoadLocalizedString(IDS_NFO_CONN_TERMINATED, c->config_file),
                           _T(PACKAGE_NAME), MB_OK | MBOX_RTL_FLAGS, GetGUILanguage());
@@ -1557,8 +1557,8 @@ OnStop(connection_t *c, UNUSED char *msg)
             SetDlgItemText(c->hwndStatus, ID_TXT_STATUS, LoadLocalizedString(txt_id));
             if (o.silent_connection == 0)
             {
-                SetForegroundWindow(c->hwndStatus);
-                ShowWindow(c->hwndStatus, SW_SHOW);
+                //SetForegroundWindow(c->hwndStatus);
+                //ShowWindow(c->hwndStatus, SW_SHOW);
             }
             MessageBoxExW(c->hwndStatus, LoadLocalizedString(msg_id, c->config_name),
                           _T(PACKAGE_NAME), MB_OK | MBOX_RTL_FLAGS, GetGUILanguage());
@@ -2435,8 +2435,8 @@ StatusDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
             }
             if (!o.silent_connection)
             {
-                SetForegroundWindow(c->hwndStatus);
-                ShowWindow(c->hwndStatus, SW_SHOW);
+                //SetForegroundWindow(c->hwndStatus);
+                //ShowWindow(c->hwndStatus, SW_SHOW);
             }
             break;
     }
@@ -2502,7 +2502,7 @@ ThreadOpenVPNStatus(void *p)
     {
         show_status_win = false;
     }
-    ShowWindow(c->hwndStatus, show_status_win ? SW_SHOW : SW_HIDE);
+    //ShowWindow(c->hwndStatus, show_status_win ? SW_SHOW : SW_HIDE);
 
     /* Load echo msg histroy from registry */
     echo_msg_load(c);
@@ -2678,8 +2678,8 @@ StartOpenVPN(connection_t *c)
         }
         if (!o.silent_connection)
         {
-            SetForegroundWindow(c->hwndStatus);
-            ShowWindow(c->hwndStatus, SW_SHOW);
+            //SetForegroundWindow(c->hwndStatus);
+            //ShowWindow(c->hwndStatus, SW_SHOW);
         }
         return FALSE;
     }
