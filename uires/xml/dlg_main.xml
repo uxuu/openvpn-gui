@@ -3,10 +3,10 @@
         <window pos="5dp,5dp,-5dp,-5dp" alpha="255" cache="0">
              <window  colorBkgnd="#cdcccc">
                 <caption  font="adding:2" pos="0,0,-0,32dp" colorBkgnd="#0694F3" show="1">
-                    <window gravity="center" layout="hbox" height="32dp" >
+                    <caption gravity="center" layout="hbox" height="32dp" >
                         <icon src="ICON_LOGO:16" margin="8dp,0,2dp,0"/>
                         <text valign="middle" colorText="#ffffff">@string/title</text>
-                    </window>
+                    </caption>
                     <imgbtn animate="1" name="btn_close" pos="-32dp,1dp" skin="_skin.btn.close" tip="close" cursor="hand"/>
                     <imgbtn animate="1" name="btn_max" pos="{-32dp,1dp" display="0" skin="_skin.btn.max" cursor="hand"/>
                     <imgbtn animate="1" name="btn_restore" pos="{-32dp,1dp" show="0" display="0" skin="_skin.btn.restore" cursor="hand"/>
@@ -14,7 +14,7 @@
                     <imgbtn animate="1" name="btn_set" pos="{-32dp,1dp" skin="_skin.btn.set" cursor="hand"/>
                     <imgbtn animate="1" name="btn_msg" pos="{-32dp,1dp" show="1" display="0" skin="_skin.btn.msg" cursor="hand"/>
                 </caption>
-                <window pos="0dp,[0dp,-0,-0dp" colorBkgnd="#ffffff"  margin="1dp, 0, 1dp, 1dp">
+                <window pos="0dp,[0dp,-0,-0" colorBkgnd="#ffffff"  margin="1dp, 0, 1dp, 1dp">
                     <tabctrlex name="tab_main" pos="0,0,-0,-0" tabHeight="0">
                         <page title="page_home">
                             <include src="LAYOUT:page_home"/>
