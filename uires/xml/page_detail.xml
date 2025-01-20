@@ -1,21 +1,106 @@
 <?xml version="1.0"?>
 <include>
-    <window pos="0,0,-0,-0" layout="vbox" gravity="center" >
-        <window>
+    <scrollview size="-2,-2" layout="vbox" gravity="center" sbSkin="skin_scrollbar" sbEnable="2" sbWid="8dp" viewSize="-2,-1">
+        <window size="-1,-1">
             <img extend_left="4dp" name="img_icon" skin="skin_list_icons" iconIndex="0" />
             <gifplayer pos="[-25dp, [-25dp" name="gif_state" skin="skin_connecting" show="0" />
             <img pos="[-25dp, [-25dp" name="img_state" skin="skin_disconnected" />
         </window>
-        <window>
+        <window size="-2,-1">
             <text pos="0,1dp"  size="150dp, 15dp" name="txt_name" text="" dotted="1" font="bold:1"/>
         </window>
+        <window size="-2,-1" layout="vbox" gravity="center" name="wnd_login" show="1" display="0">
+            <window margin-y="2dp" colorBkgnd="#ffffff">
+                <edit size="180dp,24dp" class="cls_edit" password="0" padding="22dp,0,5dp,0" cueText="请输入账号" maxBuf="64" name="edit_username" align="center"/>
+                <imgbtn pos="5dp,5dp" skin="img_head" />
+            </window>
+            <window margin-y="2dp" colorBkgnd="#ffffff">
+                <edit size="180dp,24dp" class="cls_edit" password="1" padding="22dp,0,5dp,0" cueText="请输入密码" maxBuf="64" name="edit_password" align="center"/>
+                <imgbtn pos="5dp,5dp" skin="img_key" />
+            </window>
+            <window margin-y="2dp" colorBkgnd="#ffffff">
+                <edit size="180dp,24dp" class="cls_edit" password="0" padding="22dp,0,5dp,0" cueText="请输入响应码" maxBuf="64" name="edit_response" align="center"/>
+                <imgbtn pos="5dp,5dp" skin="img_key" />
+            </window>
+            <window margin-y="2dp">
+                <check size="75dp,20dp" font="adding:-2dp" name="chk_savepass">记住密码</check>
+                <text size="12dp, 20dp" />
+                <check size="75dp,20dp" font="adding:-2dp" name="chk_autologin">自动登录</check>
+            </window>
+            <window margin-y="2dp">
+                <text size="12dp, 20dp" />
+            </window>
+            <window margin-y="2dp">
+                <!--连接按钮-->
+                <button size="75dp,20dp" font="adding:-2dp" name="btn_connect">确定</button>
+                <text size="12dp, 20dp" />
+                <button size="75dp,20dp" font="adding:-2dp" name="btn_disconnect">取销</button>
+            </window>
+        </window>
+        <window size="-2,-1" layout="vbox" gravity="center" name="wnd_response" show="1" display="0">
+            <window margin-y="2dp" colorBkgnd="#ffffff">
+                <edit size="180dp,24dp" class="cls_edit" password="0" cueText="请输入响应码" maxBuf="64" name="edit_response" align="center"/>
+            </window>
+            <window margin-y="2dp">
+                <text size="12dp, 20dp" />
+            </window>
+            <window margin-y="2dp">
+                <!--连接按钮-->
+                <button size="75dp,20dp" font="adding:-2dp" name="btn_confirm">确定</button>
+                <text size="12dp, 20dp" />
+                <button size="75dp,20dp" font="adding:-2dp" name="btn_cancel">取销</button>
+            </window>
+        </window>
+        <window size="-2,-1" layout="vbox" gravity="center" name="wnd_passphrase" show="1" display="0">
+            <window margin-y="2dp" colorBkgnd="#ffffff">
+                <edit size="180dp,24dp" class="cls_edit" password="1" padding="22dp,0,5dp,0" cueText="请输入密码" maxBuf="64" name="edit_passphrase" align="center"/>
+                <imgbtn pos="5dp,5dp" skin="img_key" />
+            </window>
+            <window margin-y="2dp">
+                <check size="75dp,20dp" font="adding:-2dp" name="chk_savepass">记住密码</check>
+                <text size="87dp, 20dp" />
+            </window>
+            <window margin-y="2dp">
+                <text size="12dp, 20dp" />
+            </window>
+            <window margin-y="2dp">
+                <!--连接按钮-->
+                <button size="75dp,20dp" font="adding:-2dp" name="btn_confirm">确定</button>
+                <text size="12dp, 20dp" />
+                <button size="75dp,20dp" font="adding:-2dp" name="btn_cancel">取销</button>
+            </window>
+        </window>
+        <window size="-2,-1" layout="vbox" gravity="center" name="wnd_chgpasse" show="1" display="0">
+            <window margin-y="2dp" colorBkgnd="#ffffff">
+                <edit size="180dp,24dp" class="cls_edit" password="0" padding="22dp,0,5dp,0" cueText="请输入旧密码" maxBuf="64" name="edit_passcur" align="center"/>
+                <imgbtn pos="5dp,5dp" skin="img_key" />
+            </window>
+            <window margin-y="2dp" colorBkgnd="#ffffff">
+                <edit size="180dp,24dp" class="cls_edit" password="0" padding="22dp,0,5dp,0" cueText="请输入新密码" maxBuf="64" name="edit_passnew" align="center"/>
+                <imgbtn pos="5dp,5dp" skin="img_key" />
+            </window>
+            <window margin-y="2dp" colorBkgnd="#ffffff">
+                <edit size="180dp,24dp" class="cls_edit" password="0" padding="22dp,0,5dp,0" cueText="请重复新密码" maxBuf="64" name="edit_passnew2" align="center"/>
+                <imgbtn pos="5dp,5dp" skin="img_key" />
+            </window>
+            <window margin-y="2dp">
+                <text size="12dp, 20dp" />
+            </window>
+            <window margin-y="2dp">
+                <!--连接按钮-->
+                <button size="75dp,20dp" font="adding:-2dp" name="btn_confirm">确定</button>
+                <text size="12dp, 20dp" />
+                <button size="75dp,20dp" font="adding:-2dp" name="btn_cancel">取销</button>
+            </window>
+        </window>
+        <text size="-2, 20dp" />
         <window width="-2" margin="2dp" colorBkgnd="#cdcccc">
-            <window width="-2" margin="1dp" padding="1dp" colorBkgnd="#ffffff" >
+            <window width="-2" margin="0dp" padding="1dp" colorBkgnd="#ffffff" >
                 <richedit width="-2" name="log_viewer" height="165dp" class="cls_edit"
-                          font="face:Microsoft Sans Serif" sbSkin="skin_scrollbar" multiLines="1"
+                          font="face:Microsoft Sans Serif,adding:-2dp" sbSkin="skin_scrollbar" multiLines="1"
                           hscrollBar="1" vscrollBar="1" autoHscroll="1" autoVscroll="1" wordWrap="0"
                           wantTab="1"   wantReturn="1"  maxBuf="6400000" readOnly="0" />
             </window>
         </window>
-    </window>
+    </scrollview>
 </include>

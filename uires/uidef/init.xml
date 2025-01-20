@@ -7,7 +7,7 @@
     <style>
         <class colorText="#385e8b" colorTextDisable="#91a7c0" cursor="hand" font="" margin-x="0" name="normalbtn" textMode="25"/>
         <class colorText="#1e78d5" colorTextHover="#1e78d5" cursor="hand" font="italic:1" fontHover="underline:1,italic:1" name="cls_btn_weblink"/>
-        <class name="cls_edit" font="adding:-2" colorText="#333333" cueColor="#666666"/>
+        <class name="cls_edit" font="adding:-2" colorText="#333333" cueColor="#666666" ncSkin="_skin.sys.border" margin-x="2" margin-y="2"/>
         <class name="cls_titlebar_tab" font="adding:-3" colorText="#ffffff" align="center"/>
         <class name="cls_toolbar_btn" font="adding:-2" colorText="#3C6889" colorTextDisable="#C5D0DB"/>
         <class name="cls_filetype_btn" font="adding:-3" colorText="#333333" colorTextHover="#35ABF9"/>

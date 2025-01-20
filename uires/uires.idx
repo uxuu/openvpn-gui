@@ -38,6 +38,8 @@
         <file name="PNG_FOLDER" path="image\folder.png" />
         <file name="PNG_CONNECTED" path="image\connected.png" />
         <file name="PNG_DISCONNECTED" path="image\disconnected.png" />
+        <file name="PNG_HEAD" path="image\user.png"/>
+        <file name="PNG_KEY" path="image\key.png"/>
     </PNG>
     <ICON>
         <file name="ICON_LOGO" path="image\logo.ico"/>

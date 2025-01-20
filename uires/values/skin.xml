@@ -15,4 +15,6 @@
     <gif name="skin_connecting" src="IMG:ID_GIF_CONNECTING" />
     <imglist name="skin_connected" src="PNG:PNG_CONNECTED" states="1" />
     <imglist name="skin_disconnected" src="PNG:PNG_DISCONNECTED" states="1" />
+    <imglist name="img_head" src="PNG:PNG_HEAD" states="3"/>
+    <imglist name="img_key" src="PNG:PNG_KEY" states="3"/>
 </skin>
