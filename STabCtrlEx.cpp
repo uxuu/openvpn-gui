@@ -14,7 +14,10 @@ STabCtrlEx::~STabCtrlEx(void)
 
 int STabCtrlEx::InsertItem()
 {
-	return STabCtrl::InsertItem(m_xmlTemplate.root().first_child().child(L"page"), -1, TRUE);
+	int idx = STabCtrl::InsertItem(m_xmlTemplate.root().first_child().child(L"page"), -1, TRUE);
+	auto pPage = GetItem(idx);
+	pPage->GetRoot()->SDispatchMessage(UM_SETSCALE, GetScale(), 0);
+	return idx;
 }
 
 void STabCtrlEx::OnInitFinished(IXmlNode *xmlNode)
