@@ -39,7 +39,8 @@ public:
         WCHAR buf[MAX_NAME] = {0};
         ItemInfo& ii = CSTree<SOUI::STreeAdapterBase<ItemData>::ItemInfo>::GetItemRef((HSTREEITEM)loc);
         int itemType = getViewType(loc);
-        if (pItem->GetChildrenCount() == 0)
+        int childCount = pItem->GetChildrenCount();
+        if (childCount == 0)
         {
             switch (itemType)
             {
@@ -57,18 +58,21 @@ public:
             auto* pImg = pItem->FindChildByName(L"img_state");
             auto* pGif = pItem->FindChildByName(L"gif_state");
             auto* pBtnConn = pItem->FindChildByName2<SButton>(L"btn_conn");
-            pBtnConn->GetRoot()->SetUserData(loc);
-            pBtnConn->GetEventSet()->subscribeEvent(EventCmd::EventID, Subscriber(&STreeAdapter::OnButtonConnClick, this));
             auto* pBtnDisconn = pItem->FindChildByName2<SButton>(L"btn_disconn");
-            pBtnDisconn->GetEventSet()->subscribeEvent(EventCmd::EventID, Subscriber(&STreeAdapter::OnButtonDisconnClick, this));
             auto* pBtnReconn = pItem->FindChildByName2<SButton>(L"btn_reconn");
-            pBtnReconn->GetEventSet()->subscribeEvent(EventCmd::EventID, Subscriber(&STreeAdapter::OnButtonReconnClick, this));
             auto* pBtnOption = pItem->FindChildByName2<SButton>(L"btn_option");
-            pBtnOption->GetEventSet()->subscribeEvent(EventCmd::EventID, Subscriber(&STreeAdapter::OnButtonOptionClick, this));
             auto* pBtnStatus = pItem->FindChildByName2<SButton>(L"btn_status");
-            pBtnStatus->GetEventSet()->subscribeEvent(EventCmd::EventID, Subscriber(&STreeAdapter::OnButtonStatusClick, this));
             auto* pBtnLogview = pItem->FindChildByName2<SButton>(L"btn_logview");
-            pBtnLogview->GetEventSet()->subscribeEvent(EventCmd::EventID, Subscriber(&STreeAdapter::OnButtonLogviewClick, this));
+            pItem->GetRoot()->SetUserData(loc);
+            if (childCount == 0)
+            {
+                pBtnConn->GetEventSet()->subscribeEvent(EventCmd::EventID, Subscriber(&STreeAdapter::OnButtonConnClick, this));
+                pBtnDisconn->GetEventSet()->subscribeEvent(EventCmd::EventID, Subscriber(&STreeAdapter::OnButtonDisconnClick, this));
+                pBtnReconn->GetEventSet()->subscribeEvent(EventCmd::EventID, Subscriber(&STreeAdapter::OnButtonReconnClick, this));
+                pBtnOption->GetEventSet()->subscribeEvent(EventCmd::EventID, Subscriber(&STreeAdapter::OnButtonOptionClick, this));
+                pBtnStatus->GetEventSet()->subscribeEvent(EventCmd::EventID, Subscriber(&STreeAdapter::OnButtonStatusClick, this));
+                pBtnLogview->GetEventSet()->subscribeEvent(EventCmd::EventID, Subscriber(&STreeAdapter::OnButtonLogviewClick, this));
+            }
 
             if (ii.data.c->state == connected)
             {
@@ -95,7 +99,7 @@ public:
                 pBtnDisconn->SetVisible(TRUE);
                 pBtnReconn->SetVisible(TRUE);
                 pBtnOption->SetVisible(FALSE);
-                pBtnStatus->SetVisible(FALSE);
+                pBtnStatus->SetVisible(TRUE);
                 pBtnLogview->SetVisible(FALSE);
             }
             else if (ii.data.c->state == disconnected)
