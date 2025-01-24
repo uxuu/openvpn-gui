@@ -86,7 +86,7 @@ OpenManagement(connection_t *c)
     {
         return FALSE;
     }
-    MEMPOOL_INIT(c->manage.mempool, 64);
+
     connect(c->manage.sk, (SOCKADDR *)&c->manage.skaddr, sizeof(c->manage.skaddr));
     c->manage.timeout = time(NULL) + max_connect_time;
 
@@ -267,28 +267,25 @@ OnManagement(SOCKET sk, LPARAM lParam)
                 return;
             }
 
-            size_t node_count = MEMPOOL_NEED(c->manage.saved_size + data_size);
-            if (node_count > c->manage.mempool.size)
+            data = malloc(c->manage.saved_size + data_size);
+            if (data == NULL)
             {
-                MEMPOOL_REINIT(c->manage.mempool, node_count);
-            }
-            MEMPOOL_NEXT(c->manage.mempool, node_count);
-            data = c->manage.mempool.ring[c->manage.mempool.head];
-            if (c->manage.saved_size && data != c->manage.saved_data)
-            {
-                memcpy(data, c->manage.saved_data, c->manage.saved_size);
+                return;
             }
 
             res = recv(c->manage.sk, data + c->manage.saved_size, data_size, 0);
             if (res != (int) data_size)
             {
+                free(data);
                 return;
             }
 
             /* Copy previously saved management data */
             if (c->manage.saved_size)
             {
+                memcpy(data, c->manage.saved_data, c->manage.saved_size);
                 data_size += c->manage.saved_size;
+                free(c->manage.saved_data);
                 c->manage.saved_data = NULL;
                 c->manage.saved_size = 0;
             }
@@ -315,14 +312,12 @@ OnManagement(SOCKET sk, LPARAM lParam)
 
                 if (pos == NULL)
                 {
-                    node_count = MEMPOOL_NEED(line_size);
-                    if (node_count + c->manage.mempool.next > c->manage.mempool.size)
+                    c->manage.saved_data = malloc(line_size);
+                    if (c->manage.saved_data)
                     {
-                        c->manage.mempool.next = 0;
-                    }
-                    c->manage.saved_data = c->manage.mempool.ring[c->manage.mempool.next];
                         c->manage.saved_size = line_size;
                         memcpy(c->manage.saved_data, line, c->manage.saved_size);
+                    }
                     break;
                 }
 
@@ -486,7 +481,7 @@ OnManagement(SOCKET sk, LPARAM lParam)
                     }
                 }
             }
-
+            free(data);
             break;
 
         case FD_WRITE:
@@ -521,6 +516,5 @@ CloseManagement(connection_t *c)
         {
         }
         WSACleanup();
-        MEMPOOL_FREE(c->manage.mempool);
     }
 }
