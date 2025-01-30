@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 #include "MainDlg.h"
-
+#include "STreeAdapter.h"
 #include <set>
 
 extern "C" {
@@ -244,18 +244,47 @@ int CMainDlg::OnInitStatusPage(int iId)
     _stprintf_s(pageName, _countof(pageName), _T("page_%08x"), iId);
     auto* pTab = FindChildByName2<STabCtrlEx>(L"tab_main");
     int nIndex = pTab->GetPageIndex(pageName, TRUE);
-    if (nIndex >= 0)
+    if (nIndex < 0)
     {
-        ShowPage(nIndex);
-        return nIndex;
+        nIndex = pTab->InsertItem();
+        pTab->SetItemTitle(nIndex, pageName);
     }
-    nIndex = pTab->InsertItem();
-    pTab->SetItemTitle(nIndex, pageName);
-    ShowPage(nIndex);
+    //ShowPage(nIndex);
+    auto* pPage = pTab->GetItem(nIndex);
+    //pPage->FindChildByName2<SEdit>(L"txt_name")->SetWindowText();
+    auto* pWnd = pPage->FindChildByName2<SWindow>(L"wnd_login");
+    auto* pBtn = pWnd->FindChildByName2<SButton>(L"btn_confirm");
+    pBtn->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&CMainDlg::OnLoginConfirm, this));
+    pBtn->SetUserData(iId);
+    pBtn = pWnd->FindChildByName2<SButton>(L"btn_cancel");
+    pBtn->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&CMainDlg::OnLoginCancel, this));
+    pBtn->SetUserData(iId);
+    pWnd = pPage->FindChildByName2<SWindow>(L"wnd_response");
+    pBtn = pWnd->FindChildByName2<SButton>(L"btn_confirm");
+    pBtn->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&CMainDlg::OnResponseConfirm, this));
+    pBtn->SetUserData(iId);
+    pBtn = pWnd->FindChildByName2<SButton>(L"btn_cancel");
+    pBtn->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&CMainDlg::OnResponseCancel, this));
+    pBtn->SetUserData(iId);
+    pWnd = pPage->FindChildByName2<SWindow>(L"wnd_pass");
+    pBtn = pWnd->FindChildByName2<SButton>(L"btn_confirm");
+    pBtn->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&CMainDlg::OnPassConfirm, this));
+    pBtn->SetUserData(iId);
+    pBtn = pWnd->FindChildByName2<SButton>(L"btn_cancel");
+    pBtn->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&CMainDlg::OnPassCancel, this));
+    pBtn->SetUserData(iId);
+    pWnd = pPage->FindChildByName2<SWindow>(L"wnd_chpass");
+    pBtn = pWnd->FindChildByName2<SButton>(L"btn_confirm");
+    pBtn->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&CMainDlg::OnChpassConfirm, this));
+    pBtn->SetUserData(iId);
+    pBtn = pWnd->FindChildByName2<SButton>(L"btn_cancel");
+    pBtn->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&CMainDlg::OnChpassCancel, this));
+    pBtn->SetUserData(iId);
+
     return nIndex;
 }
 
-int CMainDlg::OnUninitStatusPage(int iId)
+int CMainDlg::OnReleaseStatusPage(int iId)
 {
     TCHAR pageName[16];
     _stprintf_s(pageName, _countof(pageName), _T("page_%08x"), iId);
@@ -417,6 +446,11 @@ void CMainDlg::ShowPage(LPCTSTR pszName, BOOL bTitle)
 {
     auto *pTab = FindChildByName2<STabCtrl>(L"tab_main");
     int nIndex = pTab->GetPageIndex(pszName, bTitle);
+    if (nIndex < 0)
+    {
+        DbgPrintf(_T("pszName=#%s#"), pszName);
+        return;
+    }
     ShowPage(nIndex);
     auto* btn = FindChildByName2<SImageButton>(L"btn_home");
     btn->EnableWindow(TRUE, TRUE);
@@ -439,4 +473,44 @@ void CMainDlg::RefreshTree()
             pAdapter->RefreshItems();
         }
     }
+}
+
+BOOL CMainDlg::OnLoginConfirm(EventCmd* pEvt)
+{
+    return TRUE;
+}
+
+BOOL CMainDlg::OnLoginCancel(EventCmd* pEvt)
+{
+    return TRUE;
+}
+
+BOOL CMainDlg::OnResponseConfirm(EventCmd* pEvt)
+{
+    return TRUE;
+}
+
+BOOL CMainDlg::OnResponseCancel(EventCmd* pEvt)
+{
+    return TRUE;
+}
+
+BOOL CMainDlg::OnPassConfirm(EventCmd* pEvt)
+{
+    return TRUE;
+}
+
+BOOL CMainDlg::OnPassCancel(EventCmd* pEvt)
+{
+    return TRUE;
+}
+
+BOOL CMainDlg::OnChpassConfirm(EventCmd* pEvt)
+{
+    return TRUE;
+}
+
+BOOL CMainDlg::OnChpassCancel(EventCmd* pEvt)
+{
+    return TRUE;
 }

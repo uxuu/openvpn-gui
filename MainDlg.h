@@ -1,7 +1,4 @@
 #pragma once
-#include "..\controls.extend\gif\SSkinGif.h"
-#include "..\controls.extend\gif\SGifPlayer.h"
-#include "STreeAdapter.h"
 extern "C" {
     void CloseApplication(HWND hwnd, BOOL ask_user);
 }
@@ -38,8 +35,15 @@ public:
     STDMETHOD_(void, OnLogLine)(THIS_ int iId, char *msg);
     STDMETHOD_(void, OnWriteStatusLog)(THIS_ int iId, LPCWSTR prefix, LPCWSTR msg);
     STDMETHOD_(int, OnInitStatusPage)(THIS_ int iId);
-    STDMETHOD_(int, OnUninitStatusPage)(THIS_ int iId);
-
+    STDMETHOD_(int, OnReleaseStatusPage)(THIS_ int iId);
+    STDMETHOD_(BOOL, OnLoginConfirm)(THIS_ EventCmd* pEvt);
+    STDMETHOD_(BOOL, OnLoginCancel)(THIS_ EventCmd* pEvt);
+    STDMETHOD_(BOOL, OnPassConfirm)(THIS_ EventCmd* pEvt);
+    STDMETHOD_(BOOL, OnPassCancel)(THIS_ EventCmd* pEvt);
+    STDMETHOD_(BOOL, OnResponseConfirm)(THIS_ EventCmd* pEvt);
+    STDMETHOD_(BOOL, OnResponseCancel)(THIS_ EventCmd* pEvt);
+    STDMETHOD_(BOOL, OnChpassConfirm)(THIS_ EventCmd* pEvt);
+    STDMETHOD_(BOOL, OnChpassCancel)(THIS_ EventCmd* pEvt);
 
 protected:
 

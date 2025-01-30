@@ -3,6 +3,9 @@
 
 #ifdef __cplusplus
 extern "C"{
+#undef MAX_NAME
+#include "options.h"
+#include "openvpn_config.h"
 #endif
 
     DWORD WINAPI DlgInitWindow(HWND hWnd);

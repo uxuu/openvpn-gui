@@ -1,6 +1,6 @@
 <SOUI name="mainWindow" title="@string/title" bigIcon="ICON_LOGO:32" smallIcon="ICON_LOGO:16" width="300" height="600" resizable="0" wndType="appMain" appWnd="1" translucent="1">
     <root skin="" cache="1">
-        <window pos="5dp,5dp,-5dp,-5dp" alpha="255" cache="0">
+        <window pos="5dp,5dp,-5dp,-45dp" alpha="255" cache="0">
              <window  colorBkgnd="#cdcccc">
                 <caption  font="adding:2" pos="0,0,-0,32dp" colorBkgnd="#0694F3" show="1">
                     <caption gravity="center" layout="hbox" height="32dp" >
@@ -38,7 +38,7 @@
                         </pageTemplate>
                     </tabctrlex>
                 </window>
-                <window pos="0,-45dp,-0,-0" colorBkgnd="#ffffff" margin="1dp,0dp,1dp,1dp" show="0" display="0">
+                <window pos="0,-45dp,-0,-0" colorBkgnd="#ffffff" margin="1dp,0dp,1dp,1dp" show="1" display="0">
                     <imgbtn animate="1" skin="btn_bottom" name="btn_home" pos="0,0,%25,-0" mouseRelay="1" text="home" enable="0" cursor="hand"/>
                     <imgbtn animate="1" skin="btn_bottom" name="btn_login" pos="%25,0,%50,-0" mouseRelay="1" text="login" cursor="hand"/>
                     <imgbtn animate="1" skin="btn_bottom" name="btn_detail" pos="%50,0,%75,-0" mouseRelay="1" text="detail" cursor="hand"/>

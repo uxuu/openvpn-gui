@@ -12,6 +12,7 @@ extern "C" {
 #include <string>
 #include "StdAfx.h"
 #include <helper/SAdapterBase.h>
+extern CMainDlg *pDlgMain;
 struct ItemData
 {
     INT32 gid{};
@@ -58,20 +59,32 @@ public:
             auto* pImg = pItem->FindChildByName(L"img_state");
             auto* pGif = pItem->FindChildByName(L"gif_state");
             auto* pBtnConn = pItem->FindChildByName2<SButton>(L"btn_conn");
+            pBtnConn->SetUserData(loc);
             auto* pBtnDisconn = pItem->FindChildByName2<SButton>(L"btn_disconn");
+            pBtnDisconn->SetUserData(loc);
             auto* pBtnReconn = pItem->FindChildByName2<SButton>(L"btn_reconn");
+            pBtnReconn->SetUserData(loc);
             auto* pBtnOption = pItem->FindChildByName2<SButton>(L"btn_option");
+            pBtnOption->SetUserData(loc);
             auto* pBtnStatus = pItem->FindChildByName2<SButton>(L"btn_status");
+            pBtnStatus->SetUserData(loc);
             auto* pBtnLogview = pItem->FindChildByName2<SButton>(L"btn_logview");
-            pItem->GetRoot()->SetUserData(loc);
+            pBtnLogview->SetUserData(loc);
+
             if (childCount == 0)
             {
-                pBtnConn->GetEventSet()->subscribeEvent(EventCmd::EventID, Subscriber(&STreeAdapter::OnButtonConnClick, this));
-                pBtnDisconn->GetEventSet()->subscribeEvent(EventCmd::EventID, Subscriber(&STreeAdapter::OnButtonDisconnClick, this));
-                pBtnReconn->GetEventSet()->subscribeEvent(EventCmd::EventID, Subscriber(&STreeAdapter::OnButtonReconnClick, this));
-                pBtnOption->GetEventSet()->subscribeEvent(EventCmd::EventID, Subscriber(&STreeAdapter::OnButtonOptionClick, this));
-                pBtnStatus->GetEventSet()->subscribeEvent(EventCmd::EventID, Subscriber(&STreeAdapter::OnButtonStatusClick, this));
-                pBtnLogview->GetEventSet()->subscribeEvent(EventCmd::EventID, Subscriber(&STreeAdapter::OnButtonLogviewClick, this));
+                pBtnConn->GetEventSet()->subscribeEvent(EventCmd::EventID,
+                                                        Subscriber(&STreeAdapter::OnButtonConnClick, this));
+                pBtnDisconn->GetEventSet()->subscribeEvent(EventCmd::EventID,
+                                                           Subscriber(&STreeAdapter::OnButtonDisconnClick, this));
+                pBtnReconn->GetEventSet()->subscribeEvent(EventCmd::EventID,
+                                                          Subscriber(&STreeAdapter::OnButtonReconnClick, this));
+                pBtnOption->GetEventSet()->subscribeEvent(EventCmd::EventID,
+                                                          Subscriber(&STreeAdapter::OnButtonOptionClick, this));
+                pBtnStatus->GetEventSet()->subscribeEvent(EventCmd::EventID,
+                                                          Subscriber(&STreeAdapter::OnButtonStatusClick, this));
+                pBtnLogview->GetEventSet()->subscribeEvent(EventCmd::EventID,
+                                                           Subscriber(&STreeAdapter::OnButtonLogviewClick, this));
             }
 
             if (ii.data.c->state == connected)
@@ -231,32 +244,35 @@ public:
     BOOL OnButtonConnClick(EventCmd* pEvt)
     {
         auto* pBtn = sobj_cast<SButton>(pEvt->Sender());
-        ItemInfo & ii = CSTree<SOUI::STreeAdapterBase<ItemData>::ItemInfo>::GetItemRef(pBtn->GetRoot()->GetUserData());
+        ItemInfo & ii = CSTree<SOUI::STreeAdapterBase<ItemData>::ItemInfo>::GetItemRef(pBtn->GetUserData());
         StartOpenVPN(ii.data.c);
         return true;
     }
     BOOL OnButtonDisconnClick(EventCmd* pEvt)
     {
         auto* pBtn = sobj_cast<SButton>(pEvt->Sender());
-        ItemInfo & ii = CSTree<SOUI::STreeAdapterBase<ItemData>::ItemInfo>::GetItemRef(pBtn->GetRoot()->GetUserData());
+        ItemInfo & ii = CSTree<SOUI::STreeAdapterBase<ItemData>::ItemInfo>::GetItemRef(pBtn->GetUserData());
         StopOpenVPN(ii.data.c);
         return true;
     }
     BOOL OnButtonReconnClick(EventCmd* pEvt)
     {
         auto* pBtn = sobj_cast<SButton>(pEvt->Sender());
-        ItemInfo & ii = CSTree<SOUI::STreeAdapterBase<ItemData>::ItemInfo>::GetItemRef(pBtn->GetRoot()->GetUserData());
+        ItemInfo & ii = CSTree<SOUI::STreeAdapterBase<ItemData>::ItemInfo>::GetItemRef(pBtn->GetUserData());
         RestartOpenVPN(ii.data.c);
         return true;
     }
     BOOL OnButtonOptionClick(EventCmd* pEvt)
     {
-
         return true;
     }
     BOOL OnButtonStatusClick(EventCmd* pEvt)
     {
-
+        TCHAR pageName[16];
+        auto* pBtn = sobj_cast<SButton>(pEvt->Sender());
+        ItemInfo & ii = CSTree<SOUI::STreeAdapterBase<ItemData>::ItemInfo>::GetItemRef(pBtn->GetUserData());
+        _stprintf_s(pageName, _countof(pageName), _T("page_%08x"), ii.data.c->id);
+        pDlgMain->ShowPage(pageName, TRUE);
         return true;
     }
     BOOL OnButtonLogviewClick(EventCmd* pEvt)

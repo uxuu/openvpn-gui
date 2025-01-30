@@ -2,7 +2,6 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <shlwapi.h>
-#include <prsht.h>
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -212,7 +211,7 @@ int DlgReleaseStatusPage(connection_t* c)
 {
     TCHAR buf[MAX_NAME];
     _stprintf_s(buf, _countof(buf), _T("page_%08x"), c->id);
-    STaskHelper::sendTask(pDlgMain, pDlgMain, &CMainDlg::OnUninitStatusPage, c->id);
+    STaskHelper::sendTask(pDlgMain, pDlgMain, &CMainDlg::OnReleaseStatusPage, c->id);
     return 0;
 }
 
@@ -243,6 +242,7 @@ void DlgOnReady(connection_t* c, char* msg)
     MultiByteToWideChar(CP_UTF8, 0, msg, MAX_NAME, buf, _countof(buf) - 1);
     DbgPrintf(_T("%s(%d): %ls"), _T(__FUNCTION__), __LINE__, buf);
     rtmsg_handler[ready_](c, msg);
+    STaskHelper::sendTask(pDlgMain, pDlgMain, &CMainDlg::OnStateChanged);
 }
 void DlgOnHold(connection_t* c, char* msg)
 {
@@ -250,6 +250,7 @@ void DlgOnHold(connection_t* c, char* msg)
     MultiByteToWideChar(CP_UTF8, 0, msg, MAX_NAME, buf, _countof(buf) - 1);
     DbgPrintf(_T("%s(%d): %ls"), _T(__FUNCTION__), __LINE__, buf);
     rtmsg_handler[hold_](c, msg);
+    STaskHelper::sendTask(pDlgMain, pDlgMain, &CMainDlg::OnStateChanged);
 }
 void DlgOnLogLine(connection_t* c, char* msg)
 {
@@ -257,9 +258,6 @@ void DlgOnLogLine(connection_t* c, char* msg)
     MultiByteToWideChar(CP_UTF8, 0, msg, MAX_NAME, buf, _countof(buf) - 1);
     DbgPrintf(_T("%s(%d): %ls"), _T(__FUNCTION__), __LINE__, buf);
     rtmsg_handler[log_](c, msg);
-    //char *message = static_cast<char*>(malloc(256));
-    //memcpy(message,  msg, 256);
-    //STaskHelper::post(pDlgMain->GetMsgLoop(), pDlgMain, &CMainDlg::OnLogLine, c->id, message);
     STaskHelper::sendTask(pDlgMain, pDlgMain, &CMainDlg::OnLogLine, c->id, msg);
 }
 void DlgOnStateChange(connection_t* c, char* msg)
@@ -268,7 +266,7 @@ void DlgOnStateChange(connection_t* c, char* msg)
     MultiByteToWideChar(CP_UTF8, 0, msg, MAX_NAME, buf, _countof(buf) - 1);
     DbgPrintf(_T("%s(%d): %ls"), _T(__FUNCTION__), __LINE__, buf);
     rtmsg_handler[state_](c, msg);
-    STaskHelper::post(pDlgMain->GetMsgLoop(), pDlgMain, &CMainDlg::OnStateChanged);
+    STaskHelper::sendTask(pDlgMain, pDlgMain, &CMainDlg::OnStateChanged);
 }
 void DlgOnPassword(connection_t* c, char* msg)
 {
@@ -290,6 +288,7 @@ void DlgOnStop(connection_t* c, char* msg)
     MultiByteToWideChar(CP_UTF8, 0, msg, MAX_NAME, buf, _countof(buf) - 1);
     DbgPrintf(_T("%s(%d): %ls"), _T(__FUNCTION__), __LINE__, buf);
     rtmsg_handler[stop_](c, msg);
+    STaskHelper::sendTask(pDlgMain, pDlgMain, &CMainDlg::OnStateChanged);
 }
 void DlgOnNeedOk(connection_t* c, char* msg)
 {
@@ -318,7 +317,7 @@ void DlgOnByteCount(connection_t* c, char* msg)
     MultiByteToWideChar(CP_UTF8, 0, msg, MAX_NAME, buf, _countof(buf) - 1);
     DbgPrintf(_T("%s(%d): %ls"), _T(__FUNCTION__), __LINE__, buf);
     rtmsg_handler[bytecount_](c, msg);
-    STaskHelper::post(pDlgMain->GetMsgLoop(), pDlgMain, &CMainDlg::OnStateChanged);
+    STaskHelper::sendTask(pDlgMain, pDlgMain, &CMainDlg::OnStateChanged);
 }
 void DlgOnInfoMsg(connection_t* c, char* msg)
 {
