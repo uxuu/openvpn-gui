@@ -1,25 +1,13 @@
-#include "stdafx.h"
-#include <string>
-#include <vector>
+#include "../stdafx.h"
+
+#include "openvpnex.h"
 #include "MainDlg.h"
 #include "STreeAdapter.h"
+
+#include <string>
+#include <vector>
 #include <set>
 
-extern "C" {
-#undef MAX_NAME
-#include "main.h"
-#include "options.h"
-#include "openvpn_config.h"
-
-#include "as.h"
-    void ImportConfigFileFromDisk();
-    void ShowSettingsDialog();
-    void OnNotifyTray(LPARAM lParam);
-    void LoadAutoStartConnections(HWND hwnd);
-
-}
-
-extern HANDLE hEvent;
 
 CMainDlg::CMainDlg() : SHostWnd(_T("LAYOUT:XML_MAINWND"))
 {
@@ -86,18 +74,18 @@ BOOL CMainDlg::OnTurn3D(EventArgs* pEvt)
     return TRUE;
 }
 
-void CMainDlg::OnStateChanged()
+void CMainDlg::OnStateChanged(connection_t* c)
 {
     RefreshTree();
 }
 
-void CMainDlg::OnLogLine(int iId, char *msg)
+void CMainDlg::OnLogLine(connection_t* c, char *msg)
 {
     time_t timestamp;
     TCHAR pageName[16];
     wchar_t datetime[24];
     const SETTEXTEX ste = {ST_SELECTION, CP_UTF8 };
-    _stprintf_s(pageName, _countof(pageName), _T("page_%08x"), iId);
+    _stprintf_s(pageName, _countof(pageName), _T("page_%08x"), c->id);
     auto* pTab = FindChildByName2<STabCtrlEx>(L"tab_main");
     auto* pPage = pTab->GetPage(pageName, TRUE);
     if (!pPage)
@@ -174,13 +162,13 @@ void CMainDlg::OnLogLine(int iId, char *msg)
     pLogWnd->SSendMessage(EM_SCROLLCARET, 0, 0);
 }
 
-void CMainDlg::OnWriteStatusLog(int iId, LPCWSTR prefix, LPCWSTR msg)
+void CMainDlg::OnWriteStatusLog(connection_t* c, LPCWSTR prefix, LPCWSTR msg)
 {
     time_t now;
     TCHAR pageName[16];
     wchar_t datetime[24];
     const SETTEXTEX ste = {ST_SELECTION, CP_UTF8 };
-    _stprintf_s(pageName, _countof(pageName), _T("page_%08x"), iId);
+    _stprintf_s(pageName, _countof(pageName), _T("page_%08x"), c->id);
     auto* pTab = FindChildByName2<STabCtrlEx>(L"tab_main");
     auto* pPage = pTab->GetPage(pageName, TRUE);
     if (!pPage)
@@ -238,10 +226,10 @@ void CMainDlg::OnWriteStatusLog(int iId, LPCWSTR prefix, LPCWSTR msg)
     pLogWnd->SSendMessage(EM_REPLACESEL, FALSE, (LPARAM) msg);
     pLogWnd->SSendMessage(EM_REPLACESEL, FALSE, (LPARAM) L"\n");
 }
-int CMainDlg::OnInitStatusPage(int iId)
+int CMainDlg::OnInitStatusPage(connection_t* c)
 {
     TCHAR pageName[16];
-    _stprintf_s(pageName, _countof(pageName), _T("page_%08x"), iId);
+    _stprintf_s(pageName, _countof(pageName), _T("page_%08x"), c->id);
     auto* pTab = FindChildByName2<STabCtrlEx>(L"tab_main");
     int nIndex = pTab->GetPageIndex(pageName, TRUE);
     if (nIndex < 0)
@@ -251,43 +239,50 @@ int CMainDlg::OnInitStatusPage(int iId)
     }
     //ShowPage(nIndex);
     auto* pPage = pTab->GetItem(nIndex);
-    //pPage->FindChildByName2<SEdit>(L"txt_name")->SetWindowText();
-    auto* pWnd = pPage->FindChildByName2<SWindow>(L"wnd_login");
+    pPage->FindChildByName2<SWindow>(L"txt_name")->SetWindowText(L"");
+    auto* pWnd = pPage->FindChildByName2<SWindow>(L"wnd_auth");
     auto* pBtn = pWnd->FindChildByName2<SButton>(L"btn_confirm");
-    pBtn->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&CMainDlg::OnLoginConfirm, this));
-    pBtn->SetUserData(iId);
+    pBtn->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&CMainDlg::OnAuthConfirm, this));
+    pBtn->SetUserData((ULONG_PTR)c);
     pBtn = pWnd->FindChildByName2<SButton>(L"btn_cancel");
-    pBtn->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&CMainDlg::OnLoginCancel, this));
-    pBtn->SetUserData(iId);
+    pBtn->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&CMainDlg::OnAuthCancel, this));
+    pBtn->SetUserData((ULONG_PTR)c);
+    pWnd = pPage->FindChildByName2<SWindow>(L"wnd_auth2");
+    pBtn = pWnd->FindChildByName2<SButton>(L"btn_confirm");
+    pBtn->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&CMainDlg::OnAuth2Confirm, this));
+    pBtn->SetUserData((ULONG_PTR)c);
+    pBtn = pWnd->FindChildByName2<SButton>(L"btn_cancel");
+    pBtn->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&CMainDlg::OnAuth2Cancel, this));
+    pBtn->SetUserData((ULONG_PTR)c);
     pWnd = pPage->FindChildByName2<SWindow>(L"wnd_response");
     pBtn = pWnd->FindChildByName2<SButton>(L"btn_confirm");
     pBtn->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&CMainDlg::OnResponseConfirm, this));
-    pBtn->SetUserData(iId);
+    pBtn->SetUserData((ULONG_PTR)c);
     pBtn = pWnd->FindChildByName2<SButton>(L"btn_cancel");
     pBtn->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&CMainDlg::OnResponseCancel, this));
-    pBtn->SetUserData(iId);
+    pBtn->SetUserData((ULONG_PTR)c);
     pWnd = pPage->FindChildByName2<SWindow>(L"wnd_pass");
     pBtn = pWnd->FindChildByName2<SButton>(L"btn_confirm");
     pBtn->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&CMainDlg::OnPassConfirm, this));
-    pBtn->SetUserData(iId);
+    pBtn->SetUserData((ULONG_PTR)c);
     pBtn = pWnd->FindChildByName2<SButton>(L"btn_cancel");
     pBtn->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&CMainDlg::OnPassCancel, this));
-    pBtn->SetUserData(iId);
+    pBtn->SetUserData((ULONG_PTR)c);
     pWnd = pPage->FindChildByName2<SWindow>(L"wnd_chpass");
     pBtn = pWnd->FindChildByName2<SButton>(L"btn_confirm");
     pBtn->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&CMainDlg::OnChpassConfirm, this));
-    pBtn->SetUserData(iId);
+    pBtn->SetUserData((ULONG_PTR)c);
     pBtn = pWnd->FindChildByName2<SButton>(L"btn_cancel");
     pBtn->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&CMainDlg::OnChpassCancel, this));
-    pBtn->SetUserData(iId);
+    pBtn->SetUserData((ULONG_PTR)c);
 
     return nIndex;
 }
 
-int CMainDlg::OnReleaseStatusPage(int iId)
+int CMainDlg::OnReleaseStatusPage(connection_t* c)
 {
     TCHAR pageName[16];
-    _stprintf_s(pageName, _countof(pageName), _T("page_%08x"), iId);
+    _stprintf_s(pageName, _countof(pageName), _T("page_%08x"), c->id);
     auto* pTab = FindChildByName2<STabCtrlEx>(L"tab_main");
     int nIndex = pTab->GetPageIndex(pageName, TRUE);
     if (nIndex >= 0)
@@ -475,12 +470,22 @@ void CMainDlg::RefreshTree()
     }
 }
 
-BOOL CMainDlg::OnLoginConfirm(EventCmd* pEvt)
+BOOL CMainDlg::OnAuthConfirm(EventCmd* pEvt)
 {
     return TRUE;
 }
 
-BOOL CMainDlg::OnLoginCancel(EventCmd* pEvt)
+BOOL CMainDlg::OnAuthCancel(EventCmd* pEvt)
+{
+    return TRUE;
+}
+
+BOOL CMainDlg::OnAuth2Confirm(EventCmd* pEvt)
+{
+    return TRUE;
+}
+
+BOOL CMainDlg::OnAuth2Cancel(EventCmd* pEvt)
 {
     return TRUE;
 }

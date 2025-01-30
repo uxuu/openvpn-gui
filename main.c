@@ -52,7 +52,8 @@
 #include "as.h"
 
 #include "common.h"
-#include "DlgInit.h"
+#include "gui/Init.h"
+#include "gui/openvpnex.h"
 
 #define OVPN_EXITCODE_ERROR      1
 #define OVPN_EXITCODE_TIMEOUT    2
@@ -202,6 +203,7 @@ _tWinMain(HINSTANCE hThisInstance,
         { 0,        NULL }
     };
     InitManagement(handler);
+    InitManagementEx();
 
     /* initialize options to default state */
     InitOptions(&o);
@@ -344,7 +346,7 @@ _tWinMain(HINSTANCE hThisInstance,
         hThisInstance,          /* Program Instance handler */
         NULL                    /* No Window Creation data */
         );
-    messages.wParam = DlgInitWindow(hwnd);
+    messages.wParam = InitMainWindow(hwnd);
 
     /* Run the message loop. It will run until GetMessage() returns 0 */
     //while (GetMessage(&messages, NULL, 0, 0))

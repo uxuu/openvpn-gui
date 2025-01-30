@@ -65,7 +65,7 @@
 #include "pkcs11.h"
 #include "service.h"
 
-#include "DlgInit.h"
+#include "gui/openvpnex.h"
 #define OPENVPN_SERVICE_PIPE_NAME_OVPN2 L"\\\\.\\pipe\\openvpn\\service"
 #define OPENVPN_SERVICE_PIPE_NAME_OVPN3 L"\\\\.\\pipe\\ovpnagent"
 
@@ -1764,7 +1764,7 @@ WriteStatusLog(connection_t *c, const WCHAR *prefix, const WCHAR *line, BOOL fil
     WCHAR datetime[26];
 
     time(&now);
-    DlgOnWriteStatusLog(c, prefix, line);
+    OnWriteStatusLog(c, prefix, line);
     /* TODO: change this to use _wctime_s when mingw supports it */
     wcsncpy(datetime, _wctime(&now), _countof(datetime));
     datetime[24] = L' ';
@@ -2462,7 +2462,7 @@ ThreadOpenVPNStatus(void *p)
     conn_name[_tcslen(conn_name) - _tcslen(o.ext_string) - 1] = _T('\0');
 
     /* Create and Show Status Dialog */
-    DlgInitStatusPage(c);
+    InitStatusPage(c);
     c->hwndStatus = CreateLocalizedDialogParam(ID_DLG_STATUS, StatusDialogFunc, (LPARAM) c);
     if (!c->hwndStatus)
     {
@@ -2549,7 +2549,7 @@ ThreadOpenVPNStatus(void *p)
         }
     }
 
-    DlgReleaseStatusPage(c);
+    ReleaseStatusPage(c);
     /* release handles etc.*/
     Cleanup(c);
     c->hwndStatus = NULL;

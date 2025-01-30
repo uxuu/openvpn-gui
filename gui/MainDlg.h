@@ -1,4 +1,5 @@
 #pragma once
+
 extern "C" {
     void CloseApplication(HWND hwnd, BOOL ask_user);
 }
@@ -31,19 +32,21 @@ public:
     void ShowPage(int nIndex);
     void ShowPage(LPCTSTR pszName, BOOL bTitle = TRUE);
     void RefreshTree();
-    STDMETHOD_(void, OnStateChanged)(THIS_);
-    STDMETHOD_(void, OnLogLine)(THIS_ int iId, char *msg);
-    STDMETHOD_(void, OnWriteStatusLog)(THIS_ int iId, LPCWSTR prefix, LPCWSTR msg);
-    STDMETHOD_(int, OnInitStatusPage)(THIS_ int iId);
-    STDMETHOD_(int, OnReleaseStatusPage)(THIS_ int iId);
-    STDMETHOD_(BOOL, OnLoginConfirm)(THIS_ EventCmd* pEvt);
-    STDMETHOD_(BOOL, OnLoginCancel)(THIS_ EventCmd* pEvt);
-    STDMETHOD_(BOOL, OnPassConfirm)(THIS_ EventCmd* pEvt);
-    STDMETHOD_(BOOL, OnPassCancel)(THIS_ EventCmd* pEvt);
-    STDMETHOD_(BOOL, OnResponseConfirm)(THIS_ EventCmd* pEvt);
-    STDMETHOD_(BOOL, OnResponseCancel)(THIS_ EventCmd* pEvt);
-    STDMETHOD_(BOOL, OnChpassConfirm)(THIS_ EventCmd* pEvt);
-    STDMETHOD_(BOOL, OnChpassCancel)(THIS_ EventCmd* pEvt);
+    STDMETHOD_(void, OnStateChanged)(THIS_ connection_t* c);
+    STDMETHOD_(void, OnLogLine)(THIS_ connection_t* c, char *msg);
+    STDMETHOD_(void, OnWriteStatusLog)(THIS_ connection_t* c, LPCWSTR prefix, LPCWSTR msg);
+    STDMETHOD_(int, OnInitStatusPage)(THIS_ connection_t* c);
+    STDMETHOD_(int, OnReleaseStatusPage)(THIS_ connection_t* c);
+    BOOL OnAuthConfirm(EventCmd* pEvt);
+    BOOL OnAuthCancel(EventCmd* pEvt);
+    BOOL OnAuth2Confirm(EventCmd* pEvt);
+    BOOL OnAuth2Cancel(EventCmd* pEvt);
+    BOOL OnPassConfirm(EventCmd* pEvt);
+    BOOL OnPassCancel(EventCmd* pEvt);
+    BOOL OnResponseConfirm(EventCmd* pEvt);
+    BOOL OnResponseCancel(EventCmd* pEvt);
+    BOOL OnChpassConfirm(EventCmd* pEvt);
+    BOOL OnChpassCancel(EventCmd* pEvt);
 
 protected:
 
@@ -74,7 +77,7 @@ protected:
     END_MSG_MAP()
 public:
     HWND            m_hWnd2;
-private:
+protected:
     BOOL            m_bHided;
     BOOL         	m_bLayoutInited;
 };

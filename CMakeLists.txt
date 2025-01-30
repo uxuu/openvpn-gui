@@ -32,9 +32,11 @@ add_executable(${PROJECT_NAME} WIN32
     as.c
     pkcs11.c
     config_parser.c
-    DlgInit.cpp
-    MainDlg.cpp
-    STabCtrlEx.cpp
+    gui/openvpnex.cpp
+    gui/Init.cpp
+    gui/MainDlg.cpp
+    gui/STabCtrlEx.cpp
+    gui/STreeAdapter.cpp
     ${SOUI_ROOT}/controls.extend/gif/SGifPlayer.cpp
     ${SOUI_ROOT}/controls.extend/gif/SSkinGif.cpp
     ${SOUI_ROOT}/controls.extend/STurn3DView.cpp
@@ -94,7 +96,6 @@ else ()
     target_link_libraries(${PROJECT_NAME} PRIVATE soui4 utilities4)
 endif ()
 
-#target_include_directories(${PROJECT_NAME} PUBLIC ${SOUI_ROOT}/config)
 target_include_directories(${PROJECT_NAME} PUBLIC ${SOUI_ROOT}/components)
 target_include_directories(${PROJECT_NAME} PUBLIC ${SOUI_ROOT}/utilities/include)
 target_include_directories(${PROJECT_NAME} PUBLIC ${SOUI_ROOT}/SOUI/include)

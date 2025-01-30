@@ -20,11 +20,11 @@
 
 using namespace SOUI;
 
-#include "..\controls.extend\gif\SGifPlayer.h"
-#include "..\controls.extend\gif\SSkinGif.h"
-#include "..\controls.extend\STurn3DView.h"
-#include "..\controls.extend\SComboBoxEx.h"
-#include "..\controls.extend\SVscrollbar.h"
-#include ".\STabCtrlEx.h"
+#include "../controls.extend/gif/SGifPlayer.h"
+#include "../controls.extend/gif/SSkinGif.h"
+#include "../controls.extend/STurn3DView.h"
+#include "../controls.extend/SComboBoxEx.h"
+#include "../controls.extend/SVscrollbar.h"
+#include "gui/STabCtrlEx.h"
 
 #endif /* _STDAFX_H */
