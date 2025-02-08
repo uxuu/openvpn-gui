@@ -37,6 +37,7 @@ add_executable(${PROJECT_NAME} WIN32
     gui/MainDlg.cpp
     gui/STabCtrlEx.cpp
     gui/STreeAdapter.cpp
+    gui/MgmtMisc.cpp
     ${SOUI_ROOT}/controls.extend/gif/SGifPlayer.cpp
     ${SOUI_ROOT}/controls.extend/gif/SSkinGif.cpp
     ${SOUI_ROOT}/controls.extend/STurn3DView.cpp

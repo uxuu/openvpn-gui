@@ -6,8 +6,9 @@ extern "C" {
 #endif
 
     VOID WINAPI ShowMainWindow(BOOL bShow);
-    DWORD WINAPI InitMainWindow(HWND hWnd);
-
+    VOID WINAPI InitMainWindow();
+    VOID WINAPI ReleaseMainWindow();
+    DWORD WINAPI RunMessageLoop();
 #ifdef __cplusplus
 }
 #endif /* C++ */

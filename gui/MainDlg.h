@@ -15,7 +15,7 @@ public:
     void OnDestroy();
     void OnShowWindow(BOOL bShow, UINT nStatus);
     BOOL OnInitDialog(HWND wndFocus, LPARAM lInitParam);
-    void OnCommand2(UINT uNotifyCode, int nID, HWND wndCtl);
+    void OnCommand(UINT uNotifyCode, int nID, HWND wndCtl);
     void OnBtnClose();
     void OnBtnMaximize();
     void OnBtnRestore();
@@ -32,21 +32,6 @@ public:
     void ShowPage(int nIndex);
     void ShowPage(LPCTSTR pszName, BOOL bTitle = TRUE);
     void RefreshTree();
-    STDMETHOD_(void, OnStateChanged)(THIS_ connection_t* c);
-    STDMETHOD_(void, OnLogLine)(THIS_ connection_t* c, char *msg);
-    STDMETHOD_(void, OnWriteStatusLog)(THIS_ connection_t* c, LPCWSTR prefix, LPCWSTR msg);
-    STDMETHOD_(int, OnInitStatusPage)(THIS_ connection_t* c);
-    STDMETHOD_(int, OnReleaseStatusPage)(THIS_ connection_t* c);
-    BOOL OnAuthConfirm(EventCmd* pEvt);
-    BOOL OnAuthCancel(EventCmd* pEvt);
-    BOOL OnAuth2Confirm(EventCmd* pEvt);
-    BOOL OnAuth2Cancel(EventCmd* pEvt);
-    BOOL OnPassConfirm(EventCmd* pEvt);
-    BOOL OnPassCancel(EventCmd* pEvt);
-    BOOL OnResponseConfirm(EventCmd* pEvt);
-    BOOL OnResponseCancel(EventCmd* pEvt);
-    BOOL OnChpassConfirm(EventCmd* pEvt);
-    BOOL OnChpassCancel(EventCmd* pEvt);
 
 protected:
 
@@ -70,13 +55,12 @@ protected:
         MSG_WM_INITDIALOG(OnInitDialog)
         MSG_WM_CLOSE(OnClose)
         MSG_WM_SHOWWINDOW(OnShowWindow)
-        MSG_WM_COMMAND(OnCommand2)
+        MSG_WM_COMMAND(OnCommand)
         CHAIN_MSG_MAP(SHostWnd)
 		CHAIN_MSG_MAP(SDpiHandler<CMainDlg>)
         REFLECT_NOTIFICATIONS_EX()
     END_MSG_MAP()
-public:
-    HWND            m_hWnd2;
+
 protected:
     BOOL            m_bHided;
     BOOL         	m_bLayoutInited;

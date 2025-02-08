@@ -45,7 +45,8 @@ struct regkey_str {
 } regkey_str[] = {
     {L"config_dir", o.config_dir, _countof(o.config_dir), L"%USERPROFILE%\\OpenVPN\\config"},
     {L"config_ext", o.ext_string, _countof(o.ext_string), L"ovpn"},
-    {L"log_dir", o.log_dir, _countof(o.log_dir), L"%USERPROFILE%\\OpenVPN\\log"}
+    {L"log_dir", o.log_dir, _countof(o.log_dir), L"%USERPROFILE%\\OpenVPN\\log"},
+    {L"uires_path", o.uires_path, _countof(o.uires_path), L""}
 };
 
 struct regkey_int {
@@ -68,7 +69,10 @@ struct regkey_int {
     {L"enable_peristent_connections", &o.enable_persistent, 2},
     {L"enable_auto_restart", &o.enable_auto_restart, 1},
     {L"auth_pass_concat_otp", &o.auth_pass_concat_otp, 0},
-    {L"ovpn_engine", &o.ovpn_engine, OPENVPN_ENGINE_OVPN2}
+    {L"ovpn_engine", &o.ovpn_engine, OPENVPN_ENGINE_OVPN2},
+    {L"render", &o.render, render_unknown},
+    {L"imgdecoder", &o.imgdecoder, imgdecoder_unknown},
+    {L"tune3dview", &o.tune3dview, 0},
 };
 
 static int

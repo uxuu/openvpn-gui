@@ -9,10 +9,12 @@
 
 #include "openvpnex.h"
 #include "MainDlg.h"
+#include "MgmtMisc.h"
 
 #include "Init.h"
 
 #include <SouiFactory.h>
+
 
 #ifdef _DEBUG
 #define SYS_NAMED_RESOURCE _T("soui-sys-resource2d.dll")
@@ -22,9 +24,10 @@
 
 /*  Declare Windows procedure  */
 
-BOOL bCan3DView = FALSE;
 CMainDlg *pDlgMain = nullptr;
 SComMgr2 *pComMgr = nullptr;
+MgmtMisc *pMgmtMisc = nullptr;
+SApplication *pApp = nullptr;
 
 VOID WINAPI ShowMainWindow(BOOL bShow)
 {
@@ -36,74 +39,46 @@ VOID WINAPI ShowMainWindow(BOOL bShow)
 
 const TCHAR *GetImgDecoder()
 {
-    DWORD len = MAX_NAME;
-    TCHAR buf[MAX_NAME];
-    LSTATUS status = RegGetValueW(HKEY_CURRENT_USER, GUI_REGKEY_HKCU, L"decoder",
-        RRF_RT_REG_SZ, nullptr, buf, &len);
-    if (status != ERROR_SUCCESS || len == 0)
+    switch (o.imgdecoder)
     {
-        return _T("imgdecoder-png");
-    }
-    if (_tcsicmp(buf, _T("gdip")) == 0)
-    {
+    case imgdecoder_gdip:
         return _T("imgdecoder-gdip");
-    }
-    if (_tcsicmp(buf, _T("stb")) == 0)
-    {
+    case imgdecoder_stb:
         return _T("imgdecoder-stb");
-    }
-    else if (_tcsicmp(buf, _T("wic")) == 0)
-    {
+    case imgdecoder_wic:
         return _T("imgdecoder-wic");
-    }
-    if (_tcsicmp(buf, _T("png")) == 0)
-    {
+    case imgdecoder_png:
+    case imgdecoder_unknown:
+    default:
         return _T("imgdecoder-png");
     }
-    return _T("imgdecoder-png");
 }
 
 void GetRenderFactory(IObjRef** ref)
 {
-    DWORD len = MAX_NAME;
-    TCHAR buf[MAX_NAME];
-
-    LSTATUS status = RegGetValueW(HKEY_CURRENT_USER, GUI_REGKEY_HKCU, L"render",
-        RRF_RT_REG_SZ, nullptr, buf, &len);
-    if (status != ERROR_SUCCESS || len == 0)
+    switch (o.render)
     {
-        pComMgr->CreateRender_GDI(ref);
-    }
-    else if (_tcsicmp(buf, _T("gdi")) == 0)
-    {
-        pComMgr->CreateRender_GDI(ref);
-    }
-    else if (_tcsicmp(buf, _T("d2d")) == 0)
-    {
+    case render_d2d:
         pComMgr->CreateRender_D2D(ref);
-    }
-    else if (_tcsicmp(buf, _T("skia")) == 0)
-    {
-        bCan3DView = TRUE;
+        break;
+    case render_skia:
         pComMgr->CreateRender_Skia(ref);
-    }
-    else
-    {
+        break;
+    case render_gdi:
+    case render_unknown:
+    default:
         pComMgr->CreateRender_GDI(ref);
+        break;
     }
 }
 
 IResProvider *LoadResource(SouiFactory *souiFac, HINSTANCE hInstance)
 {
-    DWORD len = MAX_NAME;
-    TCHAR buf[MAX_NAME];
     IResProvider* pResProvider;
-    LSTATUS status = RegGetValueW(HKEY_CURRENT_USER, GUI_REGKEY_HKCU, L"uires",
-        RRF_RT_REG_SZ, nullptr, buf, &len);
-    if (status == ERROR_SUCCESS && len > 0 && PathFileExists(buf))
+    if (PathFileExists(o.uires_path))
     {
         pResProvider = souiFac->CreateResProvider(RES_FILE);
-        if (pResProvider->Init(reinterpret_cast<LPARAM>(buf), 0))
+        if (pResProvider->Init(reinterpret_cast<LPARAM>(o.uires_path), 0))
         {
             return pResProvider;
         }
@@ -121,15 +96,15 @@ IResProvider *LoadResource(SouiFactory *souiFac, HINSTANCE hInstance)
     return pResProvider;
 }
 
-DWORD WINAPI InitMainWindow(HWND hWnd)
+VOID WINAPI InitMainWindow()
 {
     DWORD nRet = 0;
     SouiFactory souiFac;
     CAutoRefPtr<IRenderFactory> pRenderFactory;
     CAutoRefPtr<IImgDecoderFactory> pImgDecoderFactory;
-    HINSTANCE hInstance = GetModuleHandle(nullptr);
     if (pComMgr == nullptr)
     {
+        pMgmtMisc = new MgmtMisc();
         HRESULT hRes = OleInitialize(NULL);
         CAutoRefPtr<IResProvider> pResProvider;
         pComMgr = new SComMgr2(GetImgDecoder());
@@ -138,13 +113,13 @@ DWORD WINAPI InitMainWindow(HWND hWnd)
         pComMgr->CreateImgDecoder(reinterpret_cast<IObjRef**>(&pImgDecoderFactory));
         pRenderFactory->SetImgDecoderFactory(pImgDecoderFactory);
         pImgDecoderFactory = nullptr;
-        auto* theApp = new SApplication(pRenderFactory, hInstance, _T(PACKAGE_NAME));
+        pApp = new SApplication(pRenderFactory, o.hInstance, _T(PACKAGE_NAME));
         pRenderFactory = nullptr;
-        theApp->RegisterWindowClass<STurn3dView>();
-        theApp->RegisterWindowClass<STabCtrlEx>();
-        theApp->RegisterWindowClass<SGifPlayer>();
-        theApp->RegisterSkinClass<SSkinGif>();
-        theApp->RegisterSkinClass<SSkinVScrollbar>();
+        pApp->RegisterWindowClass<STurn3dView>();
+        pApp->RegisterWindowClass<STabCtrlEx>();
+        pApp->RegisterWindowClass<SGifPlayer>();
+        pApp->RegisterSkinClass<SSkinGif>();
+        pApp->RegisterSkinClass<SSkinVScrollbar>();
         SSkinGif::Gdiplus_Startup();
 
         HMODULE hSysResource = LoadLibrary(SYS_NAMED_RESOURCE);
@@ -153,40 +128,34 @@ DWORD WINAPI InitMainWindow(HWND hWnd)
             CAutoRefPtr<IResProvider> sysSesProvider;
             sysSesProvider.Attach(souiFac.CreateResProvider(RES_PE));
             sysSesProvider->Init(reinterpret_cast<WPARAM>(hSysResource), 0);
-            theApp->LoadSystemNamedResource(sysSesProvider);
+            pApp->LoadSystemNamedResource(sysSesProvider);
         }
 
-        pResProvider.Attach(LoadResource(&souiFac, hInstance));
+        pResProvider.Attach(LoadResource(&souiFac, o.hInstance));
 
-        theApp->AddResProvider(pResProvider);
+        pApp->AddResProvider(pResProvider);
 
-        // BLOCK: Run application
+        if (pDlgMain == nullptr)
         {
-            if (pDlgMain == nullptr)
-            {
-                pDlgMain = new CMainDlg();
-                pDlgMain->m_hWnd2 = hWnd;
-                pDlgMain->Create(GetActiveWindow(), 0, 0, 300, 600);
-                pDlgMain->SendMessage(WM_INITDIALOG);
-                pDlgMain->CenterWindow(pDlgMain->m_hWnd);
-                pDlgMain->ShowWindow(SW_SHOWNORMAL);
-                pDlgMain->FindChildByName(_T("turn3d"))->EnableWindow(bCan3DView);
-                nRet = theApp->Run(pDlgMain->m_hWnd);
-            }
-            else
-            {
-                pDlgMain->ShowWindow(SW_SHOW);
-            }
+            pDlgMain = new CMainDlg();
+            pDlgMain->Create(GetActiveWindow(), 0, 0, 300, 600);
+            pDlgMain->SendMessage(WM_INITDIALOG);
+            pDlgMain->CenterWindow(pDlgMain->m_hWnd);
+            pDlgMain->ShowWindow(SW_SHOWNORMAL);
         }
-        theApp->UnregisterWindowClass<SGifPlayer>();
-        delete theApp;
-        SSkinGif::Gdiplus_Shutdown();
     }
-    else
-    {
-        pDlgMain->ShowWindow(SW_SHOW);
-    }
+}
+
+DWORD WINAPI RunMessageLoop()
+{
+    return pApp->Run(pDlgMain->m_hWnd);
+}
+
+VOID WINAPI ReleaseMainWindow()
+{
+    pApp->UnregisterWindowClass<SGifPlayer>();
+    delete pApp;
+    SSkinGif::Gdiplus_Shutdown();
     delete pComMgr;
     OleUninitialize();
-    return nRet;
 }

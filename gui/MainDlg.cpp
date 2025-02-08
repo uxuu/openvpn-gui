@@ -8,6 +8,10 @@
 #include <vector>
 #include <set>
 
+extern "C" {
+#include "save_pass.h"
+#include "misc.h"
+}
 
 CMainDlg::CMainDlg() : SHostWnd(_T("LAYOUT:XML_MAINWND"))
 {
@@ -21,7 +25,7 @@ CMainDlg::~CMainDlg()
 void CMainDlg::OnClose()
 {
     ShowWindow(SW_HIDE);
-    CloseApplication(m_hWnd2, true);
+    CloseApplication(o.hWnd, true);
 }
 
 int CMainDlg::OnCreate(LPCREATESTRUCT lpCreateStruct)
@@ -62,239 +66,13 @@ BOOL CMainDlg::OnInitDialog(HWND hWnd, LPARAM lParam)
         pAdapter->RefreshItems();
         pAdapter->Release();
     }
-    LoadAutoStartConnections(m_hWnd2);
     SetMsgHandled(FALSE);
     return 0;
 }
 
 BOOL CMainDlg::OnTurn3D(EventArgs* pEvt)
 {
-    //EventTurn3d* pEvt3dTurn = (EventTurn3d*)pEvt;
-    //STabCtrl* pTab = FindChildByName2<STabCtrl>(L"tab_main");
     return TRUE;
-}
-
-void CMainDlg::OnStateChanged(connection_t* c)
-{
-    RefreshTree();
-}
-
-void CMainDlg::OnLogLine(connection_t* c, char *msg)
-{
-    time_t timestamp;
-    TCHAR pageName[16];
-    wchar_t datetime[24];
-    const SETTEXTEX ste = {ST_SELECTION, CP_UTF8 };
-    _stprintf_s(pageName, _countof(pageName), _T("page_%08x"), c->id);
-    auto* pTab = FindChildByName2<STabCtrlEx>(L"tab_main");
-    auto* pPage = pTab->GetPage(pageName, TRUE);
-    if (!pPage)
-    {
-        return;
-    }
-    auto* pLogWnd = pPage->FindChildByName2<SRichEdit>(L"log_viewer");
-    if (!pLogWnd)
-    {
-        return;
-    }
-
-    char *flags = strchr(msg, ',') + 1;
-    if (flags - 1 == nullptr)
-    {
-        return;
-    }
-
-    char *message = strchr(flags, ',') + 1;
-    if (message - 1 == nullptr)
-    {
-        return;
-    }
-    size_t flag_size = message - flags - 1; /* message is always > flags */
-
-    /* Remove lines from log window if it is getting full */
-    if (pLogWnd->SSendMessage(EM_GETLINECOUNT, 0, 0) > MAX_LOG_LINES)
-    {
-        auto pos = pLogWnd->SSendMessage(EM_LINEINDEX, DEL_LOG_LINES, 0);
-        pLogWnd->SSendMessage(EM_SETSEL, 0, pos);
-        pLogWnd->SSendMessage(EM_REPLACESEL, FALSE, (LPARAM) _T(""));
-    }
-
-    timestamp = strtol(msg, nullptr, 10);
-    struct tm *tm = localtime(&timestamp);
-
-    wsprintf(datetime, L"%04d-%02d-%02d %02d:%02d:%02d ",
-               tm->tm_year+1900, tm->tm_mon+1, tm->tm_mday,
-               tm->tm_hour, tm->tm_min, tm->tm_sec);
-
-    /* deselect current selection, if any */
-    pLogWnd->SSendMessage(EM_SETSEL, (WPARAM) -1, (LPARAM) -1);
-
-    /* change text color if Warning or Error */
-    COLORREF text_clr = 0;
-
-    if (memchr(flags, 'N', flag_size) || memchr(flags, 'F', flag_size))
-    {
-        text_clr = o.clr_error;
-    }
-    else if (memchr(flags, 'W', flag_size))
-    {
-        text_clr = o.clr_warning;
-    }
-
-    if (text_clr != 0)
-    {
-        CHARFORMAT cfm = { sizeof(CHARFORMAT),
-                    CFM_COLOR|CFM_BOLD,
-                    0,
-                    0,
-                    0,
-                    text_clr,
-        };
-        pLogWnd->SSendMessage(EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM) &cfm);
-    }
-
-    /* Append line to log window */
-    pLogWnd->SSendMessage(EM_REPLACESEL, FALSE, (LPARAM) datetime);
-    pLogWnd->SSendMessage(EM_SETTEXTEX, (WPARAM) &ste, (LPARAM) message);
-    pLogWnd->SSendMessage(EM_REPLACESEL, FALSE, (LPARAM) L"\n");
-
-    /* scroll to the caret */
-    pLogWnd->SSendMessage(EM_SCROLLCARET, 0, 0);
-}
-
-void CMainDlg::OnWriteStatusLog(connection_t* c, LPCWSTR prefix, LPCWSTR msg)
-{
-    time_t now;
-    TCHAR pageName[16];
-    wchar_t datetime[24];
-    const SETTEXTEX ste = {ST_SELECTION, CP_UTF8 };
-    _stprintf_s(pageName, _countof(pageName), _T("page_%08x"), c->id);
-    auto* pTab = FindChildByName2<STabCtrlEx>(L"tab_main");
-    auto* pPage = pTab->GetPage(pageName, TRUE);
-    if (!pPage)
-    {
-        return;
-    }
-    auto* pLogWnd = pPage->FindChildByName2<SRichEdit>(L"log_viewer");
-    if (!pLogWnd)
-    {
-        return;
-    }
-
-    now = time(nullptr);
-    struct tm *tm = localtime(&now);
-
-    wsprintf(datetime, L"%04d-%02d-%02d %02d:%02d:%02d ",
-               tm->tm_year+1900, tm->tm_mon+1, tm->tm_mday,
-               tm->tm_hour, tm->tm_min, tm->tm_sec);
-    /* change text color if Warning or Error */
-    COLORREF text_clr = 0;
-
-    if (wcsstr(prefix, L"ERROR"))
-    {
-        text_clr = o.clr_error;
-    }
-    else if (wcsstr(prefix, L"WARNING"))
-    {
-        text_clr = o.clr_warning;
-    }
-
-    if (text_clr != 0)
-    {
-        CHARFORMAT cfm = { sizeof(CHARFORMAT),
-                           CFM_COLOR|CFM_BOLD,
-                           0,
-                            0,
-                             0,
-                           text_clr,
-        };
-        pLogWnd->SSendMessage(EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM) &cfm);
-    }
-
-
-    /* Remove lines from log window if it is getting full */
-    if (pLogWnd->SSendMessage(EM_GETLINECOUNT, 0, 0) > MAX_LOG_LINES)
-    {
-        int pos = pLogWnd->SSendMessage(EM_LINEINDEX, DEL_LOG_LINES, 0);
-        pLogWnd->SSendMessage(EM_SETSEL, 0, pos);
-        pLogWnd->SSendMessage(EM_REPLACESEL, FALSE, (LPARAM) _T(""));
-    }
-    /* Append line to log window */
-    pLogWnd->SSendMessage(EM_SETSEL, (WPARAM) -1, (LPARAM) -1);
-    pLogWnd->SSendMessage(EM_REPLACESEL, FALSE, (LPARAM) datetime);
-    pLogWnd->SSendMessage(EM_REPLACESEL, FALSE, (LPARAM) prefix);
-    pLogWnd->SSendMessage(EM_REPLACESEL, FALSE, (LPARAM) msg);
-    pLogWnd->SSendMessage(EM_REPLACESEL, FALSE, (LPARAM) L"\n");
-}
-int CMainDlg::OnInitStatusPage(connection_t* c)
-{
-    TCHAR pageName[16];
-    _stprintf_s(pageName, _countof(pageName), _T("page_%08x"), c->id);
-    auto* pTab = FindChildByName2<STabCtrlEx>(L"tab_main");
-    int nIndex = pTab->GetPageIndex(pageName, TRUE);
-    if (nIndex < 0)
-    {
-        nIndex = pTab->InsertItem();
-        pTab->SetItemTitle(nIndex, pageName);
-    }
-    //ShowPage(nIndex);
-    auto* pPage = pTab->GetItem(nIndex);
-    pPage->FindChildByName2<SWindow>(L"txt_name")->SetWindowText(L"");
-    auto* pWnd = pPage->FindChildByName2<SWindow>(L"wnd_auth");
-    auto* pBtn = pWnd->FindChildByName2<SButton>(L"btn_confirm");
-    pBtn->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&CMainDlg::OnAuthConfirm, this));
-    pBtn->SetUserData((ULONG_PTR)c);
-    pBtn = pWnd->FindChildByName2<SButton>(L"btn_cancel");
-    pBtn->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&CMainDlg::OnAuthCancel, this));
-    pBtn->SetUserData((ULONG_PTR)c);
-    pWnd = pPage->FindChildByName2<SWindow>(L"wnd_auth2");
-    pBtn = pWnd->FindChildByName2<SButton>(L"btn_confirm");
-    pBtn->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&CMainDlg::OnAuth2Confirm, this));
-    pBtn->SetUserData((ULONG_PTR)c);
-    pBtn = pWnd->FindChildByName2<SButton>(L"btn_cancel");
-    pBtn->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&CMainDlg::OnAuth2Cancel, this));
-    pBtn->SetUserData((ULONG_PTR)c);
-    pWnd = pPage->FindChildByName2<SWindow>(L"wnd_response");
-    pBtn = pWnd->FindChildByName2<SButton>(L"btn_confirm");
-    pBtn->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&CMainDlg::OnResponseConfirm, this));
-    pBtn->SetUserData((ULONG_PTR)c);
-    pBtn = pWnd->FindChildByName2<SButton>(L"btn_cancel");
-    pBtn->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&CMainDlg::OnResponseCancel, this));
-    pBtn->SetUserData((ULONG_PTR)c);
-    pWnd = pPage->FindChildByName2<SWindow>(L"wnd_pass");
-    pBtn = pWnd->FindChildByName2<SButton>(L"btn_confirm");
-    pBtn->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&CMainDlg::OnPassConfirm, this));
-    pBtn->SetUserData((ULONG_PTR)c);
-    pBtn = pWnd->FindChildByName2<SButton>(L"btn_cancel");
-    pBtn->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&CMainDlg::OnPassCancel, this));
-    pBtn->SetUserData((ULONG_PTR)c);
-    pWnd = pPage->FindChildByName2<SWindow>(L"wnd_chpass");
-    pBtn = pWnd->FindChildByName2<SButton>(L"btn_confirm");
-    pBtn->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&CMainDlg::OnChpassConfirm, this));
-    pBtn->SetUserData((ULONG_PTR)c);
-    pBtn = pWnd->FindChildByName2<SButton>(L"btn_cancel");
-    pBtn->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&CMainDlg::OnChpassCancel, this));
-    pBtn->SetUserData((ULONG_PTR)c);
-
-    return nIndex;
-}
-
-int CMainDlg::OnReleaseStatusPage(connection_t* c)
-{
-    TCHAR pageName[16];
-    _stprintf_s(pageName, _countof(pageName), _T("page_%08x"), c->id);
-    auto* pTab = FindChildByName2<STabCtrlEx>(L"tab_main");
-    int nIndex = pTab->GetPageIndex(pageName, TRUE);
-    if (nIndex >= 0)
-    {
-        if (pTab->GetCurSel() == nIndex)
-        {
-            ShowPage(_T("page_home"));
-        }
-        pTab->RemoveItem(nIndex);
-        return nIndex;
-    }
-    return -1;
 }
 
 void CMainDlg::OnHotKey(int nHotKeyID, UINT uModifiers, UINT uVirtKey)
@@ -345,37 +123,32 @@ void CMainDlg::OnBtnSet()
 void CMainDlg::OnBtnHome()
 {
     ShowPage(_T("page_home"));
-    auto* btn = FindChildByName2<SImageButton>(L"btn_home");
-    btn->EnableWindow(FALSE, TRUE);
+    //auto* btn = FindChildByName2<SImageButton>(L"btn_home");
+    //btn->EnableWindow(FALSE, TRUE);
 }
 
 void CMainDlg::OnBtnLogin()
 {
     ShowPage(_T("page_login"));
-    auto* btn = FindChildByName2<SImageButton>(L"btn_login");
-    btn->EnableWindow(FALSE, TRUE);
+    //auto* btn = FindChildByName2<SImageButton>(L"btn_login");
+    //btn->EnableWindow(FALSE, TRUE);
 }
 
 void CMainDlg::OnBtnDetail()
 {
     ShowPage(_T("page_detail"));
-    auto* btn = FindChildByName2<SImageButton>(L"btn_detail");
-    btn->EnableWindow(FALSE, TRUE);
+    //auto* btn = FindChildByName2<SImageButton>(L"btn_detail");
+    //btn->EnableWindow(FALSE, TRUE);
 }
 
 void CMainDlg::OnBtnOption()
 {
-    auto* pTab = FindChildByName2<STabCtrlEx>(L"tab_main");
-    int nIndex = pTab->InsertItem();
-    DbgPrintf(_T("nIndex=%d\n"), nIndex);
-    pTab->SetItemTitle(nIndex, L"about");
-    ShowPage(nIndex);
-    //ShowPage(_T("page_option"));
+    ShowPage(_T("page_option"));
     //auto* btn = FindChildByName2<SImageButton>(L"btn_option");
     //btn->EnableWindow(FALSE, TRUE);
 }
 
-void CMainDlg::OnCommand2( UINT uNotifyCode, int nID, HWND wndCtl )
+void CMainDlg::OnCommand( UINT uNotifyCode, int nID, HWND wndCtl )
 {
 
     // 获取屏幕信息
@@ -421,7 +194,7 @@ void CMainDlg::ShowPage(int nIndex)
     if (pTab)
     {
         STurn3dView * pTurn3d = FindChildByName2<STurn3dView>(L"turn3d");
-        if (pTurn3d && !pTurn3d->IsDisabled())
+        if (pTurn3d && o.render == render_skia && o.tune3dview == TRUE)
         {
             auto *pWnd = dynamic_cast<SWindow*>(pTab->GetPage(nIndex));
             auto *pWnd2 = dynamic_cast<SWindow*>(pTab->GetPage(pTab->GetCurSel()));
@@ -447,14 +220,6 @@ void CMainDlg::ShowPage(LPCTSTR pszName, BOOL bTitle)
         return;
     }
     ShowPage(nIndex);
-    auto* btn = FindChildByName2<SImageButton>(L"btn_home");
-    btn->EnableWindow(TRUE, TRUE);
-    btn = FindChildByName2<SImageButton>(L"btn_login");
-    btn->EnableWindow(TRUE, TRUE);
-    btn = FindChildByName2<SImageButton>(L"btn_detail");
-    btn->EnableWindow(TRUE, TRUE);
-    btn = FindChildByName2<SImageButton>(L"btn_option");
-    btn->EnableWindow(TRUE, TRUE);
 }
 
 void CMainDlg::RefreshTree()
@@ -468,54 +233,4 @@ void CMainDlg::RefreshTree()
             pAdapter->RefreshItems();
         }
     }
-}
-
-BOOL CMainDlg::OnAuthConfirm(EventCmd* pEvt)
-{
-    return TRUE;
-}
-
-BOOL CMainDlg::OnAuthCancel(EventCmd* pEvt)
-{
-    return TRUE;
-}
-
-BOOL CMainDlg::OnAuth2Confirm(EventCmd* pEvt)
-{
-    return TRUE;
-}
-
-BOOL CMainDlg::OnAuth2Cancel(EventCmd* pEvt)
-{
-    return TRUE;
-}
-
-BOOL CMainDlg::OnResponseConfirm(EventCmd* pEvt)
-{
-    return TRUE;
-}
-
-BOOL CMainDlg::OnResponseCancel(EventCmd* pEvt)
-{
-    return TRUE;
-}
-
-BOOL CMainDlg::OnPassConfirm(EventCmd* pEvt)
-{
-    return TRUE;
-}
-
-BOOL CMainDlg::OnPassCancel(EventCmd* pEvt)
-{
-    return TRUE;
-}
-
-BOOL CMainDlg::OnChpassConfirm(EventCmd* pEvt)
-{
-    return TRUE;
-}
-
-BOOL CMainDlg::OnChpassCancel(EventCmd* pEvt)
-{
-    return TRUE;
 }

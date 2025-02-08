@@ -77,6 +77,28 @@ typedef enum {
     detached,
 } conn_state_t;
 
+typedef enum {
+    config_mode_registry = 0,
+    config_mode_ini,
+} config_mode_t;
+
+typedef enum
+{
+    render_unknown = 0,
+    render_gdi,
+    render_skia,
+    render_d2d,
+} render_t;
+
+typedef enum
+{
+    imgdecoder_unknown = 0,
+    imgdecoder_gdip,
+    imgdecoder_png,
+    imgdecoder_stb,
+    imgdecoder_wic,
+} imgdecoder_t;
+
 /* Interactive Service IO parameters */
 typedef struct {
     OVERLAPPED o; /* This has to be the first element */
@@ -249,6 +271,10 @@ typedef struct {
     HANDLE event_log;
     DWORD config_mode;
     TCHAR config_path[MAX_PATH];
+    TCHAR uires_path[MAX_PATH];
+    DWORD render;
+    DWORD imgdecoder;
+    DWORD tune3dview;
 } options_t;
 
 void InitOptions(options_t *);

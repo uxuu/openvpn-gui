@@ -69,6 +69,18 @@
 #define OPENVPN_SERVICE_PIPE_NAME_OVPN2 L"\\\\.\\pipe\\openvpn\\service"
 #define OPENVPN_SERVICE_PIPE_NAME_OVPN3 L"\\\\.\\pipe\\ovpnagent"
 
+static BOOL _ShowWindow(HWND hWnd, int nCmdShow)
+{
+    if (mgmt_hook.ShowWindow)
+    {
+        return mgmt_hook.ShowWindow(hWnd, nCmdShow);
+    }
+    return ShowWindow(hWnd, nCmdShow);
+}
+#define ShowWindow _ShowWindow
+
+mgmt_hook_t mgmt_hook = {0};
+
 extern options_t o;
 extern mgmt_msg_func rtmsg_handler[mgmt_rtmsg_type_max];
 
@@ -133,7 +145,8 @@ OnReady(connection_t *c, UNUSED char *msg)
     ManagementCommand(c, "bytecount 5", NULL, regular);
 
     /* ask for the current state, especially useful when the daemon was prestarted */
-    ManagementCommand(c, "state", OnStateChange, regular);
+    //ManagementCommand(c, "state", OnStateChange, regular);
+    ManagementCommand(c, "state", rtmsg_handler[state_], regular);
 
     if (c->flags & FLAG_DAEMON_PERSISTENT
         && o.enable_persistent == 2)
@@ -356,8 +369,8 @@ OnStateChange(connection_t *c, char *data)
 
         if (!success) /* connection completed with errors */
         {
-            //SetForegroundWindow(c->hwndStatus);
-            //ShowWindow(c->hwndStatus, SW_SHOW);
+            SetForegroundWindow(c->hwndStatus);
+            ShowWindow(c->hwndStatus, SW_SHOW);
             /* The daemon does not currently log this error. Add a line to the status window */
             if (!strcmp(message, "ROUTE_ERROR"))
             {
@@ -1139,7 +1152,7 @@ PrivKeyPassDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
     return FALSE;
 }
 
-static void
+void
 free_dynamic_cr(connection_t *c)
 {
     free(c->dynamic_cr);
@@ -1256,7 +1269,7 @@ out:
  * of the requested info is known. If message is empty param->id is copied to param->str.
  * Return true on succsess. The caller must free param even when the function fails.
  */
-static BOOL
+BOOL
 parse_input_request(const char *msg, auth_param_t *param)
 {
     BOOL ret = FALSE;
@@ -1495,8 +1508,8 @@ OnTimeout(connection_t *c, UNUSED char *msg)
      */
     if (o.silent_connection == 0)
     {
-        //SetForegroundWindow(c->hwndStatus);
-        //ShowWindow(c->hwndStatus, SW_SHOW);
+        SetForegroundWindow(c->hwndStatus);
+        ShowWindow(c->hwndStatus, SW_SHOW);
     }
     WriteStatusLog(c, L"GUI> ", LoadLocalizedString(IDS_NFO_CONN_TIMEOUT, c->log_path), false);
     WriteStatusLog(c, L"GUI> ", L"Retrying. Press disconnect to abort", false);
@@ -1533,8 +1546,8 @@ OnStop(connection_t *c, UNUSED char *msg)
             EnableWindow(GetDlgItem(c->hwndStatus, ID_RESTART), FALSE);
             if (o.silent_connection == 0)
             {
-                //SetForegroundWindow(c->hwndStatus);
-                //ShowWindow(c->hwndStatus, SW_SHOW);
+                SetForegroundWindow(c->hwndStatus);
+                ShowWindow(c->hwndStatus, SW_SHOW);
             }
             MessageBoxExW(c->hwndStatus, LoadLocalizedString(IDS_NFO_CONN_TERMINATED, c->config_file),
                           _T(PACKAGE_NAME), MB_OK | MBOX_RTL_FLAGS, GetGUILanguage());
@@ -1557,8 +1570,8 @@ OnStop(connection_t *c, UNUSED char *msg)
             SetDlgItemText(c->hwndStatus, ID_TXT_STATUS, LoadLocalizedString(txt_id));
             if (o.silent_connection == 0)
             {
-                //SetForegroundWindow(c->hwndStatus);
-                //ShowWindow(c->hwndStatus, SW_SHOW);
+                SetForegroundWindow(c->hwndStatus);
+                ShowWindow(c->hwndStatus, SW_SHOW);
             }
             MessageBoxExW(c->hwndStatus, LoadLocalizedString(msg_id, c->config_name),
                           _T(PACKAGE_NAME), MB_OK | MBOX_RTL_FLAGS, GetGUILanguage());
@@ -1764,7 +1777,9 @@ WriteStatusLog(connection_t *c, const WCHAR *prefix, const WCHAR *line, BOOL fil
     WCHAR datetime[26];
 
     time(&now);
-    OnWriteStatusLog(c, prefix, line);
+
+    if (mgmt_hook.WriteStatusLog) mgmt_hook.WriteStatusLog(c, prefix, line);
+
     /* TODO: change this to use _wctime_s when mingw supports it */
     wcsncpy(datetime, _wctime(&now), _countof(datetime));
     datetime[24] = L' ';
@@ -2186,6 +2201,7 @@ Cleanup(connection_t *c)
     }
     c->exit_event = NULL;
     c->daemon_state[0] = '\0';
+    if (mgmt_hook.ReleaseStatusPage) mgmt_hook.ReleaseStatusPage(c);
 }
 /*
  * Helper to position and scale widgets in status window using current dpi
@@ -2348,7 +2364,6 @@ StatusDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
             else
             {
                 DestroyWindow(hwndDlg);
-                //DlgUninitStatusPage(c);
             }
             return TRUE;
 
@@ -2435,8 +2450,8 @@ StatusDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
             }
             if (!o.silent_connection)
             {
-                //SetForegroundWindow(c->hwndStatus);
-                //ShowWindow(c->hwndStatus, SW_SHOW);
+                SetForegroundWindow(c->hwndStatus);
+                ShowWindow(c->hwndStatus, SW_SHOW);
             }
             break;
     }
@@ -2461,8 +2476,8 @@ ThreadOpenVPNStatus(void *p)
     _tcsncpy(conn_name, c->config_file, _countof(conn_name));
     conn_name[_tcslen(conn_name) - _tcslen(o.ext_string) - 1] = _T('\0');
 
+    if (mgmt_hook.InitStatusPage) mgmt_hook.InitStatusPage(c);
     /* Create and Show Status Dialog */
-    InitStatusPage(c);
     c->hwndStatus = CreateLocalizedDialogParam(ID_DLG_STATUS, StatusDialogFunc, (LPARAM) c);
     if (!c->hwndStatus)
     {
@@ -2502,7 +2517,7 @@ ThreadOpenVPNStatus(void *p)
     {
         show_status_win = false;
     }
-    //ShowWindow(c->hwndStatus, show_status_win ? SW_SHOW : SW_HIDE);
+    ShowWindow(c->hwndStatus, show_status_win ? SW_SHOW : SW_HIDE);
 
     /* Load echo msg histroy from registry */
     echo_msg_load(c);
@@ -2549,7 +2564,6 @@ ThreadOpenVPNStatus(void *p)
         }
     }
 
-    ReleaseStatusPage(c);
     /* release handles etc.*/
     Cleanup(c);
     c->hwndStatus = NULL;
@@ -2678,8 +2692,8 @@ StartOpenVPN(connection_t *c)
         }
         if (!o.silent_connection)
         {
-            //SetForegroundWindow(c->hwndStatus);
-            //ShowWindow(c->hwndStatus, SW_SHOW);
+            SetForegroundWindow(c->hwndStatus);
+            ShowWindow(c->hwndStatus, SW_SHOW);
         }
         return FALSE;
     }

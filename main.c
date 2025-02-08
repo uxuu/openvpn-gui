@@ -203,7 +203,7 @@ _tWinMain(HINSTANCE hThisInstance,
         { 0,        NULL }
     };
     InitManagement(handler);
-    InitManagementEx();
+    InitManagementHook();
 
     /* initialize options to default state */
     InitOptions(&o);
@@ -307,6 +307,7 @@ _tWinMain(HINSTANCE hThisInstance,
     }
 
     GetProxyRegistrySettings();
+    InitMainWindow();
 
     /* The Window structure */
     wincl.hInstance = hThisInstance;
@@ -332,7 +333,7 @@ _tWinMain(HINSTANCE hThisInstance,
     }
 
     /* The class is registered, let's create the program*/
-    HWND hwnd = CreateWindowEx(
+    CreateWindowEx(
         0,                      /* Extended possibilites for variation */
         szClassName,            /* Classname */
         szTitleText,            /* Title Text */
@@ -346,14 +347,17 @@ _tWinMain(HINSTANCE hThisInstance,
         hThisInstance,          /* Program Instance handler */
         NULL                    /* No Window Creation data */
         );
-    messages.wParam = InitMainWindow(hwnd);
 
+#if 1
+    messages.wParam = RunMessageLoop();
+#else
     /* Run the message loop. It will run until GetMessage() returns 0 */
-    //while (GetMessage(&messages, NULL, 0, 0))
-    //{
-    //    TranslateMessage(&messages);
-    //    DispatchMessage(&messages);
-    //}
+    while (GetMessage(&messages, NULL, 0, 0))
+    {
+        TranslateMessage(&messages);
+        DispatchMessage(&messages);
+    }
+#endif
     CloseSemaphore(o.session_semaphore);
     o.session_semaphore = NULL; /* though we're going to die.. */
     if (o.event_log)
@@ -629,6 +633,18 @@ WindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 ImportConfigFile(o.action_arg, true); /* prompt user */
             }
 
+            if (o.enable_auto_restart)
+            {
+                LoadAutoRestartList();
+            }
+
+            if (!AutoStartConnections())
+            {
+                SendMessage(hwnd, WM_CLOSE, 0, 0);
+            }
+
+            /* A timer to periodically tend to persistent connections */
+            SetTimer(hwnd, 1, 100, ManagePersistent);
             break;
 
         case WM_NOTIFYICONTRAY:
@@ -1151,21 +1167,4 @@ LoadAutoRestartList()
         }
         c->auto_connect = true;
     }
-}
-
-void
-LoadAutoStartConnections(HWND hwnd)
-{
-    if (o.enable_auto_restart)
-    {
-        LoadAutoRestartList();
-    }
-
-    if (!AutoStartConnections())
-    {
-        SendMessage(hwnd, WM_CLOSE, 0, 0);
-    }
-
-    /* A timer to periodically tend to persistent connections */
-    SetTimer(hwnd, 1, 100, ManagePersistent);
 }

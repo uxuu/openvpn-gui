@@ -1,163 +1,159 @@
 #include "stdafx.h"
 #include "openvpnex.h"
 #include "MainDlg.h"
+#include "MgmtMisc.h"
 
 #include <helper/SFunctor.hpp>
 
-extern "C" static mgmt_msg_func msg_handler[mgmt_rtmsg_type_max];
-extern CMainDlg* pDlgMain;
+static mgmt_msg_func msg_handler[mgmt_rtmsg_type_max];
+extern CMainDlg *pDlgMain;
+extern MgmtMisc *pMgmtMisc;
 
-int InitStatusPage(connection_t* c)
+static BOOL _ShowWindow(HWND hWnd, int nCmdShow)
 {
-    STaskHelper::sendTask(pDlgMain, pDlgMain, &CMainDlg::OnInitStatusPage, c);
-    return 0;
+    connection_t *c = static_cast<connection_t*>(GetProp(hWnd, cfgProp));
+    if (c && hWnd == c->hwndStatus && nCmdShow == SW_SHOW)
+    {
+        return TRUE;
+    }
+    return ::ShowWindow(hWnd, nCmdShow);
 }
 
-int ReleaseStatusPage(connection_t* c)
+static void _InitStatusPage(connection_t* c)
 {
-    TCHAR buf[MAX_NAME];
-    _stprintf_s(buf, _countof(buf), _T("page_%08x"), c->id);
-    STaskHelper::sendTask(pDlgMain, pDlgMain, &CMainDlg::OnReleaseStatusPage, c);
-    return 0;
+    STaskHelper::sendTask(pDlgMain, pMgmtMisc, &MgmtMisc::InitStatusPage, c);
 }
 
-void ShowPage(LPCTSTR pszName, BOOL bTitle)
+static void _ReleaseStatusPage(connection_t* c)
 {
-    pDlgMain->ShowPage(pszName, bTitle);
+    STaskHelper::sendTask(pDlgMain, pMgmtMisc, &MgmtMisc::ReleaseStatusPage, c);
 }
 
-static void OnReady(connection_t* c, char* msg)
+static void _ShowPage(connection_t* c, BOOL bShow)
 {
-    WCHAR buf[MAX_NAME];
-    MultiByteToWideChar(CP_UTF8, 0, msg, MAX_NAME, buf, _countof(buf) - 1);
-    DbgPrintf(_T("%s(%d): %ls"), _T(__FUNCTION__), __LINE__, buf);
+    STaskHelper::sendTask(pDlgMain, pMgmtMisc, &MgmtMisc::ShowPage, c, bShow);
+}
+
+static void _OnReady(connection_t* c, char* msg)
+{
+    DbgPrintf(_T("%s(%d): %hs"), _T(__FUNCTION__), __LINE__, msg);
     msg_handler[ready_](c, msg);
-    STaskHelper::sendTask(pDlgMain, pDlgMain, &CMainDlg::OnStateChanged, c);
+    STaskHelper::sendTask(pDlgMain, pMgmtMisc, &MgmtMisc::OnReady, c, msg);
 }
 
-static void OnHold(connection_t* c, char* msg)
+static void _OnHold(connection_t* c, char* msg)
 {
-    WCHAR buf[MAX_NAME];
-    MultiByteToWideChar(CP_UTF8, 0, msg, MAX_NAME, buf, _countof(buf) - 1);
-    DbgPrintf(_T("%s(%d): %ls"), _T(__FUNCTION__), __LINE__, buf);
+    DbgPrintf(_T("%s(%d): %hs"), _T(__FUNCTION__), __LINE__, msg);
     msg_handler[hold_](c, msg);
-    STaskHelper::sendTask(pDlgMain, pDlgMain, &CMainDlg::OnStateChanged, c);
+    STaskHelper::sendTask(pDlgMain, pMgmtMisc, &MgmtMisc::OnHold, c, msg);
 }
 
-static void OnLogLine(connection_t* c, char* msg)
+static void _OnLogLine(connection_t* c, char* msg)
 {
-    WCHAR buf[MAX_NAME];
-    MultiByteToWideChar(CP_UTF8, 0, msg, MAX_NAME, buf, _countof(buf) - 1);
-    DbgPrintf(_T("%s(%d): %ls"), _T(__FUNCTION__), __LINE__, buf);
+    DbgPrintf(_T("%s(%d): %hs"), _T(__FUNCTION__), __LINE__, msg);
     msg_handler[log_](c, msg);
-    STaskHelper::sendTask(pDlgMain, pDlgMain, &CMainDlg::OnLogLine, c, msg);
+    STaskHelper::sendTask(pDlgMain, pMgmtMisc, &MgmtMisc::OnLogLine, c, msg);
 }
 
-static void OnStateChange(connection_t* c, char* msg)
+static void _OnStateChange(connection_t* c, char* msg)
 {
-    WCHAR buf[MAX_NAME];
-    MultiByteToWideChar(CP_UTF8, 0, msg, MAX_NAME, buf, _countof(buf) - 1);
-    DbgPrintf(_T("%s(%d): %ls"), _T(__FUNCTION__), __LINE__, buf);
+    DbgPrintf(_T("%s(%d): %hs"), _T(__FUNCTION__), __LINE__, msg);
+    STaskHelper::sendTask(pDlgMain, pMgmtMisc, &MgmtMisc::OnStateChange, c, msg);
     msg_handler[state_](c, msg);
-    STaskHelper::sendTask(pDlgMain, pDlgMain, &CMainDlg::OnStateChanged, c);
 }
 
-static void OnPassword(connection_t* c, char* msg)
+static void _OnPassword(connection_t* c, char* msg)
 {
-    WCHAR buf[MAX_NAME];
-    MultiByteToWideChar(CP_UTF8, 0, msg, MAX_NAME, buf, _countof(buf) - 1);
-    DbgPrintf(_T("%s(%d): %ls"), _T(__FUNCTION__), __LINE__, buf);
-    msg_handler[password_](c, msg);
+    DbgPrintf(_T("%s(%d): %hs"), _T(__FUNCTION__), __LINE__, msg);
+    //msg_handler[password_](c, msg);
+    STaskHelper::sendTask(pDlgMain, pMgmtMisc, &MgmtMisc::OnPassword, c, msg);
 }
 
-static void OnProxy(connection_t* c, char* line)
+static void _OnProxy(connection_t* c, char* msg)
 {
-    WCHAR buf[MAX_NAME];
-    MultiByteToWideChar(CP_UTF8, 0, line, MAX_NAME, buf, _countof(buf) - 1);
-    DbgPrintf(_T("%s(%d): %ls"), _T(__FUNCTION__), __LINE__, buf);
-    msg_handler[proxy_](c, line);
+    DbgPrintf(_T("%s(%d): %hs"), _T(__FUNCTION__), __LINE__, msg);
+    msg_handler[proxy_](c, msg);
+    STaskHelper::sendTask(pDlgMain, pMgmtMisc, &MgmtMisc::OnProxy, c, msg);
 }
 
-static void OnStop(connection_t* c, char* msg)
+static void _OnStop(connection_t* c, char* msg)
 {
-    WCHAR buf[MAX_NAME];
-    MultiByteToWideChar(CP_UTF8, 0, msg, MAX_NAME, buf, _countof(buf) - 1);
-    DbgPrintf(_T("%s(%d): %ls"), _T(__FUNCTION__), __LINE__, buf);
+    DbgPrintf(_T("%s(%d): %hs"), _T(__FUNCTION__), __LINE__, msg);
     msg_handler[stop_](c, msg);
-    STaskHelper::sendTask(pDlgMain, pDlgMain, &CMainDlg::OnStateChanged, c);
+    STaskHelper::sendTask(pDlgMain, pMgmtMisc, &MgmtMisc::OnStop, c, msg);
 }
 
-static void OnNeedOk(connection_t* c, char* msg)
+static void _OnNeedOk(connection_t* c, char* msg)
 {
-    WCHAR buf[MAX_NAME];
-    MultiByteToWideChar(CP_UTF8, 0, msg, MAX_NAME, buf, _countof(buf) - 1);
-    DbgPrintf(_T("%s(%d): %ls"), _T(__FUNCTION__), __LINE__, buf);
+    DbgPrintf(_T("%s(%d): %hs"), _T(__FUNCTION__), __LINE__, msg);
     msg_handler[needok_](c, msg);
+    STaskHelper::sendTask(pDlgMain, pMgmtMisc, &MgmtMisc::OnNeedOk, c, msg);
 }
 
-static void OnNeedStr(connection_t* c, char* msg)
+static void _OnNeedStr(connection_t* c, char* msg)
 {
-    WCHAR buf[MAX_NAME];
-    MultiByteToWideChar(CP_UTF8, 0, msg, MAX_NAME, buf, _countof(buf) - 1);
-    DbgPrintf(_T("%s(%d): %ls"), _T(__FUNCTION__), __LINE__, buf);
+    DbgPrintf(_T("%s(%d): %hs"), _T(__FUNCTION__), __LINE__, msg);
     msg_handler[needstr_](c, msg);
+    STaskHelper::sendTask(pDlgMain, pMgmtMisc, &MgmtMisc::OnNeedStr, c, msg);
 }
 
-static void OnEcho(connection_t* c, char* msg)
+static void _OnEcho(connection_t* c, char* msg)
 {
-    WCHAR buf[MAX_NAME];
-    MultiByteToWideChar(CP_UTF8, 0, msg, MAX_NAME, buf, _countof(buf) - 1);
-    DbgPrintf(_T("%s(%d): %ls"), _T(__FUNCTION__), __LINE__, buf);
+    DbgPrintf(_T("%s(%d): %hs"), _T(__FUNCTION__), __LINE__, msg);
     msg_handler[echo_](c, msg);
+    STaskHelper::sendTask(pDlgMain, pMgmtMisc, &MgmtMisc::OnEcho, c, msg);
 }
 
-static void OnByteCount(connection_t* c, char* msg)
+static void _OnByteCount(connection_t* c, char* msg)
 {
-    WCHAR buf[MAX_NAME];
-    MultiByteToWideChar(CP_UTF8, 0, msg, MAX_NAME, buf, _countof(buf) - 1);
-    DbgPrintf(_T("%s(%d): %ls"), _T(__FUNCTION__), __LINE__, buf);
+    DbgPrintf(_T("%s(%d): %hs"), _T(__FUNCTION__), __LINE__, msg);
     msg_handler[bytecount_](c, msg);
-    STaskHelper::sendTask(pDlgMain, pDlgMain, &CMainDlg::OnStateChanged, c);
+    STaskHelper::sendTask(pDlgMain, pMgmtMisc, &MgmtMisc::OnByteCount, c, msg);
 }
 
-static void OnInfoMsg(connection_t* c, char* msg)
+static void _OnInfoMsg(connection_t* c, char* msg)
 {
-    WCHAR buf[MAX_NAME];
-    MultiByteToWideChar(CP_UTF8, 0, msg, MAX_NAME, buf, _countof(buf) - 1);
-    DbgPrintf(_T("%s(%d): %ls"), _T(__FUNCTION__), __LINE__, buf);
+    DbgPrintf(_T("%s(%d): %hs"), _T(__FUNCTION__), __LINE__, msg);
     msg_handler[infomsg_](c, msg);
+    STaskHelper::sendTask(pDlgMain, pMgmtMisc, &MgmtMisc::OnInfoMsg, c, msg);
 }
 
-static void OnTimeout(connection_t* c, char* msg)
+static void _OnTimeout(connection_t* c, char* msg)
 {
-    WCHAR buf[MAX_NAME];
-    MultiByteToWideChar(CP_UTF8, 0, msg, MAX_NAME, buf, _countof(buf) - 1);
-    DbgPrintf(_T("%s(%d): %ls"), _T(__FUNCTION__), __LINE__, buf);
+    DbgPrintf(_T("%s(%d): %hs"), _T(__FUNCTION__), __LINE__, msg);
     msg_handler[timeout_](c, msg);
+    STaskHelper::sendTask(pDlgMain, pMgmtMisc, &MgmtMisc::OnTimeout, c, msg);
 }
 
-void OnWriteStatusLog(connection_t *c, LPCWSTR prefix, LPCWSTR msg)
+static void _WriteStatusLog(connection_t *c, LPCWSTR prefix, LPCWSTR msg)
 {
     DbgPrintf(_T("%s(%d): %ls%ls"), _T(__FUNCTION__), __LINE__, prefix, msg);
-    STaskHelper::sendTask(pDlgMain, pDlgMain, &CMainDlg::OnWriteStatusLog, c, prefix,  msg);
+    STaskHelper::sendTask(pDlgMain, pMgmtMisc, &MgmtMisc::WriteStatusLog, c, prefix, msg);
 }
 
-void InitManagementEx()
+void InitManagementHook()
 {
+    mgmt_hook = {
+        _WriteStatusLog,
+        _InitStatusPage,
+        _ReleaseStatusPage,
+        _ShowPage,
+        _ShowWindow,
+    };
     mgmt_rtmsg_handler handler[] = {
-        { ready_,    OnReady },
-        { hold_,     OnHold },
-        { log_,      OnLogLine },
-        { state_,    OnStateChange },
-        { password_, OnPassword },
-        { proxy_,    OnProxy },
-        { stop_,     OnStop },
-        { needok_,   OnNeedOk },
-        { needstr_,  OnNeedStr },
-        { echo_,     OnEcho },
-        { bytecount_, OnByteCount },
-        { infomsg_,  OnInfoMsg },
-        { timeout_,  OnTimeout },
+        { ready_,    _OnReady },
+        { hold_,     _OnHold },
+        { log_,      _OnLogLine },
+        { state_,    _OnStateChange },
+        { password_, _OnPassword },
+        { proxy_,    _OnProxy },
+        { stop_,     _OnStop },
+        { needok_,   _OnNeedOk },
+        { needstr_,  _OnNeedStr },
+        { echo_,     _OnEcho },
+        { bytecount_, _OnByteCount },
+        { infomsg_,  _OnInfoMsg },
+        { timeout_,  _OnTimeout },
         { mgmt_rtmsg_type_max, nullptr }
     };
     ReInitManagement(handler, msg_handler);

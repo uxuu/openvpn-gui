@@ -18,18 +18,26 @@ extern "C" {
 
 #define GUI_REGKEY_HKCU _T("Software\\OpenVPN-GUI")
 #define USE_NESTED_CONFIG_MENU ((o.config_menu_view == CONFIG_VIEW_AUTO && o.num_configs > 25)   \
-|| (o.config_menu_view == CONFIG_VIEW_NESTED))
+    || (o.config_menu_view == CONFIG_VIEW_NESTED))
+
+typedef struct
+{
+    void (*WriteStatusLog)(connection_t *c, LPCWSTR prefix, LPCWSTR msg);
+    void (*InitStatusPage)(connection_t *c);
+    void (*ReleaseStatusPage)(connection_t *c);
+    void (*ShowPage)(connection_t *c, BOOL bShow);
+    BOOL (*ShowWindow)(HWND hWnd, int nCmdShow);
+} mgmt_hook_t;
+
+extern options_t o;
+extern mgmt_hook_t mgmt_hook;
 
 void ImportConfigFileFromDisk();
 void ShowSettingsDialog();
 void OnNotifyTray(LPARAM lParam);
-void LoadAutoStartConnections(HWND hwnd);
-extern options_t o;
 
-int InitStatusPage(connection_t* c);
-int ReleaseStatusPage(connection_t* c);
-void InitManagementEx();
-void OnWriteStatusLog(connection_t *c, LPCWSTR prefix, LPCWSTR msg);
+void InitManagementHook();
+
 #ifdef __cplusplus
 }
 #endif

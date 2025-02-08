@@ -84,7 +84,7 @@ void STreeAdapter::getView(HSTREEITEM loc, SItemPanel* pItem, SXmlNode xmlTempla
             pBtnReconn->SetVisible(TRUE);
             pBtnOption->SetVisible(FALSE);
             pBtnStatus->SetVisible(TRUE);
-            //pBtnLogview->SetVisible(TRUE);
+            pBtnLogview->SetVisible(FALSE);
         }
         else if (ii.data.c->state == connecting)
         {
@@ -95,7 +95,7 @@ void STreeAdapter::getView(HSTREEITEM loc, SItemPanel* pItem, SXmlNode xmlTempla
             pBtnReconn->SetVisible(TRUE);
             pBtnOption->SetVisible(FALSE);
             pBtnStatus->SetVisible(TRUE);
-            //pBtnLogview->SetVisible(TRUE);
+            pBtnLogview->SetVisible(FALSE);
         }
         else if (ii.data.c->state == disconnected)
         {
@@ -110,7 +110,7 @@ void STreeAdapter::getView(HSTREEITEM loc, SItemPanel* pItem, SXmlNode xmlTempla
             pBtnReconn->SetVisible(FALSE);
             pBtnOption->SetVisible(TRUE);
             pBtnStatus->SetVisible(FALSE);
-            //pBtnLogview->SetVisible(TRUE);
+            pBtnLogview->SetVisible(TRUE);
         }
     }
     else
