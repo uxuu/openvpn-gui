@@ -4,6 +4,12 @@ cmake_minimum_required(VERSION 3.10)
 
 project(openvpn-gui C CXX)
 
+file (TO_CMAKE_PATH "$ENV{SOUI_PATH}" SOUI_PATH)
+message(STATUS "SOUI_PATH: ${SOUI_PATH}")
+if ("${SOUI_PATH}" STREQUAL "")
+    message(FATAL_ERROR "FATAL:can't find env variable SOUI_PATH, clone soui core and install wizard first, please.")
+endif()
+
 add_executable(${PROJECT_NAME} WIN32
     access.c
     echo.c
@@ -69,7 +75,19 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     Cryptui.lib
     Wininet.lib)
 
+target_link_libraries(${PROJECT_NAME} PRIVATE soui4 utilities4)
+
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(${PROJECT_NAME} PUBLIC ${SOUI_PATH}/components)
+target_include_directories(${PROJECT_NAME} PUBLIC ${SOUI_PATH}/utilities/include)
+target_include_directories(${PROJECT_NAME} PUBLIC ${SOUI_PATH}/SOUI/include)
+target_include_directories(${PROJECT_NAME} PUBLIC ${SOUI_PATH}/controls.extend)
+
+string(TOLOWER ${CMAKE_VS_PLATFORM_NAME} PLATFORM_NAME)
+if(${PLATFORM_NAME} STREQUAL win32)
+    set(PLATFORM_NAME x86)
+endif()
+target_link_directories(${PROJECT_NAME} PUBLIC ${SOUI_PATH}/cmake-build-${PLATFORM_NAME}-${CMAKE_BUILD_TYPE}/bin/${CMAKE_BUILD_TYPE})
 
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /MANIFEST:NO")
 set(CMAKE_RC_FLAGS "/D \"HAVE_CONFIG_H\" /D \"_MSC_VER\"")
@@ -100,6 +118,16 @@ if (${CLI_OVPN3})
     target_compile_definitions(${PROJECT_NAME} PRIVATE
         ENABLE_OVPN3)
 endif ()
+
+add_custom_command(
+        TARGET ${PROJECT_NAME}
+        PRE_BUILD
+        COMMAND ${SOUI_PATH}/tools/uiresbuilder.exe
+        -i ${PROJECT_SOURCE_DIR}/uires/uires.idx
+        -p ..\\uires
+        -r ${PROJECT_SOURCE_DIR}/uires/soui_res.rc2
+        -h ${PROJECT_SOURCE_DIR}/uires/resource.h idtable
+)
 
 if (NOT PROJECT_NAME_PLAP)
     set(PROJECT_NAME_PLAP "libopenvpn_plap")
