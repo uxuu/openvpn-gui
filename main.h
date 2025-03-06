@@ -26,6 +26,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <tchar.h>
+#include "utils.h"
 
 /* Define this to enable DEBUG build */
 /*#define DEBUG */

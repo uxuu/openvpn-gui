@@ -51,6 +51,8 @@
 #include "echo.h"
 #include "as.h"
 
+#include "cxx/MainEx.h"
+
 #define OVPN_EXITCODE_ERROR    1
 #define OVPN_EXITCODE_TIMEOUT  2
 #define OVPN_EXITCODE_NOTREADY 3
@@ -310,6 +312,8 @@ _tWinMain(HINSTANCE hThisInstance,
     }
 
     GetProxyRegistrySettings();
+    MainWindowInit(hThisInstance);
+
 
     /* The Window structure */
     wincl.hInstance = hThisInstance;
@@ -349,13 +353,15 @@ _tWinMain(HINSTANCE hThisInstance,
                    NULL                 /* No Window Creation data */
     );
 
-
+    messages.wParam = RunMessageLoop();
+#if 0
     /* Run the message loop. It will run until GetMessage() returns 0 */
     while (GetMessage(&messages, NULL, 0, 0))
     {
         TranslateMessage(&messages);
         DispatchMessage(&messages);
     }
+#endif
 
     CloseSemaphore(o.session_semaphore);
     o.session_semaphore = NULL; /* though we're going to die.. */
@@ -364,6 +370,7 @@ _tWinMain(HINSTANCE hThisInstance,
         DeregisterEventSource(o.event_log);
     }
 
+    MainWindowRelease();
     /* The program return-value is 0 - The value that PostQuitMessage() gave */
     return messages.wParam;
 }

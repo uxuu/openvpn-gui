@@ -4,6 +4,8 @@ cmake_minimum_required(VERSION 3.10)
 
 project(openvpn-gui C CXX)
 
+set(CMAKE_CXX_STANDARD 11)
+
 file (TO_CMAKE_PATH "$ENV{SOUI_PATH}" SOUI_PATH)
 message(STATUS "SOUI_PATH: ${SOUI_PATH}")
 if ("${SOUI_PATH}" STREQUAL "")
@@ -31,10 +33,19 @@ add_executable(${PROJECT_NAME} WIN32
     as.c
     pkcs11.c
     config_parser.c
+    cxx/MainEx.cpp
+    cxx/MainDlg.cpp
+    ${SOUI_PATH}/controls.extend/gif/SGifPlayer.cpp
+    ${SOUI_PATH}/controls.extend/STurn3DView.cpp
+    ${SOUI_PATH}/controls.extend/image3d/3dlib.cpp
+    ${SOUI_PATH}/controls.extend/image3d/3dmatrix.cpp
+    ${SOUI_PATH}/controls.extend/image3d/3dtransform.cpp
     res/openvpn-gui-res.rc)
 
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -DDEBUG")
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} /guard:cf /Qspectre")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} /guard:cf /Qspectre")
 
 list(APPEND CMAKE_CONFIGURATION_TYPES Asan)
 
@@ -53,6 +64,7 @@ set(CMAKE_SHARED_LINKER_FLAGS_ASAN
 set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} /guard:cf /DYNAMICBASE")
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4996 /wd4267 /wd4244")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4996 /wd4267 /wd4244")
 
 if(NOT (${CMAKE_C_COMPILER_ARCHITECTURE_ID} STREQUAL "ARM64"))
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /CETCOMPAT")
@@ -77,6 +89,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 
 target_link_libraries(${PROJECT_NAME} PRIVATE soui4 utilities4)
 
+target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(${PROJECT_NAME} PUBLIC ${SOUI_PATH}/components)
 target_include_directories(${PROJECT_NAME} PUBLIC ${SOUI_PATH}/utilities/include)
@@ -87,7 +100,8 @@ string(TOLOWER ${CMAKE_VS_PLATFORM_NAME} PLATFORM_NAME)
 if(${PLATFORM_NAME} STREQUAL win32)
     set(PLATFORM_NAME x86)
 endif()
-target_link_directories(${PROJECT_NAME} PUBLIC ${SOUI_PATH}/cmake-build-${PLATFORM_NAME}-${CMAKE_BUILD_TYPE}/bin/${CMAKE_BUILD_TYPE})
+target_link_directories(${PROJECT_NAME} PUBLIC
+    ${SOUI_PATH}/cmake-build-${PLATFORM_NAME}-${CMAKE_BUILD_TYPE}/bin/${CMAKE_BUILD_TYPE})
 
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /MANIFEST:NO")
 set(CMAKE_RC_FLAGS "/D \"HAVE_CONFIG_H\" /D \"_MSC_VER\"")
@@ -109,6 +123,10 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
     WIN32_LEAN_AND_MEAN
     HAVE_CONFIG_H)
 
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    DLL_SOUI_COM
+    DLL_CORE)
+
 if (${CLI_OVPN3})
     find_package(json-c REQUIRED)
 
@@ -125,8 +143,8 @@ add_custom_command(
         COMMAND ${SOUI_PATH}/tools/uiresbuilder.exe
         -i ${PROJECT_SOURCE_DIR}/uires/uires.idx
         -p ..\\uires
-        -r ${PROJECT_SOURCE_DIR}/uires/soui_res.rc2
-        -h ${PROJECT_SOURCE_DIR}/uires/resource.h idtable
+        -r ${PROJECT_SOURCE_DIR}/res/soui-res.rc
+        -h ${PROJECT_SOURCE_DIR}/res/soui-res.h idtable
 )
 
 if (NOT PROJECT_NAME_PLAP)

@@ -39,3 +39,6 @@ plap/credentialprovider.h
 x64
 Debug
 out
+
+res/soui-res.h
+res/soui-res.rc

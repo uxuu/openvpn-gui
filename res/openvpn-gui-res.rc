@@ -117,3 +117,9 @@ BEGIN
         END
     END
 END
+
+
+
+LANGUAGE 4, 2
+#include "soui-res.rc"
+
