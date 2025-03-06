@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<skin>
+    <!-- System -->
+    <imglist name="_skin.btn.close" src="IMG:ID_SYS_BTN_CLOSE" states="3" vertical="1"/>
+    <imglist name="_skin.btn.max" src="IMG:ID_SYS_BTN_MAX" states="3" vertical="1"/>
+    <imglist name="_skin.btn.restore" src="IMG:ID_SYS_BTN_RESTORE" states="3" vertical="1"/>
+    <imglist name="_skin.btn.min" src="IMG:ID_SYS_BTN_MIN" states="3" vertical="1"/>
+    <imglist name="_skin.btn.msg" src="IMG:ID_MENU_BTN_MSG" states="3" vertical="1"/>
+    <imglist name="_skin.btn.set" src="IMG:ID_MENU_BTN_SET" states="3" vertical="1"/>
+    <imglist name="btn_bottom" src="IMG:ID_BTN_BOTTOM" states="3"/>
+    <imglist name="btn_send" src="IMG:ID_BTN_SEND" states="4"/>
+    <imglist name="skin_list_icons" src="PNG:IMG_LIST_ICONS" states="9"/>
+    <scrollbar name="skin_scrollbar" src="PNG:PNG_SCROLLBAR" margin="3" hasgripper="1"/>
+    <imglist name="skin_folder" src="PNG:PNG_FOLDER" states="2"/>
+    <gif name="skin_connecting" src="IMG:ID_GIF_CONNECTING" />
+    <imglist name="skin_connected" src="PNG:PNG_CONNECTED" states="1" />
+    <imglist name="skin_disconnected" src="PNG:PNG_DISCONNECTED" states="1" />
+    <imglist name="img_head" src="PNG:PNG_HEAD" states="3"/>
+    <imglist name="img_key" src="PNG:PNG_KEY" states="3"/>
+</skin>
