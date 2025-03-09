@@ -1,0 +1,41 @@
+/**
+ * @file openvpn-ex.h
+ * @brief Header file for OpenVPN-related functionalities.
+ * @details This file contains the declarations of various OpenVPN-related functions and utilities.
+ * @author UxGood <uxgood.org@gmail.com>
+ * @date 2025-03-08
+ */
+
+#ifndef OPENVPN_EX_H
+#define OPENVPN_EX_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#ifdef MAX_NAME
+#undef MAX_NAME
+#endif
+
+#include "options.h"
+#include "openvpn_config.h"
+#include "openvpn.h"
+#include "registry.h"
+#include "as.h"
+
+
+#define GUI_REGKEY_HKCU _T("Software\\OpenVPN-GUI")
+#define USE_NESTED_CONFIG_MENU ((o.config_menu_view == CONFIG_VIEW_AUTO && o.num_configs > 25)   \
+|| (o.config_menu_view == CONFIG_VIEW_NESTED))
+
+    extern options_t o;
+
+    void ImportConfigFileFromDisk();
+    void ShowSettingsDialog();
+    void OnNotifyTray(LPARAM lParam);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif //OPENVPN_EX_H

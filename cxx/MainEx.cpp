@@ -86,7 +86,12 @@ VOID WINAPI MainWindowInit(HINSTANCE hInstance)
         pRenderFactory = NULL;
         pApp->RegisterWindowClass<STurn3dView>();
         pApp->RegisterWindowClass<SGifPlayer>();
-        pApp->RegisterSkinClass<SSkinVScrollbar>();
+        pApp->RegisterWindowClass<STabCtrlEx>();
+        //pApp->RegisterSkinClass<SSkinVScrollbar>();
+#if SOUI_VER1 == 4
+        pApp->RegisterSkinClass<SSkinGif>();
+        SSkinGif::Gdiplus_Startup();
+#endif
 
         HMODULE hSysResource = LoadLibrary(SYS_NAMED_RESOURCE);
         if (hSysResource)
@@ -121,6 +126,9 @@ DWORD WINAPI RunMessageLoop()
 VOID WINAPI MainWindowRelease()
 {
     pApp->UnregisterWindowClass<SGifPlayer>();
+#if SOUI_VER1 == 4
+    SSkinGif::Gdiplus_Shutdown();
+#endif
     delete pApp;
     delete pComMgr;
     OleUninitialize();

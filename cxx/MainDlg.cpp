@@ -1,5 +1,5 @@
 /**
- * @file CMainDlg.cpp
+ * @file MainDlg.cpp
  * @brief Implementation file for the main dialog class of the OpenVPN GUI application.
  * @details This source file contains the implementation of the CMainDlg class,
  *          which manages the main dialog window and its behavior.
@@ -10,9 +10,10 @@
 #include "stdafx.h"
 
 #include "MainDlg.h"
+#include "openvpn-ex.h"
+#include "STreeAdapter.h"
 
 extern "C" {
-#undef  MAX_NAME
 #include "save_pass.h"
 #include "misc.h"
 }
@@ -63,6 +64,11 @@ BOOL MainDlg::OnInitDialog(HWND hWnd, LPARAM lParam)
     if (pTree)
     {
         pTree->EnableScrollBar(SSB_HORZ, FALSE);
+
+        auto pAdapter = new STreeAdapter(pTree);
+        pTree->SetAdapter(pAdapter);
+        pAdapter->Release();
+        pAdapter->RefreshItems();
     }
     SetMsgHandled(FALSE);
     return 0;

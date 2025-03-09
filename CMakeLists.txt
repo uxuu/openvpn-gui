@@ -11,7 +11,16 @@ message(STATUS "SOUI_PATH: ${SOUI_PATH}")
 if ("${SOUI_PATH}" STREQUAL "")
     message(FATAL_ERROR "FATAL:can't find env variable SOUI_PATH, clone soui core and install wizard first, please.")
 endif()
+function(get_version regex_arg ret)
+    file(STRINGS "${SOUI_PATH}/SOUI/include/soui-version.h" VERSION_STR REGEX ${regex_arg})
+    string(REGEX MATCH ${regex_arg} VERSION_STR "${VERSION_STR}")
+    set("${ret}" ${CMAKE_MATCH_1} PARENT_SCOPE)
+endfunction()
 
+get_version("SOUI_VER1 ([0-9]+)" SOUI_MAJOR)
+get_version("SOUI_VER2 ([0-9]+)" SOUI_MINOR)
+message(STATUS "SOUI_MAJOR: ${SOUI_MAJOR}")
+message(STATUS "SOUI_MINOR: ${SOUI_MINOR}")
 add_executable(${PROJECT_NAME} WIN32
     access.c
     echo.c
@@ -35,12 +44,20 @@ add_executable(${PROJECT_NAME} WIN32
     config_parser.c
     cxx/MainEx.cpp
     cxx/MainDlg.cpp
+    cxx/STabCtrlEx.cpp
+    cxx/STreeAdapter.cpp
+    cxx/openvpn-ex.cpp
     ${SOUI_PATH}/controls.extend/gif/SGifPlayer.cpp
     ${SOUI_PATH}/controls.extend/STurn3DView.cpp
     ${SOUI_PATH}/controls.extend/image3d/3dlib.cpp
     ${SOUI_PATH}/controls.extend/image3d/3dmatrix.cpp
     ${SOUI_PATH}/controls.extend/image3d/3dtransform.cpp
     res/openvpn-gui-res.rc)
+
+if (${SOUI_MAJOR} STREQUAL "4")
+    target_sources(${PROJECT_NAME} PRIVATE
+        ${SOUI_PATH}/controls.extend/gif/SSkinGif.cpp)
+endif()
 
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -DDEBUG")
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} /guard:cf /Qspectre")
@@ -87,8 +104,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     Cryptui.lib
     Wininet.lib)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE soui4 utilities4)
-
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(${PROJECT_NAME} PUBLIC ${SOUI_PATH}/components)
@@ -100,8 +115,25 @@ string(TOLOWER ${CMAKE_VS_PLATFORM_NAME} PLATFORM_NAME)
 if(${PLATFORM_NAME} STREQUAL win32)
     set(PLATFORM_NAME x86)
 endif()
-target_link_directories(${PROJECT_NAME} PUBLIC
-    ${SOUI_PATH}/cmake-build-${PLATFORM_NAME}-${CMAKE_BUILD_TYPE}/bin/${CMAKE_BUILD_TYPE})
+string(TOLOWER ${CMAKE_BUILD_TYPE} BUILD_TYPE)
+
+if (${SOUI_MAJOR} STREQUAL "4")
+    if(${PLATFORM_NAME} STREQUAL x86)
+        target_link_directories(${PROJECT_NAME} PUBLIC ${SOUI_PATH}/bin)
+    else()
+        target_link_directories(${PROJECT_NAME} PUBLIC ${SOUI_PATH}/bin-${PLATFORM_NAME})
+    endif()
+else()
+    target_link_directories(${PROJECT_NAME} PUBLIC
+        ${SOUI_PATH}/cmake-build-${PLATFORM_NAME}-${BUILD_TYPE}/bin/${BUILD_TYPE})
+endif()
+
+if (${SOUI_MAJOR} STREQUAL "4" AND ${BUILD_TYPE} STREQUAL "debug")
+    target_link_libraries(${PROJECT_NAME} PRIVATE soui4d utilities4d)
+else()
+    target_link_libraries(${PROJECT_NAME} PRIVATE soui4 utilities4)
+endif()
+
 
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /MANIFEST:NO")
 set(CMAKE_RC_FLAGS "/D \"HAVE_CONFIG_H\" /D \"_MSC_VER\"")

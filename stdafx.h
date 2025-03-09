@@ -9,7 +9,7 @@
 #ifndef _STDAFX_H
 #define _STDAFX_H
 
-#include <WinSock2.h>
+//#include <WinSock2.h>
 #include <souistd.h>
 #include <core/SHostDialog.h>
 #include <control/SMessageBox.h>
@@ -22,8 +22,12 @@
 using namespace SOUI;
 
 #include "../controls.extend/gif/SGifPlayer.h"
+#if SOUI_VER1 == 4
+#include "../controls.extend/gif/SSkinGif.h"
+#endif
 #include "../controls.extend/STurn3DView.h"
 #include "../controls.extend/SComboBoxEx.h"
 #include "../controls.extend/SVscrollbar.h"
+#include "cxx/STabCtrlEx.h"
 
 #endif /* _STDAFX_H */
