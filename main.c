@@ -62,7 +62,7 @@ LRESULT CALLBACK WindowProcedure(HWND, UINT, WPARAM, LPARAM);
 
 static void ShowSettingsDialog();
 
-void CloseApplication(HWND hwnd, BOOL ask_user);
+BOOL CloseApplication(HWND hwnd, BOOL ask_user);
 
 void ImportConfigFileFromDisk();
 
@@ -314,6 +314,7 @@ _tWinMain(HINSTANCE hThisInstance,
     GetProxyRegistrySettings();
     MainWindowInit(hThisInstance);
 
+    ReInitManagement();
 
     /* The Window structure */
     wincl.hInstance = hThisInstance;
@@ -922,7 +923,7 @@ ShowSettingsDialog()
 }
 
 
-void
+BOOL
 CloseApplication(HWND hwnd, BOOL ask_user)
 {
     /* Do not let user access main menu through tray icon */
@@ -943,7 +944,7 @@ CloseApplication(HWND hwnd, BOOL ask_user)
             /* recreate the tray icon */
             ShowTrayIcon();
             CheckAndSetTrayIcon();
-            return;
+            return FALSE;
         }
         break; /* show the above message box only once */
     }
@@ -951,6 +952,7 @@ CloseApplication(HWND hwnd, BOOL ask_user)
     SaveAutoRestartList(); /* active connection names saved in registry */
 
     DestroyWindow(hwnd);
+    return TRUE;
 }
 
 void

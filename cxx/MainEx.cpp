@@ -17,10 +17,15 @@
 #include <tchar.h>
 
 #include <SouiFactory.h>
+#include <helper/SFunctor.hpp>
 
 #include "MainDlg.h"
+#include "openvpn-ex.h"
 
 #include "MainEx.h"
+#include "STreeAdapter.h"
+
+static mgmt_msg_func msg_handler[mgmt_rtmsg_type_max];
 
 #define SYS_NAMED_RESOURCE _T("soui-sys-resource.dll")
 
@@ -30,6 +35,10 @@ MainDlg *pMainDlg = NULL;
 SComMgr2 *pComMgr = NULL;
 SApplication *pApp = NULL;
 
+/**
+ * @brief Shows or hides the main window.
+ * @param bShow TRUE to show the window, FALSE to hide it.
+ */
 VOID WINAPI MainWindowShow(BOOL bShow)
 {
     if (pMainDlg != NULL)
@@ -38,17 +47,31 @@ VOID WINAPI MainWindowShow(BOOL bShow)
     }
 }
 
+/**
+ * @brief Retrieves the image decoder name.
+ * @return Returns the name of the image decoder.
+ */
 const TCHAR *GetImgDecoder()
 {
     return _T("imgdecoder-gdip");
 }
 
+/**
+ * @brief Retrieves the render factory.
+ * @param ref Pointer to the render factory object.
+ */
 void GetRenderFactory(IObjRef** ref)
 {
     pComMgr->CreateRender_Skia(ref);
     //pComMgr->CreateRender_GDI(ref);
 }
 
+/**
+ * @brief Loads resources for the application.
+ * @param souiFac Pointer to the SouiFactory instance.
+ * @param hInstance Handle to the application instance.
+ * @return Returns a pointer to the resource provider.
+ */
 IResProvider *LoadResource(SouiFactory *souiFac, HINSTANCE hInstance)
 {
     IResProvider* pResProvider;
@@ -65,6 +88,10 @@ IResProvider *LoadResource(SouiFactory *souiFac, HINSTANCE hInstance)
     return pResProvider;
 }
 
+/**
+ * @brief Initializes the main window.
+ * @param hInstance Handle to the application instance.
+ */
 VOID WINAPI MainWindowInit(HINSTANCE hInstance)
 {
     DWORD nRet = 0;
@@ -86,7 +113,13 @@ VOID WINAPI MainWindowInit(HINSTANCE hInstance)
         pRenderFactory = NULL;
         pApp->RegisterWindowClass<STurn3dView>();
         pApp->RegisterWindowClass<SGifPlayer>();
-        pApp->RegisterSkinClass<SSkinVScrollbar>();
+        pApp->RegisterWindowClass<STabCtrlEx>();
+#if SOUI_VER1 == 4
+        pApp->RegisterSkinClass<SSkinGif>();
+        SSkinGif::Gdiplus_Startup();
+#else
+        pApp->RegisterSkinClass<SSkinAni>();
+#endif
 
         HMODULE hSysResource = LoadLibrary(SYS_NAMED_RESOURCE);
         if (hSysResource)
@@ -113,15 +146,55 @@ VOID WINAPI MainWindowInit(HINSTANCE hInstance)
     }
 }
 
+/**
+ * @brief Runs the message loop for the application.
+ * @return Returns the exit code of the message loop.
+ */
 DWORD WINAPI RunMessageLoop()
 {
     return pApp->Run(pMainDlg->m_hWnd);
 }
 
+/**
+ * @brief Releases resources associated with the main window.
+ */
 VOID WINAPI MainWindowRelease()
 {
     pApp->UnregisterWindowClass<SGifPlayer>();
+#if SOUI_VER1 == 4
+    SSkinGif::Gdiplus_Shutdown();
+#endif
     delete pApp;
     delete pComMgr;
     OleUninitialize();
 }
+
+// 定义一个模板函数来处理消息
+template<mgmt_rtmsg_type msg_type>
+static void HandleMessage(connection_t* c, char* msg)
+{
+    DbgPrintf(_T("%s(%d): %hs"), _T(__FUNCTION__), __LINE__, msg);
+    auto pTree = pMainDlg->FindChildByName2<STreeView>(L"tv_home");
+    auto pAdapter = dynamic_cast<STreeAdapter *>(pTree->GetAdapter());
+    STaskHelper::post(pMainDlg->GetMsgLoop(), pAdapter, &STreeAdapter::RefreshItems);
+    msg_handler[msg_type](c, msg);
+}
+
+/**
+ * @brief Reinitializes the management interface.
+ */
+void WINAPI ReInitManagement()
+{
+    mgmt_rtmsg_handler handler[] = {
+        { ready_,    HandleMessage<ready_> },      { hold_,     HandleMessage<hold_> },
+        { log_,      HandleMessage<log_> },        { state_,    HandleMessage<state_> },
+        { password_, HandleMessage<password_> },   { proxy_,    HandleMessage<proxy_> },
+        { stop_,     HandleMessage<stop_> },       { needok_,   HandleMessage<needok_> },
+        { needstr_,  HandleMessage<needstr_> },    { echo_,     HandleMessage<echo_> },
+        { bytecount_, HandleMessage<bytecount_> }, { infomsg_,  HandleMessage<infomsg_> },
+        { timeout_,  HandleMessage<timeout_> },    { mgmt_rtmsg_type_max, NULL }
+    };
+    memcpy((void *)msg_handler, rtmsg_handler, sizeof(rtmsg_handler));
+    InitManagement(handler);
+}
+
