@@ -29,7 +29,10 @@ MainDlg::~MainDlg()
 
 void MainDlg::OnClose()
 {
-    ShowWindow(SW_HIDE);
+    if (CloseApplication(o.hWnd, true))
+    {
+        ShowWindow(SW_HIDE);
+    }
 }
 
 int MainDlg::OnCreate(LPCREATESTRUCT lpCreateStruct)

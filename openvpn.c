@@ -67,6 +67,7 @@
 #define OPENVPN_SERVICE_PIPE_NAME_OVPN3 L"\\\\.\\pipe\\ovpnagent"
 
 extern options_t o;
+extern mgmt_msg_func rtmsg_handler[mgmt_rtmsg_type_max];
 
 static BOOL TerminateOpenVPN(connection_t *c);
 
@@ -122,8 +123,8 @@ void
 OnReady(connection_t *c, UNUSED char *msg)
 {
     ManagementCommand(c, "state on", NULL, regular);
-    ManagementCommand(c, "log on all", OnLogLine, combined);
-    ManagementCommand(c, "echo on all", OnEcho, combined);
+    ManagementCommand(c, "log on all", rtmsg_handler[log_], combined);
+    ManagementCommand(c, "echo on all", rtmsg_handler[echo_], combined);
     ManagementCommand(c, "bytecount 5", NULL, regular);
 
     /* ask for the current state, especially useful when the daemon was prestarted */

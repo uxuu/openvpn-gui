@@ -18,6 +18,7 @@ extern "C" {
     VOID WINAPI MainWindowInit(HINSTANCE hInstance);
     VOID WINAPI MainWindowRelease();
     DWORD WINAPI RunMessageLoop();
+    void WINAPI ReInitManagement();
 
 #ifdef __cplusplus
 }

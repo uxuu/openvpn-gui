@@ -57,6 +57,9 @@ add_executable(${PROJECT_NAME} WIN32
 if (${SOUI_MAJOR} STREQUAL "4")
     target_sources(${PROJECT_NAME} PRIVATE
         ${SOUI_PATH}/controls.extend/gif/SSkinGif.cpp)
+else()
+    target_sources(${PROJECT_NAME} PRIVATE
+        ${SOUI_PATH}/controls.extend/gif/SSkinAni.cpp)
 endif()
 
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -DDEBUG")

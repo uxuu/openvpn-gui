@@ -29,10 +29,12 @@ extern "C" {
 || (o.config_menu_view == CONFIG_VIEW_NESTED))
 
     extern options_t o;
+    extern mgmt_msg_func rtmsg_handler[mgmt_rtmsg_type_max];
 
     void ImportConfigFileFromDisk();
     void ShowSettingsDialog();
     void OnNotifyTray(LPARAM lParam);
+    BOOL CloseApplication(HWND hwnd, BOOL ask_user);
 
 #ifdef __cplusplus
 }

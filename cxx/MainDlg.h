@@ -9,9 +9,6 @@
 
 #pragma once
 
-extern "C" {
-    void CloseApplication(HWND hwnd, BOOL ask_user);
-}
 class MainDlg : public SHostWnd
                , public SDpiHandler<MainDlg>
 {

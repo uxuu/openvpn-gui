@@ -9,14 +9,7 @@
 #ifndef _STDAFX_H
 #define _STDAFX_H
 
-//#include <WinSock2.h>
 #include <souistd.h>
-#include <core/SHostDialog.h>
-#include <control/SMessageBox.h>
-#include <control/souictrls.h>
-#include <res.mgr/sobjdefattr.h>
-//#include <com-cfg.h>
-
 #include <commgr2.h>
 
 using namespace SOUI;
