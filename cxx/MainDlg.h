@@ -13,31 +13,139 @@ class MainDlg : public SHostWnd
                , public SDpiHandler<MainDlg>
 {
 public:
+    /**
+     * @brief Constructor for the MainDlg class.
+     */
     MainDlg();
+
+    /**
+     * @brief Destructor for the MainDlg class.
+     */
     ~MainDlg() override;
 
+    /**
+     * @brief Handles the close event for the main dialog.
+     */
     void OnClose();
+
+    /**
+     * @brief Handles the creation of the main dialog.
+     * @param lpCreateStruct Pointer to the CREATESTRUCT structure.
+     * @return Returns 0 if successful.
+     */
     int OnCreate(LPCREATESTRUCT lpCreateStruct);
+
+    /**
+     * @brief Handles the destruction of the main dialog.
+     */
     void OnDestroy();
+
+    /**
+     * @brief Handles the show window event for the main dialog.
+     * @param bShow Indicates whether the window is being shown or hidden.
+     * @param nStatus Specifies the status of the window.
+     */
     void OnShowWindow(BOOL bShow, UINT nStatus);
+
+    /**
+     * @brief Initializes the main dialog.
+     * @param wndFocus Handle to the window that will receive the focus.
+     * @param lInitParam Additional initialization parameters.
+     * @return Returns TRUE if successful.
+     */
     BOOL OnInitDialog(HWND wndFocus, LPARAM lInitParam);
+
+    /**
+     * @brief Handles command events for the main dialog.
+     * @param uNotifyCode Notification code.
+     * @param nID Identifier of the command.
+     * @param wndCtl Handle to the control sending the command.
+     */
     void OnCommand(UINT uNotifyCode, int nID, HWND wndCtl);
+
+    /**
+     * @brief Handles the close button click event.
+     */
     void OnBtnClose();
+
+    /**
+     * @brief Handles the maximize button click event.
+     */
     void OnBtnMaximize();
+
+    /**
+     * @brief Handles the restore button click event.
+     */
     void OnBtnRestore();
+
+    /**
+     * @brief Handles the minimize button click event.
+     */
     void OnBtnMinimize();
+
+    /**
+     * @brief Handles the set button click event.
+     */
     void OnBtnSet();
 
+    /**
+     * @brief Handles the home button click event.
+     */
     void OnBtnHome();
+
+    /**
+     * @brief Handles the login button click event.
+     */
     void OnBtnLogin();
+
+    /**
+     * @brief Handles the detail button click event.
+     */
     void OnBtnDetail();
+
+    /**
+     * @brief Handles the option button click event.
+     */
     void OnBtnOption();
+
+    /**
+     * @brief Handles the 3D turn event.
+     * @param pEvt Pointer to the event arguments.
+     * @return Returns TRUE if successful.
+     */
     BOOL OnTurn3D(EventArgs *pEvt);
+
+    /**
+     * @brief Changes the status of the main dialog.
+     * @param state The new state to set.
+     */
     void OnChangeStatus(int state);
+
+    /**
+     * @brief Handles hotkey events for the main dialog.
+     * @param nHotKeyID Identifier of the hotkey.
+     * @param uModifiers Modifier keys.
+     * @param uVirtKey Virtual key code.
+     */
     void OnHotKey(int nHotKeyID, UINT uModifiers, UINT uVirtKey);
+
+    /**
+     * @brief Displays a page by index.
+     * @param nIndex Index of the page to display.
+     */
     void ShowPage(int nIndex);
+
+    /**
+     * @brief Displays a page by name.
+     * @param pszName Name of the page to display.
+     * @param bTitle Indicates whether to show the title.
+     */
     void ShowPage(LPCTSTR pszName, BOOL bTitle = TRUE);
-    void RefreshTree();
+
+    /**
+     * @brief Refreshes the tree items in the main dialog.
+     */
+    void RefreshTreeItems();
 
 protected:
 

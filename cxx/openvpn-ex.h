@@ -31,10 +31,29 @@ extern "C" {
     extern options_t o;
     extern mgmt_msg_func rtmsg_handler[mgmt_rtmsg_type_max];
 
-    void ImportConfigFileFromDisk();
-    void ShowSettingsDialog();
-    void OnNotifyTray(LPARAM lParam);
-    BOOL CloseApplication(HWND hwnd, BOOL ask_user);
+/**
+ * @brief Imports a configuration file from disk.
+ */
+void ImportConfigFileFromDisk();
+
+/**
+ * @brief Displays the settings dialog.
+ */
+void ShowSettingsDialog();
+
+/**
+ * @brief Handles tray notifications.
+ * @param lParam Additional message-specific information.
+ */
+void OnNotifyTray(LPARAM lParam);
+
+/**
+ * @brief Closes the application.
+ * @param hwnd Handle to the application window.
+ * @param ask_user Indicates whether to prompt the user before closing.
+ * @return Returns TRUE if the application is closed successfully.
+ */
+BOOL CloseApplication(HWND hwnd, BOOL ask_user);
 
 #ifdef __cplusplus
 }

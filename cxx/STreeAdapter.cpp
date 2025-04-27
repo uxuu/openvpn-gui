@@ -11,23 +11,71 @@
 #include "openvpn-ex.h"
 #include "STreeAdapter.h"
 
+/**
+ * @brief Constructor for the STreeAdapter class.
+ * @param pTreeView Pointer to the associated tree view.
+ */
 STreeAdapter::STreeAdapter(STreeView* pTreeView)
 {
     m_treeView = pTreeView;
 }
 
+/**
+ * @brief Destructor for the STreeAdapter class.
+ */
 STreeAdapter::~STreeAdapter()
 {
     m_treeView = NULL;
 }
 
+/**
+ * @brief Retrieves and initializes a view for a specific tree item.
+ * @param loc Handle to the tree item.
+ * @param pItem Pointer to the item panel.
+ * @param xmlTemplate XML template for initializing the item.
+ */
 void STreeAdapter::getView(HSTREEITEM loc, SItemPanel* pItem, SXmlNode xmlTemplate)
 {
-    InitItemByTemplate(loc, pItem, xmlTemplate);
+    if (pItem->GetChildrenCount() == 0)
+    {
+        InitItemByTemplate(loc, pItem, xmlTemplate);
+    }
     CRect rcItem = m_treeView->GetClientRect();
     pItem->SetAttribute(L"width", SStringT().Format(_T("%d"), rcItem.Width()));
 }
 
+/**
+ * @brief Initializes an item panel using a specified XML template.
+ * @param loc Handle to the tree item.
+ * @param pItem Pointer to the item panel.
+ * @param xmlTemplate XML template for the item.
+ */
+void STreeAdapter::InitItemByTemplate(HSTREEITEM loc, SItemPanel *pItem, SXmlNode xmlTemplate)
+{
+    switch (getViewType(loc))
+    {
+        case 0:
+            xmlTemplate = xmlTemplate.child(L"item_group");
+            pItem->InitFromXml(&xmlTemplate);
+            pItem->SetUserData(loc);
+            pItem->GetEventSet()->subscribeEvent(EventItemPanelDbclick::EventID,
+                         Subscriber(&STreeAdapter::OnItemPanelDbclick, this));
+            break;
+        case 1:
+            xmlTemplate = xmlTemplate.child(L"item_data");
+            pItem->InitFromXml(&xmlTemplate);
+
+            break;
+        default:
+            break;
+    }
+}
+
+/**
+ * @brief Determines the view type of a tree item.
+ * @param hItem Handle to the tree item.
+ * @return An integer representing the view type (0 for group, 1 for data).
+ */
 int STreeAdapter::getViewType(HSTREEITEM hItem) CONST
 {
     ItemInfo& ii = CSTree<SOUI::STreeAdapterBase<ItemData>::ItemInfo>::GetItemRef((HSTREEITEM)hItem);
@@ -36,6 +84,9 @@ int STreeAdapter::getViewType(HSTREEITEM hItem) CONST
     return 1;
 }
 
+/**
+ * @brief Deletes all items in the tree view.
+ */
 void STreeAdapter::DeleteItems()
 {
     m_treeView->LockUpdate();
@@ -47,6 +98,9 @@ void STreeAdapter::DeleteItems()
     m_treeView->UnlockUpdate();
 }
 
+/**
+ * @brief Refreshes the items in the tree view by reloading data.
+ */
 void STreeAdapter::RefreshItems()
 {
     bool nested = USE_NESTED_CONFIG_MENU;
@@ -81,23 +135,43 @@ void STreeAdapter::RefreshItems()
     if(groups) free(groups);
 }
 
+/**
+ * @brief Gets the total number of view types supported by the adapter.
+ * @return The number of view types.
+ */
 int STreeAdapter::getViewTypeCount() CONST
 {
     return 2;
 }
 
-void STreeAdapter::InitItemByTemplate(HSTREEITEM loc, SItemPanel* pItem, SXmlNode xmlTemplate)
+/**
+ * @brief Handles the double-click event on an item panel.
+ * @param pEvt Pointer to the event object.
+ * @return TRUE if the event is handled, FALSE otherwise.
+ */
+BOOL STreeAdapter::OnItemPanelDbclick(EventItemPanelDbclick* pEvt)
 {
-    if (pItem->GetChildrenCount() == 0)
+    auto* pItem = sobj_cast<SItemPanel>(pEvt->Sender());
+    auto* pImg = pItem->FindChildByName2<SImageWnd>(L"img_expand");
+    if (this->IsItemExpanded(pItem->GetUserData()))
     {
-        switch (getViewType(loc))
-        {
-            case 0: xmlTemplate = xmlTemplate.child(L"item_group");
-            break;
-            case 1: xmlTemplate = xmlTemplate.child(L"item_data");
-            break;
-            default: break;
-        }
-        pItem->InitFromXml(&xmlTemplate);
+        pImg->SetAttribute(L"iconIndex", L"0");
     }
+    else
+    {
+        pImg->SetAttribute(L"iconIndex", L"1");
+    }
+    this->ExpandItem(pItem->GetUserData(), TVC_TOGGLE);
+    return true;
 }
+
+/**
+ * @brief Handles button click events.
+ * @param pEvt Pointer to the event object.
+ * @return TRUE if the event is handled, FALSE otherwise.
+ */
+BOOL STreeAdapter::OnButtonClick(EventCmd* pEvt)
+{
+    return true;
+}
+

@@ -14,11 +14,33 @@
 extern "C" {
 #endif
 
-    VOID WINAPI MainWindowShow(BOOL bShow);
-    VOID WINAPI MainWindowInit(HINSTANCE hInstance);
-    VOID WINAPI MainWindowRelease();
-    DWORD WINAPI RunMessageLoop();
-    void WINAPI ReInitManagement();
+/**
+ * @brief Shows or hides the main window.
+ * @param bShow TRUE to show the window, FALSE to hide it.
+ */
+VOID WINAPI MainWindowShow(BOOL bShow);
+
+/**
+ * @brief Initializes the main window.
+ * @param hInstance Handle to the application instance.
+ */
+VOID WINAPI MainWindowInit(HINSTANCE hInstance);
+
+/**
+ * @brief Releases resources associated with the main window.
+ */
+VOID WINAPI MainWindowRelease();
+
+/**
+ * @brief Runs the message loop for the application.
+ * @return Returns the exit code of the message loop.
+ */
+DWORD WINAPI RunMessageLoop();
+
+/**
+ * @brief Reinitializes the management interface.
+ */
+void WINAPI ReInitManagement();
 
 #ifdef __cplusplus
 }

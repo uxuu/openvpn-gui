@@ -4,8 +4,8 @@
              <window  colorBkgnd="#cdcccc">
                 <caption  font="adding:2" pos="0,0,-0,32dp" colorBkgnd="#0694F3" show="1">
                     <caption gravity="center" layout="hbox" height="32dp" >
-                        <icon src="ICON_LOGO:16" margin="8dp,0,2dp,0"/>
-                        <text valign="middle" colorText="#ffffff">@string/title</text>
+                        <icon valign="middle" src="ICON_LOGO" size="30dp, 30dp" extend_left="8dp" />
+                        <text valign="middle" extend_left="4dp" colorText="#ffffff" >@string/title</text>
                     </caption>
                     <imgbtn animate="1" name="btn_close" pos="-32dp,1dp" skin="_skin.btn.close" tip="close" cursor="hand"/>
                     <imgbtn animate="1" name="btn_max" pos="{-32dp,1dp" display="0" skin="_skin.btn.max" cursor="hand"/>
@@ -38,7 +38,7 @@
                         </pageTemplate>
                     </tabctrlex>
                 </window>
-                <window pos="0,-45dp,-0,-0" colorBkgnd="#ffffff" margin="1dp,0dp,1dp,1dp" show="1" display="0">
+                <window pos="0,-45dp,-0,-0" colorBkgnd="#ffffff" margin="1dp,0dp,1dp,1dp" show="0" display="0">
                     <imgbtn animate="1" skin="btn_bottom" name="btn_home" pos="0,0,%25,-0" mouseRelay="1" text="home" enable="1" cursor="hand"/>
                     <imgbtn animate="1" skin="btn_bottom" name="btn_login" pos="%25,0,%50,-0" mouseRelay="1" text="login" cursor="hand"/>
                     <imgbtn animate="1" skin="btn_bottom" name="btn_detail" pos="%50,0,%75,-0" mouseRelay="1" text="detail" cursor="hand"/>

@@ -34,6 +34,10 @@ MainDlg *pMainDlg = NULL;
 SComMgr2 *pComMgr = NULL;
 SApplication *pApp = NULL;
 
+/**
+ * @brief Shows or hides the main window.
+ * @param bShow TRUE to show the window, FALSE to hide it.
+ */
 VOID WINAPI MainWindowShow(BOOL bShow)
 {
     if (pMainDlg != NULL)
@@ -42,17 +46,31 @@ VOID WINAPI MainWindowShow(BOOL bShow)
     }
 }
 
+/**
+ * @brief Retrieves the image decoder name.
+ * @return Returns the name of the image decoder.
+ */
 const TCHAR *GetImgDecoder()
 {
     return _T("imgdecoder-gdip");
 }
 
+/**
+ * @brief Retrieves the render factory.
+ * @param ref Pointer to the render factory object.
+ */
 void GetRenderFactory(IObjRef** ref)
 {
     pComMgr->CreateRender_Skia(ref);
     //pComMgr->CreateRender_GDI(ref);
 }
 
+/**
+ * @brief Loads resources for the application.
+ * @param souiFac Pointer to the SouiFactory instance.
+ * @param hInstance Handle to the application instance.
+ * @return Returns a pointer to the resource provider.
+ */
 IResProvider *LoadResource(SouiFactory *souiFac, HINSTANCE hInstance)
 {
     IResProvider* pResProvider;
@@ -69,6 +87,10 @@ IResProvider *LoadResource(SouiFactory *souiFac, HINSTANCE hInstance)
     return pResProvider;
 }
 
+/**
+ * @brief Initializes the main window.
+ * @param hInstance Handle to the application instance.
+ */
 VOID WINAPI MainWindowInit(HINSTANCE hInstance)
 {
     DWORD nRet = 0;
@@ -123,11 +145,18 @@ VOID WINAPI MainWindowInit(HINSTANCE hInstance)
     }
 }
 
+/**
+ * @brief Runs the message loop for the application.
+ * @return Returns the exit code of the message loop.
+ */
 DWORD WINAPI RunMessageLoop()
 {
     return pApp->Run(pMainDlg->m_hWnd);
 }
 
+/**
+ * @brief Releases resources associated with the main window.
+ */
 VOID WINAPI MainWindowRelease()
 {
     pApp->UnregisterWindowClass<SGifPlayer>();
@@ -139,95 +168,29 @@ VOID WINAPI MainWindowRelease()
     OleUninitialize();
 }
 
-static void OnReady_(connection_t* c, char* msg)
+// 定义一个模板函数来处理消息
+template<mgmt_rtmsg_type msg_type>
+static void HandleMessage(connection_t* c, char* msg)
 {
     DbgPrintf(_T("%s(%d): %hs"), _T(__FUNCTION__), __LINE__, msg);
-    msg_handler[ready_](c, msg);
+    msg_handler[msg_type](c, msg);
 }
 
-static void OnHold_(connection_t* c, char* msg)
-{
-    DbgPrintf(_T("%s(%d): %hs"), _T(__FUNCTION__), __LINE__, msg);
-    msg_handler[hold_](c, msg);
-}
-
-static void OnLogLine_(connection_t* c, char* msg)
-{
-    DbgPrintf(_T("%s(%d): %hs"), _T(__FUNCTION__), __LINE__, msg);
-    msg_handler[log_](c, msg);
-}
-
-static void OnStateChange_(connection_t* c, char* msg)
-{
-    DbgPrintf(_T("%s(%d): %hs"), _T(__FUNCTION__), __LINE__, msg);
-    msg_handler[state_](c, msg);
-}
-
-static void OnPassword_(connection_t* c, char* msg)
-{
-    DbgPrintf(_T("%s(%d): %hs"), _T(__FUNCTION__), __LINE__, msg);
-    msg_handler[password_](c, msg);
-}
-
-static void OnProxy_(connection_t* c, char* msg)
-{
-    DbgPrintf(_T("%s(%d): %hs"), _T(__FUNCTION__), __LINE__, msg);
-    msg_handler[proxy_](c, msg);
-}
-
-static void OnStop_(connection_t* c, char* msg)
-{
-    DbgPrintf(_T("%s(%d): %hs"), _T(__FUNCTION__), __LINE__, msg);
-    msg_handler[stop_](c, msg);
-}
-
-static void OnNeedOk_(connection_t* c, char* msg)
-{
-    DbgPrintf(_T("%s(%d): %hs"), _T(__FUNCTION__), __LINE__, msg);
-    msg_handler[needok_](c, msg);
-}
-
-static void OnNeedStr_(connection_t* c, char* msg)
-{
-    DbgPrintf(_T("%s(%d): %hs"), _T(__FUNCTION__), __LINE__, msg);
-    msg_handler[needstr_](c, msg);
-}
-
-static void OnEcho_(connection_t* c, char* msg)
-{
-    DbgPrintf(_T("%s(%d): %hs"), _T(__FUNCTION__), __LINE__, msg);
-    msg_handler[echo_](c, msg);
-}
-
-static void OnByteCount_(connection_t* c, char* msg)
-{
-    DbgPrintf(_T("%s(%d): %hs"), _T(__FUNCTION__), __LINE__, msg);
-    msg_handler[bytecount_](c, msg);
-}
-
-static void OnInfoMsg_(connection_t* c, char* msg)
-{
-    DbgPrintf(_T("%s(%d): %hs"), _T(__FUNCTION__), __LINE__, msg);
-    msg_handler[infomsg_](c, msg);
-}
-
-static void OnTimeout_(connection_t* c, char* msg)
-{
-    DbgPrintf(_T("%s(%d): %hs"), _T(__FUNCTION__), __LINE__, msg);
-    msg_handler[timeout_](c, msg);
-}
-
+/**
+ * @brief Reinitializes the management interface.
+ */
 void WINAPI ReInitManagement()
 {
     mgmt_rtmsg_handler handler[] = {
-        { ready_,    OnReady_ },      { hold_,     OnHold_ },
-        { log_,      OnLogLine_ },    { state_,    OnStateChange_ },
-        { password_, OnPassword_ },   { proxy_,    OnProxy_ },
-        { stop_,     OnStop_ },       { needok_,   OnNeedOk_ },
-        { needstr_,  OnNeedStr_ },    { echo_,     OnEcho_ },
-        { bytecount_, OnByteCount_ }, { infomsg_,  OnInfoMsg_ },
-        { timeout_,  OnTimeout_ },    { mgmt_rtmsg_type_max, NULL }
+        { ready_,    HandleMessage<ready_> },      { hold_,     HandleMessage<hold_> },
+        { log_,      HandleMessage<log_> },        { state_,    HandleMessage<state_> },
+        { password_, HandleMessage<password_> },   { proxy_,    HandleMessage<proxy_> },
+        { stop_,     HandleMessage<stop_> },       { needok_,   HandleMessage<needok_> },
+        { needstr_,  HandleMessage<needstr_> },    { echo_,     HandleMessage<echo_> },
+        { bytecount_, HandleMessage<bytecount_> }, { infomsg_,  HandleMessage<infomsg_> },
+        { timeout_,  HandleMessage<timeout_> },    { mgmt_rtmsg_type_max, NULL }
     };
     memcpy((void *)msg_handler, rtmsg_handler, sizeof(rtmsg_handler));
     InitManagement(handler);
 }
+

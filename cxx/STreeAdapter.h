@@ -31,6 +31,9 @@ public:
 protected:
     STDMETHOD_(void, DeleteItems)(THIS_);
     STDMETHOD_(void, InitItemByTemplate)(THIS_ HSTREEITEM loc, SItemPanel* pItem, SXmlNode xmlTemplate);
+public:
+    BOOL OnItemPanelDbclick(EventItemPanelDbclick* pEvt);
+    BOOL OnButtonClick(EventCmd* pEvt);
 protected:
     STreeView *m_treeView;
 };
