@@ -1,5 +1,5 @@
 /**
- * @file MainEx.cpp
+ * @file main-ex.cpp
  * @brief Implementation of main window functions for the OpenVPN GUI application.
  * @details This source file contains the implementation for the main window functions
  *          and the message loop for the OpenVPN GUI application.
@@ -20,9 +20,9 @@
 #include <helper/SFunctor.hpp>
 
 #include "MainDlg.h"
-#include "openvpn-ex.h"
+#include "openvpn-c.h"
 
-#include "MainEx.h"
+#include "main-ex.h"
 #include "STreeAdapter.h"
 
 static mgmt_msg_func msg_handler[mgmt_rtmsg_type_max];

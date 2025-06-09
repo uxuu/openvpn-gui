@@ -10,7 +10,7 @@
 #include "stdafx.h"
 
 #include "MainDlg.h"
-#include "openvpn-ex.h"
+#include "openvpn-c.h"
 #include "STreeAdapter.h"
 
 extern "C" {
@@ -255,7 +255,7 @@ void MainDlg::OnCommand( UINT uNotifyCode, int nID, HWND wndCtl )
             ShowPage(_T("page_about"));
             break;
         case 8:
-            //ShowSettingsDialog();
+            ShowSettingsDialog();
             break;
         case 7:
             BuildFileList();

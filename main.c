@@ -51,7 +51,7 @@
 #include "echo.h"
 #include "as.h"
 
-#include "cxx/MainEx.h"
+#include "cxx/main-ex.h"
 
 #define OVPN_EXITCODE_ERROR    1
 #define OVPN_EXITCODE_TIMEOUT  2
@@ -60,7 +60,7 @@
 /*  Declare Windows procedure  */
 LRESULT CALLBACK WindowProcedure(HWND, UINT, WPARAM, LPARAM);
 
-static void ShowSettingsDialog();
+void ShowSettingsDialog();
 
 BOOL CloseApplication(HWND hwnd, BOOL ask_user);
 
@@ -853,7 +853,7 @@ SettingsPsCallback(HWND hwnd, UINT msg, UNUSED LPARAM lParam)
     return 0;
 }
 
-static void
+void
 ShowSettingsDialog()
 {
     PROPSHEETPAGE psp[4];

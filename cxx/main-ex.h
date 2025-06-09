@@ -1,5 +1,5 @@
 /**
- * @file MainEx.h
+ * @file main-ex.h
  * @brief Main extension functions for the OpenVPN GUI application.
  * @details This header file contains declarations for the main window functions
  *          and the message loop for the OpenVPN GUI application.

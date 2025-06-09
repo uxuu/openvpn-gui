@@ -63,6 +63,10 @@
 #include "pkcs11.h"
 #include "service.h"
 
+#ifdef DLL_SOUI_COM
+#include "cxx/openvpn-ex.h"
+#endif
+
 #define OPENVPN_SERVICE_PIPE_NAME_OVPN2 L"\\\\.\\pipe\\openvpn\\service"
 #define OPENVPN_SERVICE_PIPE_NAME_OVPN3 L"\\\\.\\pipe\\ovpnagent"
 
@@ -2634,6 +2638,10 @@ ThreadOpenVPNStatus(void *p)
         return 1;
     }
 
+#ifdef DLL_SOUI_COM
+    InitStatusPage(c);
+#endif
+
     CheckAndSetTrayIcon();
     SetMenuStatus(c, connecting);
     SetDlgItemText(c->hwndStatus, ID_TXT_STATUS, LoadLocalizedString(IDS_NFO_STATE_CONNECTING));
@@ -2715,6 +2723,10 @@ ThreadOpenVPNStatus(void *p)
             DispatchMessage(&msg);
         }
     }
+
+#ifdef DLL_SOUI_COM
+    ReleaseStatusPage(c);
+#endif
 
     /* release handles etc.*/
     Cleanup(c);

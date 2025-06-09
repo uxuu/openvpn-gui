@@ -39,7 +39,7 @@
 #include "localization.h"
 #include "misc.h"
 
-#include "cxx/MainEx.h"
+#include "cxx/main-ex.h"
 
 #ifndef GUID_NULL
 #include <initguid.h>

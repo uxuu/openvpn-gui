@@ -6,9 +6,9 @@
  * @date 2025-03-05
  */
 
-#include "../stdafx.h"
+#include "stdafx.h"
 
-#include "openvpn-ex.h"
+#include "openvpn-c.h"
 #include "STreeAdapter.h"
 
 /**
@@ -347,10 +347,13 @@ BOOL STreeAdapter::OnButtonClick(EventCmd* pEvt)
     else if (wcscmp(btnName, btn_names[4]) == 0)
     {
         // StatusOpenVPN(ii.data.c);
+        ::SetForegroundWindow(ii.data.c->hwndStatus);
+        ::ShowWindow(ii.data.c->hwndStatus, SW_SHOW);
     }
     else if (wcscmp(btnName, btn_names[5]) == 0)
     {
         // LogViewOpenVPN(ii.data.c);
+        ViewLog(ii.data.c);
     }
 
     return true;

@@ -42,11 +42,11 @@ add_executable(${PROJECT_NAME} WIN32
     as.c
     pkcs11.c
     config_parser.c
-    cxx/MainEx.cpp
+    cxx/main-ex.cpp
+    cxx/openvpn-ex.cpp
     cxx/MainDlg.cpp
     cxx/STabCtrlEx.cpp
     cxx/STreeAdapter.cpp
-    cxx/openvpn-ex.cpp
     ${SOUI_PATH}/controls.extend/gif/SGifPlayer.cpp
     ${SOUI_PATH}/controls.extend/STurn3DView.cpp
     ${SOUI_PATH}/controls.extend/image3d/3dlib.cpp
@@ -181,8 +181,9 @@ add_custom_command(
         COMMAND ${SOUI_PATH}/tools/uiresbuilder.exe
         -i ${PROJECT_SOURCE_DIR}/uires/uires.idx
         -p ..\\uires
-        -r ${PROJECT_SOURCE_DIR}/res/soui-res.rc
-        -h ${PROJECT_SOURCE_DIR}/res/soui-res.h idtable
+        -r soui-res.rc
+        -h soui-res.h idtable
+        DEPENDS ${PROJECT_SOURCE_DIR}/uires/uires.idx
 )
 
 if (NOT PROJECT_NAME_PLAP)
