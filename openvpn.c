@@ -63,9 +63,7 @@
 #include "pkcs11.h"
 #include "service.h"
 
-#ifdef DLL_SOUI_COM
 #include "cxx/openvpn-ex.h"
-#endif
 
 #define OPENVPN_SERVICE_PIPE_NAME_OVPN2 L"\\\\.\\pipe\\openvpn\\service"
 #define OPENVPN_SERVICE_PIPE_NAME_OVPN3 L"\\\\.\\pipe\\ovpnagent"
@@ -86,6 +84,8 @@ free_auth_param(auth_param_t *param)
     {
         return;
     }
+    param->c->hwndDlg = NULL;
+    param->c->dialogId = 0;
     free(param->str);
     free(param->id);
     free(param->user);
@@ -459,7 +459,7 @@ OnStateChange(connection_t *c, char *data)
     }
 }
 
-static void
+void
 SimulateButtonPress(HWND hwnd, UINT btn)
 {
     SendMessage(hwnd, WM_COMMAND, MAKEWPARAM(btn, BN_CLICKED), (LPARAM)GetDlgItem(hwnd, btn));
@@ -479,7 +479,7 @@ typedef struct autoclose
 } autoclose;
 
 /* Cancel scheduled auto close of a dialog */
-static void
+void
 AutoCloseCancel(HWND hwnd)
 {
     autoclose *ac = (autoclose *)GetProp(hwnd, L"AutoClose");
@@ -491,6 +491,7 @@ AutoCloseCancel(HWND hwnd)
     if (ac->txtid)
     {
         SetDlgItemText(hwnd, ac->txtid, L"");
+        SetAutoCloseText(hwnd, L"");
     }
     KillTimer(hwnd, 1);
     RemoveProp(hwnd, L"AutoClose");
@@ -517,6 +518,7 @@ AutoCloseHandler(HWND hwnd, UINT UNUSED msg, UINT_PTR id, DWORD now)
     {
         SetDlgItemText(
             hwnd, ac->txtid, LoadLocalizedString(ac->txtres, (ac->timeout - elapsed) / 1000));
+        SetAutoCloseText(hwnd, LoadLocalizedString(ac->txtres, (ac->timeout - elapsed) / 1000));
         SetTimer(hwnd, id, 500, AutoCloseHandler);
     }
 }
@@ -576,6 +578,10 @@ UserAuthDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
             param = (auth_param_t *)lParam;
             TRY_SETPROP(hwndDlg, cfgProp, (HANDLE)param);
             SetStatusWinIcon(hwndDlg, ID_ICO_APP);
+            param->c->hwndDlg = hwndDlg;
+
+            /* Hide the dialog window */
+            SetWindowHide(hwndDlg, TRUE);
 
             if (param->str)
             {
@@ -772,10 +778,12 @@ UserAuthDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
                             param->c, "password \"Auth\" \"%s\"", hwndDlg, ID_EDT_AUTH_PASS);
                     }
                     EndDialog(hwndDlg, LOWORD(wParam));
+                    ShowStatusPage(param->c, FALSE);
                     return TRUE;
 
                 case IDCANCEL:
                     EndDialog(hwndDlg, LOWORD(wParam));
+                    ShowStatusPage(param->c, FALSE);
                     StopOpenVPN(param->c);
                     return TRUE;
 
@@ -789,6 +797,7 @@ UserAuthDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
 
         case WM_OVPN_STATE: /* state changed -- destroy the dialog */
             EndDialog(hwndDlg, LOWORD(wParam));
+            ShowStatusPage(NULL, FALSE);
             return TRUE;
 
         case WM_CTLCOLORSTATIC:
@@ -811,6 +820,7 @@ UserAuthDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
         case WM_CLOSE:
             EndDialog(hwndDlg, LOWORD(wParam));
             param = (auth_param_t *)GetProp(hwndDlg, cfgProp);
+            ShowStatusPage(param->c, FALSE);
             StopOpenVPN(param->c);
             return TRUE;
 
@@ -1498,17 +1508,20 @@ OnPassword(connection_t *c, char *msg)
             param->flags |= (flags & 0x2) ? FLAG_CR_TYPE_CONCAT : FLAG_CR_TYPE_SCRV1;
             param->flags |= (flags & 0x1) ? FLAG_CR_ECHO : 0;
             param->str = strdup(chstr + 5);
+            InitUserAuthDialog(param, ID_DLG_AUTH_CHALLENGE);
             LocalizedDialogBoxParamEx(
                 ID_DLG_AUTH_CHALLENGE, c->hwndStatus, UserAuthDialogFunc, (LPARAM)param);
         }
         else if (o.auth_pass_concat_otp)
         {
             param->flags |= FLAG_CR_ECHO | FLAG_CR_TYPE_CONCAT;
+            InitUserAuthDialog(param, ID_DLG_AUTH_CHALLENGE);
             LocalizedDialogBoxParamEx(
                 ID_DLG_AUTH_CHALLENGE, c->hwndStatus, UserAuthDialogFunc, (LPARAM)param);
         }
         else
         {
+            InitUserAuthDialog(param, ID_DLG_AUTH);
             LocalizedDialogBoxParamEx(
                 ID_DLG_AUTH, c->hwndStatus, UserAuthDialogFunc, (LPARAM)param);
         }
@@ -2368,6 +2381,9 @@ StatusDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
             /* Set window icon "disconnected" */
             SetStatusWinIcon(hwndDlg, ID_ICO_CONNECTING);
 
+            /* Hide the status window */
+            SetWindowHide(hwndDlg, TRUE);
+
             /* Set connection for this dialog */
             if (!SetPropW(hwndDlg, cfgProp, (HANDLE)c))
             {
@@ -2638,9 +2654,7 @@ ThreadOpenVPNStatus(void *p)
         return 1;
     }
 
-#ifdef DLL_SOUI_COM
     InitStatusPage(c);
-#endif
 
     CheckAndSetTrayIcon();
     SetMenuStatus(c, connecting);
@@ -2724,9 +2738,7 @@ ThreadOpenVPNStatus(void *p)
         }
     }
 
-#ifdef DLL_SOUI_COM
     ReleaseStatusPage(c);
-#endif
 
     /* release handles etc.*/
     Cleanup(c);

@@ -183,7 +183,6 @@ add_custom_command(
         -p ..\\uires
         -r soui-res.rc
         -h soui-res.h idtable
-        DEPENDS ${PROJECT_SOURCE_DIR}/uires/uires.idx
 )
 
 if (NOT PROJECT_NAME_PLAP)

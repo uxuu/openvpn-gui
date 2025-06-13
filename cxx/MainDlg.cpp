@@ -13,11 +13,6 @@
 #include "openvpn-c.h"
 #include "STreeAdapter.h"
 
-extern "C" {
-#include "save_pass.h"
-#include "misc.h"
-}
-
 /**
  * @brief Constructor for the MainDlg class.
  */
@@ -98,8 +93,8 @@ BOOL MainDlg::OnInitDialog(HWND hWnd, LPARAM lParam)
 
         auto pAdapter = new STreeAdapter(pTree);
         pTree->SetAdapter(pAdapter);
-        pAdapter->Release();
         pAdapter->RefreshItems();
+        pAdapter->Release();
     }
     SetMsgHandled(FALSE);
     return 0;

@@ -23,7 +23,11 @@ extern "C" {
 #include "registry.h"
 #include "as.h"
 #include "viewlog.h"
-
+#include "proxy.h"
+#include "save_pass.h"
+#include "misc.h"
+#include "localization.h"
+#include "openvpn-gui-res.h"
 
 #define GUI_REGKEY_HKCU _T("Software\\OpenVPN-GUI")
 #define USE_NESTED_CONFIG_MENU ((o.config_menu_view == CONFIG_VIEW_AUTO && o.num_configs > 25)   \
@@ -55,6 +59,19 @@ void OnNotifyTray(LPARAM lParam);
  * @return Returns TRUE if the application is closed successfully.
  */
 BOOL CloseApplication(HWND hwnd, BOOL ask_user);
+
+/**
+ * @brief Simulates a button press.
+ * @param hwnd Handle to the application window.
+ * @param btn ID of the button to simulate.
+ */
+void SimulateButtonPress(HWND hwnd, UINT btn);
+
+/**
+ * @brief Initializes the management interface.
+ * @param handler Array of management message handlers.
+ */
+void AutoCloseCancel(HWND hwnd);
 
 #ifdef __cplusplus
 }

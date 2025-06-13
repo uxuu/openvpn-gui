@@ -51,6 +51,10 @@ void STreeAdapter::getView(HSTREEITEM loc, SItemPanel* pItem, SXmlNode xmlTempla
         SetTextState(ii.data.c, pItem);
         SetButtonUserData(loc, pItem);
     }
+    else
+    {
+        pItem->SetUserData(loc);
+    }
 }
 
 /**
@@ -72,7 +76,7 @@ void STreeAdapter::InitItemByTemplate(HSTREEITEM loc, SItemPanel *pItem, SXmlNod
         case 1:
             xmlTemplate = xmlTemplate.child(L"item_data");
             pItem->InitFromXml(&xmlTemplate);
-            BindButtonEvent(loc, pItem);
+            BindButtonEvent(pItem);
             break;
         default:
             break;
@@ -85,7 +89,7 @@ void STreeAdapter::InitItemByTemplate(HSTREEITEM loc, SItemPanel *pItem, SXmlNod
  * @param loc Handle to the tree item.
  * @param pItem Pointer to the item panel.
  */
-void STreeAdapter::BindButtonEvent(HSTREEITEM loc, SItemPanel *pItem)
+void STreeAdapter::BindButtonEvent(SItemPanel *pItem)
 {
     for (int i = 0; i < _countof(btn_names); i++)
     {
@@ -304,6 +308,7 @@ BOOL STreeAdapter::OnItemPanelDbclick(EventItemPanelDbclick* pEvt)
 {
     auto* pItem = sobj_cast<SItemPanel>(pEvt->Sender());
     auto* pImg = pItem->FindChildByName2<SImageWnd>(L"img_expand");
+
     if (this->IsItemExpanded(pItem->GetUserData()))
     {
         pImg->SetAttribute(L"iconIndex", L"0");

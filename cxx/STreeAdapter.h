@@ -31,7 +31,7 @@ public:
 protected:
     STDMETHOD_(void, DeleteItems)(THIS_);
     STDMETHOD_(void, InitItemByTemplate)(THIS_ HSTREEITEM loc, SItemPanel* pItem, SXmlNode xmlTemplate);
-    STDMETHOD_(void, BindButtonEvent)(THIS_ HSTREEITEM loc, SItemPanel* pItem);
+    STDMETHOD_(void, BindButtonEvent)(THIS_ SItemPanel* pItem);
     STDMETHOD_(void, SetButtonUserData)(THIS_ HSTREEITEM loc, SItemPanel* pItem);
     STDMETHOD_(void, SetButtonState)(THIS_ conn_state_t state, SItemPanel *pItem);
     STDMETHOD_(void, SetImageState)(THIS_ conn_state_t state, SItemPanel *pItem);

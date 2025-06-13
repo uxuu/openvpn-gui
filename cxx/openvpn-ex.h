@@ -14,9 +14,21 @@
 extern "C" {
 #endif
 
+#ifdef DLL_SOUI_COM
     void InitStatusPage(connection_t* c);
     void ReleaseStatusPage(connection_t* c);
     void ShowStatusPage(connection_t* c, BOOL bShow);
+    void InitUserAuthDialog(auth_param_t *param, UINT dialogId);
+    void SetWindowHide(HWND hwnd, BOOL bHide);
+    void SetAutoCloseText(HWND hwnd, LPCTSTR pszText);
+#else
+#define InitStatusPage(c)
+#define ReleaseStatusPage(c)
+#define ShowStatusPage(c, b)
+#define InitUserAuthDialog(p, d)
+#define SetWindowHide(h, b)
+#define SetAutoCloseText(h, t)
+#endif
 #ifdef __cplusplus
     class TaskSingleton {
     public:
@@ -27,6 +39,14 @@ extern "C" {
         void ShowStatusPage(connection_t* c, BOOL bShow);
         int GetStatusPageIndex(connection_t *c, STabCtrlEx *pTab = NULL);
         STabPage *GetStatusPage(connection_t *c, STabCtrlEx *pTab = NULL);
+        STabPage *GetStatusPage(SWindow *pWnd);
+        SWindow *GetStatusWindow(connection_t *c, STabPage *pPage = NULL);
+        void InitUserAuthDialog(auth_param_t *param, UINT dialogId);
+        void SetAutoCloseText(HWND hwnd, LPCTSTR pszText);
+    public:
+        BOOL OnCheckBoxClick(EventCmd* pEvt);
+        BOOL OnButtonClick(EventCmd* pEvt);
+        BOOL OnMouseClick(EventMouseClick* pEvt);
     private:
         TaskSingleton() {};
         TaskSingleton(TaskSingleton&) = delete;
