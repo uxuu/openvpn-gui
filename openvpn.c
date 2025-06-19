@@ -580,7 +580,7 @@ UserAuthDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
             SetStatusWinIcon(hwndDlg, ID_ICO_APP);
             param->c->hwndDlg = hwndDlg;
 
-            /* Hide the dialog window */
+            /* Hide the modal dialog window */
             SetWindowHide(hwndDlg, TRUE);
 
             if (param->str)
@@ -826,8 +826,8 @@ UserAuthDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
 
         case WM_NCDESTROY:
             param = (auth_param_t *)GetProp(hwndDlg, cfgProp);
-            free_auth_param(param);
             AutoCloseCancel(hwndDlg);
+            free_auth_param(param);
             RemoveProp(hwndDlg, cfgProp);
             break;
     }
@@ -849,6 +849,11 @@ GenericPassDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
         case WM_INITDIALOG:
             param = (auth_param_t *)lParam;
             TRY_SETPROP(hwndDlg, cfgProp, (HANDLE)param);
+
+            param->c->hwndDlg = hwndDlg;
+
+            /* Hide the modal dialog window */
+            SetWindowHide(hwndDlg, TRUE);
 
             WCHAR *wstr = Widen(param->str);
             if (!wstr)
@@ -963,6 +968,7 @@ GenericPassDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
                         ManagementCommandFromInputBase64(
                             param->c, "cr-response \"%s\"", hwndDlg, ID_EDT_RESPONSE);
                         EndDialog(hwndDlg, LOWORD(wParam));
+                        ShowStatusPage(param->c, FALSE);
                         return TRUE;
                     }
                     if (param->flags & FLAG_CR_TYPE_CRV1)
@@ -1016,10 +1022,12 @@ GenericPassDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
                     }
 
                     EndDialog(hwndDlg, LOWORD(wParam));
+                    ShowStatusPage(param->c, FALSE);
                     return TRUE;
 
                 case IDCANCEL:
                     EndDialog(hwndDlg, LOWORD(wParam));
+                    ShowStatusPage(param->c, FALSE);
                     StopOpenVPN(param->c);
                     return TRUE;
 
@@ -1043,11 +1051,13 @@ GenericPassDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
             if (!(param->flags & FLAG_CR_TYPE_CRTEXT) || strcmp((const char *)lParam, "GET_CONFIG"))
             {
                 EndDialog(hwndDlg, LOWORD(wParam));
+                ShowStatusPage(param->c, FALSE);
             }
             return TRUE;
 
         case WM_CLOSE:
             EndDialog(hwndDlg, LOWORD(wParam));
+            ShowStatusPage(((auth_param_t *)lParam)->c, FALSE);
             return TRUE;
 
         case WM_NCDESTROY:
@@ -1076,6 +1086,12 @@ PrivKeyPassDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
             c = (connection_t *)lParam;
             TRY_SETPROP(hwndDlg, cfgProp, (HANDLE)c);
             AppendTextToCaption(hwndDlg, c->config_name);
+
+            c->hwndDlg = hwndDlg;
+
+            /* Hide the modal dialog window */
+            SetWindowHide(hwndDlg, TRUE);
+
             if (RecallKeyPass(c->config_name, passphrase) && wcslen(passphrase)
                 && c->failed_psw_attempts == 0)
             {
@@ -1085,6 +1101,7 @@ PrivKeyPassDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
                 ManagementCommandFromInput(
                     c, "password \"Private Key\" \"%s\"", hwndDlg, ID_EDT_PASSPHRASE);
                 EndDialog(hwndDlg, IDOK);
+                ShowStatusPage(c, FALSE);
                 return TRUE;
             }
             if (c->flags & FLAG_DISABLE_SAVE_PASS)
@@ -1164,10 +1181,12 @@ PrivKeyPassDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
                     ManagementCommandFromInput(
                         c, "password \"Private Key\" \"%s\"", hwndDlg, ID_EDT_PASSPHRASE);
                     EndDialog(hwndDlg, LOWORD(wParam));
+                    ShowStatusPage(c, FALSE);
                     return TRUE;
 
                 case IDCANCEL:
                     EndDialog(hwndDlg, LOWORD(wParam));
+                    ShowStatusPage(c, FALSE);
                     StopOpenVPN(c);
                     return TRUE;
 
@@ -1181,6 +1200,8 @@ PrivKeyPassDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
 
         case WM_OVPN_STATE: /* state changed -- destroy the dialog */
             EndDialog(hwndDlg, LOWORD(wParam));
+            c = (connection_t *)GetProp(hwndDlg, cfgProp);
+            ShowStatusPage(c, FALSE);
             return TRUE;
 
         case WM_CTLCOLORSTATIC:
@@ -1194,6 +1215,7 @@ PrivKeyPassDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
 
         case WM_CLOSE:
             EndDialog(hwndDlg, LOWORD(wParam));
+            ShowStatusPage((connection_t *)lParam, FALSE);
             return TRUE;
 
         case WM_NCDESTROY:
@@ -1498,6 +1520,7 @@ OnPassword(connection_t *c, char *msg)
                 free_auth_param(param);
                 return;
             }
+            InitGenericPassDialog(param, ID_DLG_CHALLENGE_RESPONSE);
             LocalizedDialogBoxParamEx(
                 ID_DLG_CHALLENGE_RESPONSE, c->hwndStatus, GenericPassDialogFunc, (LPARAM)param);
             free_dynamic_cr(c);
@@ -1528,6 +1551,7 @@ OnPassword(connection_t *c, char *msg)
     }
     else if (strstr(msg, "'Private Key'"))
     {
+        InitPrivKeyPassDialog(c, ID_DLG_PASSPHRASE);
         LocalizedDialogBoxParamEx(
             ID_DLG_PASSPHRASE, c->hwndStatus, PrivKeyPassDialogFunc, (LPARAM)c);
     }
@@ -1556,6 +1580,7 @@ OnPassword(connection_t *c, char *msg)
             free_auth_param(param);
             return;
         }
+        InitGenericPassDialog(param, ID_DLG_CHALLENGE_RESPONSE);
         LocalizedDialogBoxParamEx(
             ID_DLG_CHALLENGE_RESPONSE, c->hwndStatus, GenericPassDialogFunc, (LPARAM)param);
     }

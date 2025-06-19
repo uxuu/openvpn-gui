@@ -83,7 +83,7 @@
         </window>
         <window size="-2,-1" layout="vbox" gravity="center" name="wnd_passphrase" show="0" display="0">
             <window margin-y="2dp" colorBkgnd="#ffffff">
-                <edit size="180dp,24dp" class="cls_edit" password="1" padding="22dp,0,5dp,0" cueText="请输入密码" maxBuf="64" name="edt_password" align="center"/>
+                <edit size="180dp,24dp" class="cls_edit" password="1" padding="22dp,0,5dp,0" cueText="请输入密码" maxBuf="64" name="edt_passphrase" align="center"/>
                 <imgbtn pos="5dp,5dp" skin="img_key" />
             </window>
             <window margin-y="2dp">

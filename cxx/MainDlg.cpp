@@ -274,6 +274,10 @@ void MainDlg::ShowPage(int nIndex)
     auto *pTab = FindChildByName2<STabCtrl>(L"tab_main");
     if (pTab)
     {
+        if (nIndex < 0 || nIndex == pTab->GetCurSel())
+        {
+            return;
+        }
         ShowWindow(SW_HIDE);
         pTab->SetCurSel(nIndex);
         ShowWindow(SW_SHOW);
@@ -289,9 +293,5 @@ void MainDlg::ShowPage(LPCTSTR pszName, BOOL bTitle)
 {
     auto *pTab = FindChildByName2<STabCtrl>(L"tab_main");
     int nIndex = pTab->GetPageIndex(pszName, bTitle);
-    if (nIndex < 0)
-    {
-        return;
-    }
     ShowPage(nIndex);
 }
