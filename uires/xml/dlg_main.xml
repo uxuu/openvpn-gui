@@ -4,15 +4,15 @@
              <window  colorBkgnd="#cdcccc">
                 <caption  font="adding:2" pos="0,0,-0,32dp" colorBkgnd="#0694F3" show="1">
                     <caption gravity="center" layout="hbox" height="32dp" >
-                        <icon valign="middle" src="ICON_LOGO" size="30dp, 30dp" extend_left="8dp" />
+                        <img valign="middle" skin="img_logo" size="28dp, 28dp" extend_left="4dp" />
                         <text valign="middle" extend_left="4dp" colorText="#ffffff" >@string/title</text>
                     </caption>
                     <imgbtn animate="1" name="btn_close" pos="-32dp,1dp" skin="_skin.btn.close" tip="close" cursor="hand"/>
-                    <imgbtn animate="1" name="btn_max" pos="{-32dp,1dp" display="0" skin="_skin.btn.max" cursor="hand"/>
-                    <imgbtn animate="1" name="btn_restore" pos="{-32dp,1dp" show="0" display="0" skin="_skin.btn.restore" cursor="hand"/>
+                    <!--<imgbtn animate="1" name="btn_max" pos="{-32dp,1dp" display="0" skin="_skin.btn.max" cursor="hand"/>-->
+                    <!--<imgbtn animate="1" name="btn_restore" pos="{-32dp,1dp" show="0" display="0" skin="_skin.btn.restore" cursor="hand"/>-->
                     <imgbtn animate="1" name="btn_min" pos="{-32dp,1dp" skin="_skin.btn.min" cursor="hand"/>
                     <imgbtn animate="1" name="btn_set" pos="{-32dp,1dp" skin="_skin.btn.set" cursor="hand"/>
-                    <imgbtn animate="1" name="btn_msg" pos="{-32dp,1dp" show="1" display="0" skin="_skin.btn.msg" cursor="hand"/>
+                    <!--<imgbtn animate="1" name="btn_msg" pos="{-32dp,1dp" show="1" display="0" skin="_skin.btn.msg" cursor="hand"/>-->
                 </caption>
                 <window pos="0dp,[0dp,-0,-0" colorBkgnd="#ffffff"  margin="1dp, 0, 1dp, 1dp">
                     <tabctrlex name="tab_main" pos="0,0,-0,-0" tabHeight="0">

@@ -24,6 +24,8 @@ extern "C" {
     void InitProxyAuthDialog(connection_t *c, UINT dialogId);
     void SetWindowHide(HWND hwnd, BOOL bHide);
     void SetAutoCloseText(HWND hwnd, LPCTSTR pszText);
+    void SetWarningText(connection_t* c, LPCTSTR pszText);
+    void SetWarningColor(connection_t* c, COLORREF clr);
 #else
 #define InitStatusPage(c)
 #define ReleaseStatusPage(c)
@@ -34,6 +36,8 @@ extern "C" {
 #define InitProxyAuthDialog(c, d)
 #define SetWindowHide(h, b)
 #define SetAutoCloseText(h, t)
+#define SetWarningText(c, t)
+#define SetWarningColor(c, clr)
 #endif
 #ifdef __cplusplus
     class TaskSingleton {
@@ -51,11 +55,14 @@ extern "C" {
         void InitGenericPassDialog(auth_param_t *param, UINT dialogId);
         void InitPrivKeyPassDialog(connection_t *c, UINT dialogId);
         void InitProxyAuthDialog(connection_t *c, UINT dialogId);
-        void SetAutoCloseText(HWND hwnd, LPCTSTR pszText);
+        void SetWarningText(connection_t* c, LPCTSTR pszText);
+        void SetWarningColor(connection_t* c, COLORREF clr);
+        BOOL ChangePasswordVisibility(SButton *pBtn);
     public:
         BOOL OnCheckBoxClick(EventCmd *pEvt);
         BOOL OnButtonClick(EventCmd *pEvt);
         BOOL OnMouseClick(EventMouseClick *pEvt);
+        BOOL OnEditNotify(EventRENotify *pEvt);
     private:
         TaskSingleton() {};
         TaskSingleton(TaskSingleton&) = delete;

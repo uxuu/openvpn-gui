@@ -660,6 +660,7 @@ UserAuthDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
             {
                 SetDlgItemTextW(
                     hwndDlg, ID_TXT_WARNING, LoadLocalizedString(IDS_NFO_AUTH_PASS_RETRY));
+                SetWarningText(param->c, LoadLocalizedString(IDS_NFO_AUTH_PASS_RETRY));
             }
 
             if (param->c->state == resuming)
@@ -813,6 +814,8 @@ UserAuthDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
                     clr = ac->txtclr;
                 }
                 SetTextColor((HDC)wParam, clr);
+                param = (auth_param_t *)GetProp(hwndDlg, cfgProp);
+                SetWarningColor(param->c, clr);
                 return (INT_PTR)br;
             }
             break;
@@ -1116,6 +1119,7 @@ PrivKeyPassDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
             {
                 SetDlgItemTextW(
                     hwndDlg, ID_TXT_WARNING, LoadLocalizedString(IDS_NFO_KEY_PASS_RETRY));
+                SetWarningText(c, LoadLocalizedString(IDS_NFO_KEY_PASS_RETRY));
             }
             if (c->state == resuming)
             {
@@ -1209,6 +1213,8 @@ PrivKeyPassDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
             {
                 HBRUSH br = (HBRUSH)DefWindowProc(hwndDlg, msg, wParam, lParam);
                 SetTextColor((HDC)wParam, o.clr_warning);
+                c = (connection_t *)GetProp(hwndDlg, cfgProp);
+                SetWarningColor(c, o.clr_warning);
                 return (INT_PTR)br;
             }
             break;

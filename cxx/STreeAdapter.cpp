@@ -167,20 +167,21 @@ void STreeAdapter::SetImageState(conn_state_t state, SItemPanel *pItem)
     switch (state)
     {
         case connected:
-            pItem->FindChildByName(L"img_state")->SetVisible(TRUE);
-            pItem->FindChildByName(L"img_state")->SetAttribute(L"skin", L"skin_connected");
-            pItem->FindChildByName(L"gif_state")->SetVisible(FALSE);
+            //pItem->FindChildByName(L"img_state")->SetVisible(TRUE);
+            pItem->FindChildByName(L"img_state")->SetAttribute(L"iconIndex", L"2");
+            //pItem->FindChildByName(L"gif_state")->SetVisible(FALSE);
             break;
         case connecting:
         case reconnecting:
         case disconnecting:
-            pItem->FindChildByName(L"img_state")->SetVisible(FALSE);
-            pItem->FindChildByName(L"gif_state")->SetVisible(TRUE);
+            //pItem->FindChildByName(L"img_state")->SetVisible(FALSE);
+            //pItem->FindChildByName(L"gif_state")->SetVisible(TRUE);
+            pItem->FindChildByName(L"img_state")->SetAttribute(L"iconIndex", L"1");
             break;
         case disconnected:
-            pItem->FindChildByName(L"img_state")->SetVisible(TRUE);
-            pItem->FindChildByName(L"img_state")->SetAttribute(L"skin", L"skin_disconnected");
-            pItem->FindChildByName(L"gif_state")->SetVisible(FALSE);
+            //pItem->FindChildByName(L"img_state")->SetVisible(TRUE);
+            pItem->FindChildByName(L"img_state")->SetAttribute(L"iconIndex", L"0");
+            //pItem->FindChildByName(L"gif_state")->SetVisible(FALSE);
             break;
         case detached:
         case detaching:
@@ -188,6 +189,7 @@ void STreeAdapter::SetImageState(conn_state_t state, SItemPanel *pItem)
         case resuming:
         case suspended:
         default:
+            pItem->FindChildByName(L"img_state")->SetAttribute(L"iconIndex", L"0");
             break;
     }
 }

@@ -13,8 +13,9 @@
     <scrollbar name="skin_scrollbar" src="PNG:PNG_SCROLLBAR" margin="3" hasgripper="1"/>
     <imglist name="skin_folder" src="PNG:PNG_FOLDER" states="2"/>
     <gif name="skin_connecting" src="IMG:ID_GIF_CONNECTING" />
-    <imglist name="skin_connected" src="PNG:PNG_CONNECTED" states="1" />
-    <imglist name="skin_disconnected" src="PNG:PNG_DISCONNECTED" states="1" />
+    <imglist name="skin_connected" src="PNG:PNG_CONNECTED" states="3" />
     <imglist name="img_head" src="PNG:PNG_HEAD" states="3"/>
     <imglist name="img_key" src="PNG:PNG_KEY" states="3"/>
+    <imglist name="img_logo" src="PNG:PNG_LOGO" states="1"/>
+    <imglist name="img_eye" src="PNG:PNG_EYE" states="2"/>
 </skin>

@@ -4,7 +4,7 @@
         <window size="-1,-1">
             <img extend_left="4dp" name="img_icon" skin="skin_list_icons" iconIndex="0" />
             <gifplayer pos="[-25dp, [-25dp" name="gif_state" skin="skin_connecting" show="0" />
-            <img pos="[-25dp, [-25dp" name="img_state" skin="skin_disconnected" />
+            <img pos="[-25dp, [-25dp" name="img_state" skin="skin_connected" />
         </window>
         <window size="-1,-1">
             <text pos="0,1dp"  size="150dp, 15dp" name="txt_name" text="" dotted="1" font="bold:1" align="center"/>
@@ -16,6 +16,7 @@
             </window>
             <window margin-y="2dp" colorBkgnd="#ffffff">
                 <edit size="180dp,24dp" class="cls_edit" password="1" padding="22dp,0,5dp,0" cueText="请输入密码" maxBuf="64" name="edt_password" align="center"/>
+                <imgbtn pos="[-24dp, {2dp" size="20dp,20dp" skin="img_eye" name="btn_password"/>
                 <imgbtn pos="5dp,5dp" skin="img_key" />
             </window>
             <window margin-y="2dp">
@@ -35,18 +36,17 @@
         </window>
         <window size="-2,-1" layout="vbox" gravity="center" name="wnd_challenge" show="0" display="0">
             <window margin-y="2dp" colorBkgnd="#ffffff">
-                <edit size="180dp,24dp" class="cls_edit" password="0" padding="22dp,0,5dp,0" cueText="请输入账号" maxBuf="64" name="edt_username" align="center"/>
+                <edit size="180dp,24dp" class="cls_edit" password="0" padding="22dp,0,22dp,0" cueText="请输入账号" maxBuf="64" name="edt_username" align="center"/>
                 <imgbtn pos="5dp,5dp" skin="img_head" />
             </window>
             <window margin-y="2dp" colorBkgnd="#ffffff">
-                <edit size="180dp,24dp" class="cls_edit" password="1" padding="22dp,0,5dp,0" cueText="请输入密码" maxBuf="64" name="edt_password" align="center"/>
-                <imgbtn pos="5dp,5dp" skin="img_key" />
+                <edit size="180dp,24dp" class="cls_edit" password="1" padding="22dp,0,22dp,0" cueText="请输入密码" maxBuf="64" name="edt_password" align="center"/>
+                <imgbtn pos="[-24dp, {2dp" size="20dp,20dp" skin="img_eye" name="btn_password"/>
+                <imgbtn pos="5dp,5dp" skin="img_key"/>
             </window>
             <window margin-y="2dp" colorBkgnd="#ffffff">
-                <text size="180dp,24dp" padding="22dp,0,5dp,0" name="txt_challenge" align="center"/>
-            </window>
-            <window margin-y="2dp" colorBkgnd="#ffffff">
-                <edit size="180dp,24dp" class="cls_edit" password="1" padding="22dp,0,5dp,0" cueText="请输入响应码" maxBuf="64" name="edt_challenge" align="center"/>
+                <edit size="180dp,24dp" class="cls_edit" password="1" padding="22dp,0,22dp,0" cueText="请输入响应码" maxBuf="64" name="edt_challenge" align="center"/>
+                <imgbtn pos="[-24dp, {2dp" size="20dp,20dp" skin="img_eye" name="btn_challenge"/>
                 <imgbtn pos="5dp,5dp" skin="img_key" />
             </window>
             <window margin-y="2dp">
@@ -83,7 +83,8 @@
         </window>
         <window size="-2,-1" layout="vbox" gravity="center" name="wnd_passphrase" show="0" display="0">
             <window margin-y="2dp" colorBkgnd="#ffffff">
-                <edit size="180dp,24dp" class="cls_edit" password="1" padding="22dp,0,5dp,0" cueText="请输入密码" maxBuf="64" name="edt_passphrase" align="center"/>
+                <edit size="180dp,24dp" class="cls_edit" password="1" padding="22dp,0,22dp,0" cueText="请输入密码" maxBuf="64" name="edt_passphrase" align="center"/>
+                <imgbtn pos="[-24dp, {2dp" size="20dp,20dp" skin="img_eye" name="btn_passphrase"/>
                 <imgbtn pos="5dp,5dp" skin="img_key" />
             </window>
             <window margin-y="2dp">
@@ -106,7 +107,8 @@
                 <imgbtn pos="5dp,5dp" skin="img_key" />
             </window>
             <window margin-y="2dp" colorBkgnd="#ffffff">
-                <edit size="180dp,24dp" class="cls_edit" password="0" padding="22dp,0,5dp,0" cueText="请输入新密码" maxBuf="64" name="edt_password" align="center"/>
+                <edit size="180dp,24dp" class="cls_edit" password="1" padding="22dp,0,22dp,0" cueText="请输入新密码" maxBuf="64" name="edt_password" align="center"/>
+                <imgbtn pos="[-24dp, {2dp" size="20dp,20dp" skin="img_eye" name="btn_password"/>
                 <imgbtn pos="5dp,5dp" skin="img_key" />
             </window>
             <window margin-y="2dp">
@@ -115,8 +117,7 @@
             <window margin-y="2dp">
                 <!--连接按钮-->
                 <button size="75dp,20dp" font="adding:-2dp" name="btn_confirm">确定</button>
-                <text size="12dp, 20dp" />
-                <button size="75dp,20dp" font="adding:-2dp" name="btn_cancel">取销</button>
+                <text size="87dp, 20dp" />
             </window>
         </window>
         <text size="-2, 20dp" />
@@ -125,7 +126,7 @@
                 <richedit width="-2" name="log_viewer" height="165dp" class="cls_edit"
                           font="face:Microsoft Sans Serif,adding:-2dp" sbSkin="skin_scrollbar" multiLines="1"
                           hscrollBar="1" vscrollBar="1" autoHscroll="1" autoVscroll="1" wordWrap="0"
-                          wantTab="1"   wantReturn="1"  maxBuf="6400000" readOnly="0" />
+                          wantTab="1" wantReturn="1" maxBuf="6400000" readOnly="0" />
             </window>
         </window>
     </scrollview>

@@ -15,7 +15,7 @@
                         <window height="50dp">
                             <img extend_left="4dp" size="48dp,48dp" name="img_icon" skin="skin_list_icons" iconIndex="0" />
                             <gifplayer pos="[-25dp, [-25dp" size="25dp,25dp" name="gif_state" skin="skin_connecting" show="0"/>
-                            <img pos="[-25dp, [-25dp" size="25dp,25dp" name="img_state" skin="skin_disconnected"/>
+                            <img pos="[-25dp, [-25dp" size="25dp,25dp" name="img_state" skin="skin_connected"/>
                         </window>
                         <window size="-2, -1" extend_left="4dp" extend_right="52dp">
                             <text pos="0,1dp"  size="150dp, 15dp" name="txt_name" dotted="1" font="bold:1"/>

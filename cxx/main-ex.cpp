@@ -10,6 +10,7 @@
 #include "stdafx.h"
 #include <windows.h>
 #include <windowsx.h>
+#include <winuser.h>
 #include <shlwapi.h>
 
 #include <stdarg.h>
@@ -75,10 +76,10 @@ void GetRenderFactory(IObjRef** ref)
 IResProvider *LoadResource(SouiFactory *souiFac, HINSTANCE hInstance)
 {
     IResProvider* pResProvider;
-    if (PathFileExists(_T("uires")))
+    if (PathFileExists(_T("D:\\msbuild\\openvpn-gui\\uires")))
     {
         pResProvider = souiFac->CreateResProvider(RES_FILE);
-        if (pResProvider->Init((LPARAM)L"uires", 0))
+        if (pResProvider->Init((LPARAM)L"D:\\msbuild\\openvpn-gui\\uires", 0))
         {
             return pResProvider;
         }
@@ -141,6 +142,17 @@ VOID WINAPI MainWindowInit(HINSTANCE hInstance)
             pMainDlg->Create(GetActiveWindow(), 0, 0, 300, 600);
             pMainDlg->SendMessage(WM_INITDIALOG);
             pMainDlg->CenterWindow(pMainDlg->m_hWnd);
+            CRect rt2 = pMainDlg->GetWindowRect();
+            rt2.MoveToX(rt2.left * 2 - 60* pMainDlg->GetScale()/96);
+            if (rt2.left < 0)
+            {
+                rt2.MoveToX(0);
+            }
+            if (rt2.top < 0)
+            {
+                rt2.MoveToY(0);
+            }
+            pMainDlg->MoveWindow2(rt2);
             pMainDlg->ShowWindow(SW_SHOWNORMAL);
         }
     }
