@@ -290,6 +290,7 @@ void STreeAdapter::RefreshItems()
     notifyBranchChanged(STVI_ROOT);
     m_treeView->UnlockUpdate();
     if(groups) free(groups);
+    m_treeView->Invalidate();
 }
 
 /**
