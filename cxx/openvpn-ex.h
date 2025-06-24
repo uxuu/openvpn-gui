@@ -57,12 +57,13 @@ extern "C" {
         void InitProxyAuthDialog(connection_t *c, UINT dialogId);
         void SetWarningText(connection_t* c, LPCTSTR pszText);
         void SetWarningColor(connection_t* c, COLORREF clr);
+        void CheckEditEmpty(connection_t *c);
         BOOL ChangePasswordVisibility(SButton *pBtn);
     public:
         BOOL OnCheckBoxClick(EventCmd *pEvt);
         BOOL OnButtonClick(EventCmd *pEvt);
         BOOL OnMouseClick(EventMouseClick *pEvt);
-        BOOL OnEditNotify(EventRENotify *pEvt);
+        BOOL OnKeyDown(EventKeyDown *pEvt);
     private:
         TaskSingleton() {};
         TaskSingleton(TaskSingleton&) = delete;

@@ -219,12 +219,12 @@ void TaskSingleton::InitUserAuthDialog(auth_param_t *param, UINT dialogId)
     pWnd->FindChildByName2<SButton>(L"btn_cancel")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&TaskSingleton::OnButtonClick, this));
     pWnd->FindChildByName2<SCheckBox>(L"chk_savepass")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&TaskSingleton::OnCheckBoxClick, this));
     pWnd->FindChildByName2<SButton>(L"btn_password")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&TaskSingleton::OnButtonClick, this));
-    pWnd->FindChildByName2<SEdit>(L"edt_username")->GetEventSet()->subscribeEvent(EventRENotify::EventID,Subscriber(&TaskSingleton::OnEditNotify, this));
-    pWnd->FindChildByName2<SEdit>(L"edt_password")->GetEventSet()->subscribeEvent(EventRENotify::EventID,Subscriber(&TaskSingleton::OnEditNotify, this));
+    pWnd->FindChildByName2<SEdit>(L"edt_username")->GetEventSet()->subscribeEvent(EventKeyDown::EventID,Subscriber(&TaskSingleton::OnKeyDown, this));
+    pWnd->FindChildByName2<SEdit>(L"edt_password")->GetEventSet()->subscribeEvent(EventKeyDown::EventID,Subscriber(&TaskSingleton::OnKeyDown, this));
     if (dialogId == ID_DLG_AUTH_CHALLENGE)
     {
         pWnd->FindChildByName2<SButton>(L"btn_challenge")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&TaskSingleton::OnButtonClick, this));
-        pWnd->FindChildByName2<SEdit>(L"edt_challenge")->GetEventSet()->subscribeEvent(EventRENotify::EventID,Subscriber(&TaskSingleton::OnEditNotify, this));
+        pWnd->FindChildByName2<SEdit>(L"edt_challenge")->GetEventSet()->subscribeEvent(EventKeyDown::EventID,Subscriber(&TaskSingleton::OnKeyDown, this));
     }
     pWnd->SetVisible(TRUE);
     ShowStatusPage(param->c, TRUE);
@@ -292,7 +292,7 @@ void TaskSingleton::InitGenericPassDialog(auth_param_t *param, UINT dialogId)
     pWnd->FindChildByName2<SButton>(L"btn_cancel")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&TaskSingleton::OnButtonClick, this));
     pWnd->FindChildByName2<SCheckBox>(L"chk_savepass")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&TaskSingleton::OnCheckBoxClick, this));
     pWnd->FindChildByName2<SButton>(L"btn_password")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&TaskSingleton::OnButtonClick, this));
-    pWnd->FindChildByName2<SEdit>(L"edt_response")->GetEventSet()->subscribeEvent(EventRENotify::EventID,Subscriber(&TaskSingleton::OnEditNotify, this));
+    pWnd->FindChildByName2<SEdit>(L"edt_response")->GetEventSet()->subscribeEvent(EventKeyDown::EventID,Subscriber(&TaskSingleton::OnKeyDown, this));
     pWnd->SetVisible(TRUE);
     ShowStatusPage(param->c, TRUE);
 }
@@ -335,13 +335,13 @@ void TaskSingleton::InitPrivKeyPassDialog(connection_t *c, UINT dialogId)
 
     pPage->SetUserData(reinterpret_cast<ULONG_PTR>(c));
     /* disable OK button by default - not disabled in resources */
-    //pWnd->FindChildByName2<SButton>(L"btn_confirm")->EnableWindow(FALSE);
+    pWnd->FindChildByName2<SButton>(L"btn_confirm")->EnableWindow(FALSE);
     pWnd->GetParent()->GetEventSet()->subscribeEvent(EventMouseClick::EventID, Subscriber(&TaskSingleton::OnMouseClick, this));
     pWnd->FindChildByName2<SButton>(L"btn_confirm")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&TaskSingleton::OnButtonClick, this));
     pWnd->FindChildByName2<SButton>(L"btn_cancel")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&TaskSingleton::OnButtonClick, this));
     pWnd->FindChildByName2<SCheckBox>(L"chk_savepass")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&TaskSingleton::OnCheckBoxClick, this));
     pWnd->FindChildByName2<SButton>(L"btn_passphrase")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&TaskSingleton::OnButtonClick, this));
-    pWnd->FindChildByName2<SEdit>(L"edt_passphrase")->GetEventSet()->subscribeEvent(EventRENotify::EventID,Subscriber(&TaskSingleton::OnEditNotify, this));
+    pWnd->FindChildByName2<SEdit>(L"edt_passphrase")->GetEventSet()->subscribeEvent(EventKeyDown::EventID,Subscriber(&TaskSingleton::OnKeyDown, this));
     pWnd->SetVisible(TRUE);
     ShowStatusPage(c, TRUE);
 }
@@ -362,11 +362,12 @@ void TaskSingleton::InitProxyAuthDialog(connection_t *c, UINT dialogId)
     }
 
     pPage->SetUserData(reinterpret_cast<ULONG_PTR>(c));
+    pWnd->FindChildByName2<SButton>(L"btn_confirm")->EnableWindow(FALSE);
     pWnd->GetParent()->GetEventSet()->subscribeEvent(EventMouseClick::EventID, Subscriber(&TaskSingleton::OnMouseClick, this));
     pWnd->FindChildByName2<SButton>(L"btn_confirm")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&TaskSingleton::OnButtonClick, this));
     pWnd->FindChildByName2<SButton>(L"btn_password")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&TaskSingleton::OnButtonClick, this));
-    pWnd->FindChildByName2<SEdit>(L"edt_username")->GetEventSet()->subscribeEvent(EventRENotify::EventID,Subscriber(&TaskSingleton::OnEditNotify, this));
-    pWnd->FindChildByName2<SEdit>(L"edt_password")->GetEventSet()->subscribeEvent(EventRENotify::EventID,Subscriber(&TaskSingleton::OnEditNotify, this));
+    pWnd->FindChildByName2<SEdit>(L"edt_username")->GetEventSet()->subscribeEvent(EventKeyDown::EventID,Subscriber(&TaskSingleton::OnKeyDown, this));
+    pWnd->FindChildByName2<SEdit>(L"edt_password")->GetEventSet()->subscribeEvent(EventKeyDown::EventID,Subscriber(&TaskSingleton::OnKeyDown, this));
     pWnd->SetVisible(TRUE);
     ShowStatusPage(c, TRUE);
 }
@@ -443,64 +444,41 @@ BOOL TaskSingleton::OnMouseClick(EventMouseClick *pEvt)
     return FALSE;
 }
 
-BOOL TaskSingleton::OnEditNotify(EventRENotify *pEvt)
+BOOL TaskSingleton::OnKeyDown(EventKeyDown *pEvt)
 {
-    BOOL bEnable = TRUE;
     auto *pPage =  GetStatusPage(dynamic_cast<SWindow *>(pEvt->Sender()));
     connection_t *c = reinterpret_cast<connection_t *>(pPage->GetUserData());
-    auto* pWnd = GetStatusWindow(c, pPage);
+    STaskHelper::postTask(pMainDlg, this, &TaskSingleton::CheckEditEmpty, c);
+    return TRUE;
+}
+
+void TaskSingleton::CheckEditEmpty(connection_t *c)
+{
+    BOOL bEnable = TRUE;
+    auto* pWnd = GetStatusWindow(c);
     switch (c->dialogId)
     {
         case ID_DLG_AUTH_CHALLENGE:
-            if (pWnd->FindChildByName2<SEdit>(L"edt_challenge")->GetWindowTextLength() == 0)
-            {
-                bEnable = FALSE;
-                break;
-            }
+            bEnable = pWnd->FindChildByName2<SEdit>(L"edt_challenge")->GetWindowTextLength() > 0;
         case ID_DLG_AUTH:
-            if (pWnd->FindChildByName2<SEdit>(L"edt_password")->GetWindowTextLength() == 0)
-            {
-                bEnable = FALSE;
-                break;
-            }
-            if (pWnd->FindChildByName2<SEdit>(L"edt_username")->GetWindowTextLength() == 0)
-            {
-                bEnable = FALSE;
-                break;
-            }
+            bEnable = bEnable && pWnd->FindChildByName2<SEdit>(L"edt_password")->GetWindowTextLength() > 0;
+            bEnable = bEnable && pWnd->FindChildByName2<SEdit>(L"edt_username")->GetWindowTextLength() > 0;
             break;
         case ID_DLG_CHALLENGE_RESPONSE:
-            if (pWnd->FindChildByName2<SEdit>(L"edt_response")->GetWindowTextLength() == 0)
-            {
-                bEnable = FALSE;
-                break;
-            }
+            bEnable = pWnd->FindChildByName2<SEdit>(L"edt_response")->GetWindowTextLength() > 0;
             break;
         case ID_DLG_PROXY_AUTH:
-            if (pWnd->FindChildByName2<SEdit>(L"edt_password")->GetWindowTextLength() == 0)
-            {
-                bEnable = FALSE;
-                break;
-            }
-            if (pWnd->FindChildByName2<SEdit>(L"edt_username")->GetWindowTextLength() == 0)
-            {
-                bEnable = FALSE;
-                break;
-            }
+            bEnable = pWnd->FindChildByName2<SEdit>(L"edt_password")->GetWindowTextLength() > 0;
+            bEnable = bEnable && pWnd->FindChildByName2<SEdit>(L"edt_username")->GetWindowTextLength() > 0;
             break;
         case ID_DLG_PASSPHRASE:
-            if (pWnd->FindChildByName2<SEdit>(L"edt_passphrase")->GetWindowTextLength() == 0)
-            {
-                bEnable = FALSE;
-                break;
-            }
+            bEnable = pWnd->FindChildByName2<SEdit>(L"edt_passphrase")->GetWindowTextLength() > 0;
             break;
         default:
-            return FALSE;
+            return ;
     }
     pWnd->FindChildByName2<SButton>(L"btn_confirm")->EnableWindow(bEnable);
     pWnd->FindChildByName2<SButton>(L"btn_confirm")->Invalidate();
-    return TRUE;
 }
 
 BOOL TaskSingleton::ChangePasswordVisibility(SButton *pBtn)
