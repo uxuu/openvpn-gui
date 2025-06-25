@@ -41,6 +41,7 @@
         <file name="PNG_KEY" path="image\key.png"/>
         <file name="PNG_LOGO" path="image\logo.png"/>
         <file name="PNG_EYE" path="image\eye.png"/>
+        <file name="PNG_EYE_STROKE" path="image\eye-stroke.png"/>
     </PNG>
     <ICON>
         <file name="ICON_LOGO" path="image\logo.ico"/>

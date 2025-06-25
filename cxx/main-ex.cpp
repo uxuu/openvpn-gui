@@ -25,6 +25,8 @@
 
 #include "main-ex.h"
 #include "STreeAdapter.h"
+#include "SAttrStorage.h"
+#include "SAttrStorageFactory.h"
 
 static mgmt_msg_func msg_handler[mgmt_rtmsg_type_max];
 
@@ -112,6 +114,7 @@ VOID WINAPI MainWindowInit(HINSTANCE hInstance)
         pImgDecoderFactory = NULL;
         pApp = new SApplication(pRenderFactory, hInstance, _T(PACKAGE_NAME));
         pRenderFactory = NULL;
+        pApp->SetAttrStorageFactory(new SAttrStorageFactory<SAttrStorage>());
         pApp->RegisterWindowClass<STurn3dView>();
         pApp->RegisterWindowClass<SGifPlayer>();
         pApp->RegisterWindowClass<STabCtrlEx>();

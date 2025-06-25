@@ -508,14 +508,16 @@ BOOL TaskSingleton::ChangePasswordVisibility(SButton *pBtn)
     {
         return FALSE;
     }
-    pEdit->GetAttribute(L"passwordChar", &attr);
-    if (attr.Compare(L"") == 0)
+    pEdit->GetAttribute(L"password", &attr);
+    if (attr.Compare(L"1") == 0)
     {
-        pEdit->SetAttribute(L"passwordChar", L"*", FALSE);
+        pBtn->SetAttribute(L"skin", L"img_eye_stroke", FALSE);
+        pEdit->SetAttribute(L"password", L"0", FALSE);
     }
     else
     {
-        pEdit->SetAttribute(L"passwordChar", L"\0", FALSE);
+        pBtn->SetAttribute(L"skin", L"img_eye", FALSE);
+        pEdit->SetAttribute(L"password", L"1", FALSE);
     }
     return TRUE;
 }

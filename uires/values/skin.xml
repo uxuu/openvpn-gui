@@ -17,5 +17,6 @@
     <imglist name="img_head" src="PNG:PNG_HEAD" states="3"/>
     <imglist name="img_key" src="PNG:PNG_KEY" states="3"/>
     <imglist name="img_logo" src="PNG:PNG_LOGO" states="1"/>
-    <imglist name="img_eye" src="PNG:PNG_EYE" states="2"/>
+    <imglist name="img_eye" src="PNG:PNG_EYE" states="3"/>
+    <imglist name="img_eye_stroke" src="PNG:PNG_EYE_STROKE" states="3"/>
 </skin>
