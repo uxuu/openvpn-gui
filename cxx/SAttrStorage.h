@@ -30,7 +30,8 @@ public:
      * @param strValue Attribute value.
      * @param bHandled Indicates if the attribute was handled (unused).
      */
-    void OnSetAttribute(const IStringW *strName, const IStringW *strValue, BOOL bHandled)  OVERRIDE
+    STDMETHOD_(void, OnSetAttribute)
+    (THIS_ const IStringW *strName, const IStringW *strValue, BOOL bHandled) OVERRIDE
     {
         m_attrs[strName->c_str()] = strValue->c_str();
     }
@@ -45,7 +46,7 @@ public:
      * @param strValue Output parameter for the attribute value.
      * @return TRUE if the attribute exists, FALSE otherwise.
      */
-    BOOL OnGetAttribute(const IStringW *strName, IStringW *strValue) SCONST OVERRIDE
+    STDMETHOD_(BOOL, OnGetAttribute)(CTHIS_ const IStringW *strName, IStringW *strValue) SCONST OVERRIDE
     {
         auto it = m_attrs.find(strName->c_str());
         if (it != m_attrs.end())

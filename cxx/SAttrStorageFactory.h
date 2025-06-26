@@ -33,7 +33,8 @@ public:
      * @param ppAttrStorage Output pointer to the created attribute storage object.
      * @return HRESULT indicating success (S_OK) or failure.
      */
-    HRESULT CreateAttrStorage(IWindow * owner, IAttrStorage **ppAttrStorage) SCONST OVERRIDE
+    STDMETHOD_(HRESULT, CreateAttrStorage)
+    (CTHIS_ IWindow * owner, IAttrStorage * *ppAttrStorage) SCONST OVERRIDE
     {
         *ppAttrStorage = new T();
         return S_OK;
