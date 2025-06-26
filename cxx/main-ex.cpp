@@ -78,10 +78,10 @@ void GetRenderFactory(IObjRef** ref)
 IResProvider *LoadResource(SouiFactory *souiFac, HINSTANCE hInstance)
 {
     IResProvider* pResProvider;
-    if (PathFileExists(_T("D:\\msbuild\\openvpn-gui\\uires")))
+    if (PathFileExists(_T("uires")))
     {
         pResProvider = souiFac->CreateResProvider(RES_FILE);
-        if (pResProvider->Init((LPARAM)L"D:\\msbuild\\openvpn-gui\\uires", 0))
+        if (pResProvider->Init((LPARAM)L"uires", 0))
         {
             return pResProvider;
         }
