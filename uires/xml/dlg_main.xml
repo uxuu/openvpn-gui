@@ -1,10 +1,10 @@
-<SOUI name="mainWindow" title="@string/title" bigIcon="ICON_LOGO:32" smallIcon="ICON_LOGO:16" width="300" height="600" resizable="0" wndType="appMain" appWnd="1" translucent="1">
+<SOUI name="mainWindow" title="@string/title" bigIcon="ICON_LOGO:32" smallIcon="ICON_LOGO:16" width="300" height="600" resizable="0" wndType="appMain" appWnd="1" translucent="0">
     <root skin="" cache="1">
-        <window pos="5dp,5dp,-5dp,-45dp" alpha="255" cache="0">
+        <window pos="0dp,0dp,-0dp,-0dp" cache="1">
              <window  colorBkgnd="#cdcccc">
                 <caption  font="adding:2" pos="0,0,-0,32dp" colorBkgnd="#0694F3" show="1">
                     <caption gravity="center" layout="hbox" height="32dp" >
-                        <img valign="middle" skin="img_logo" size="28dp, 28dp" extend_left="4dp" />
+                        <img valign="middle" skin="img_logo" size="20dp, 20dp" extend_left="6dp" />
                         <text valign="middle" extend_left="4dp" colorText="#ffffff" >@string/title</text>
                     </caption>
                     <imgbtn animate="1" name="btn_close" pos="-32dp,1dp" skin="_skin.btn.close" tip="close" cursor="hand"/>
