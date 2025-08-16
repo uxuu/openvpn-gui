@@ -227,6 +227,38 @@ get_version_from_soui("SOUI_VER2 ([0-9]+)" SOUI_MINOR)
 message(STATUS "SOUI_MAJOR: ${SOUI_MAJOR}")
 message(STATUS "SOUI_MINOR: ${SOUI_MINOR}")
 
+if (NOT PROJECT_NAME_SOUI)
+    set(PROJECT_NAME_SOUI "soui")
+endif()
+
+add_library(${PROJECT_NAME_SOUI} STATIC
+    ${SOUI_PATH}/controls.extend/gif/SGifPlayer.cpp
+    ${SOUI_PATH}/controls.extend/STurn3DView.cpp
+    ${SOUI_PATH}/controls.extend/image3d/3dlib.cpp
+    ${SOUI_PATH}/controls.extend/image3d/3dmatrix.cpp
+    ${SOUI_PATH}/controls.extend/image3d/3dtransform.cpp
+    soui/STabCtrlEx.cpp
+    soui/STreeAdapter.cpp
+    soui/SMainWnd.cpp
+    soui/STaskSingleton.cpp
+    soui/openvpn-soui.cpp)
+
+if (${SOUI_MAJOR} STREQUAL "4")
+    target_sources(${PROJECT_NAME_SOUI} PRIVATE ${SOUI_PATH}/controls.extend/gif/SSkinGif.cpp)
+else()
+    target_sources(${PROJECT_NAME_SOUI} PRIVATE ${SOUI_PATH}/controls.extend/gif/SSkinAni.cpp)
+endif()
+
+target_compile_definitions(${PROJECT_NAME_SOUI} PRIVATE
+    _UNICODE
+    UNICODE
+    WIN32_LEAN_AND_MEAN
+    HAVE_CONFIG_H)
+
+target_compile_options(${PROJECT_NAME_SOUI} PRIVATE "/source-charset:utf-8")
+
+target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME_SOUI})
+
 # Normalize ARM64 platform names for consistency
 # Ensures that both CMAKE_GENERATOR_PLATFORM and CMAKE_VS_PLATFORM_NAME
 # use the uppercase "ARM64" form instead of lowercase "arm64"
@@ -260,17 +292,18 @@ if(SOUI_ENABLE_COM_LIB)
     list(TRANSFORM SOUI_DEFINES REPLACE "DLL_SOUI_COM" "LIB_SOUI_COM")
 endif()
 
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_include_directories(${PROJECT_NAME} PRIVATE ${SOUI_PATH}/utilities/include)
-target_include_directories(${PROJECT_NAME} PRIVATE ${SOUI_PATH}/SOUI/include)
-target_include_directories(${PROJECT_NAME} PRIVATE ${SOUI_PATH}/controls.extend)
+target_include_directories(${PROJECT_NAME_SOUI} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(${PROJECT_NAME_SOUI} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(${PROJECT_NAME_SOUI} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(${PROJECT_NAME_SOUI} PRIVATE ${SOUI_PATH}/utilities/include)
+target_include_directories(${PROJECT_NAME_SOUI} PRIVATE ${SOUI_PATH}/SOUI/include)
+target_include_directories(${PROJECT_NAME_SOUI} PRIVATE ${SOUI_PATH}/controls.extend)
 
 if(SOUI_ENABLE_COM_LIB AND SOUI_ENABLE_CORE_LIB)
     target_include_directories(${PROJECT_NAME} PRIVATE ${SOUI_PATH}/soui-sys-resource)
 endif()
 
+target_compile_definitions(${PROJECT_NAME_SOUI} PRIVATE ${SOUI_DEFINES})
 target_compile_definitions(${PROJECT_NAME} PRIVATE ${SOUI_DEFINES})
 
 target_link_libraries(${PROJECT_NAME} PRIVATE soui4 utilities4)
@@ -329,7 +362,7 @@ else()
     add_dependencies(${PROJECT_NAME} soui-sys-resource soui-sys-resource2)
 endif()
 
-add_dependencies(${PROJECT_NAME} ${SOUI_LIBS})
+add_dependencies(${PROJECT_NAME_SOUI} ${SOUI_LIBS})
 
 if(SOUI_ENABLE_COM_LIB)
     target_link_libraries(${PROJECT_NAME} PRIVATE ${SOUI_LIBS})
@@ -342,5 +375,5 @@ add_custom_command(
     -i ${PROJECT_SOURCE_DIR}/uires/uires.idx
     -p ..\\uires
     -r soui-res.rc
-    -h soui-res.h idtable || exit 0)
+    -h soui-res.h idtable)
 

@@ -64,6 +64,8 @@
 #include "service.h"
 #include "qr.h"
 
+#include "soui/openvpn-soui.h"
+
 #define OPENVPN_SERVICE_PIPE_NAME_OVPN2 L"\\\\.\\pipe\\openvpn\\service"
 #define OPENVPN_SERVICE_PIPE_NAME_OVPN3 L"\\\\.\\pipe\\ovpnagent"
 
@@ -191,6 +193,8 @@ OnLogLine(connection_t *c, char *line)
     time_t timestamp;
     TCHAR *datetime;
     const SETTEXTEX ste = { .flags = ST_SELECTION, .codepage = CP_UTF8 };
+
+    SOUI_WriteLogLine(c, line);
 
     char *flags = strchr(line, ',');
     if (flags == NULL)
@@ -483,7 +487,7 @@ OnStateChange(connection_t *c, char *data)
     }
 }
 
-static void
+void
 SimulateButtonPress(HWND hwnd, UINT btn)
 {
     SendMessage(hwnd, WM_COMMAND, MAKEWPARAM(btn, BN_CLICKED), (LPARAM)GetDlgItem(hwnd, btn));
@@ -503,7 +507,7 @@ typedef struct autoclose
 } autoclose;
 
 /* Cancel scheduled auto close of a dialog */
-static void
+void
 AutoCloseCancel(HWND hwnd)
 {
     autoclose *ac = (autoclose *)GetProp(hwnd, L"AutoClose");
@@ -515,6 +519,7 @@ AutoCloseCancel(HWND hwnd)
     if (ac->txtid)
     {
         SetDlgItemText(hwnd, ac->txtid, L"");
+        SOUI_SetAutoCloseText(hwnd, L"");
     }
     KillTimer(hwnd, 1);
     RemoveProp(hwnd, L"AutoClose");
@@ -541,6 +546,7 @@ AutoCloseHandler(HWND hwnd, UINT UNUSED msg, UINT_PTR id, DWORD now)
     {
         SetDlgItemText(
             hwnd, ac->txtid, LoadLocalizedString(ac->txtres, (ac->timeout - elapsed) / 1000));
+        SOUI_SetAutoCloseText(hwnd, LoadLocalizedString(ac->txtres, (ac->timeout - elapsed) / 1000));
         SetTimer(hwnd, id, 500, AutoCloseHandler);
     }
 }
@@ -600,6 +606,10 @@ UserAuthDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
             param = (auth_param_t *)lParam;
             TRY_SETPROP(hwndDlg, cfgProp, (HANDLE)param);
             SetStatusWinIcon(hwndDlg, ID_ICO_APP);
+            param->c->hwndDlg = hwndDlg;
+
+            /* Hide the modal dialog window */
+            SOUI_SetWindowHide(hwndDlg, TRUE);
 
             if (param->str)
             {
@@ -678,6 +688,7 @@ UserAuthDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
             {
                 SetDlgItemTextW(
                     hwndDlg, ID_TXT_WARNING, LoadLocalizedString(IDS_NFO_AUTH_PASS_RETRY));
+                SOUI_SetWarningText(param->c, LoadLocalizedString(IDS_NFO_AUTH_PASS_RETRY));
             }
 
             if (param->c->state == resuming)
@@ -806,10 +817,12 @@ UserAuthDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
                             param->c, "password \"Auth\" \"%s\"", hwndDlg, ID_EDT_AUTH_PASS);
                     }
                     EndDialog(hwndDlg, LOWORD(wParam));
+                    SOUI_ShowStatusPage(param->c, FALSE);
                     return TRUE;
 
                 case IDCANCEL:
                     EndDialog(hwndDlg, LOWORD(wParam));
+                    SOUI_ShowStatusPage(param->c, FALSE);
                     StopOpenVPN(param->c);
                     return TRUE;
 
@@ -823,6 +836,7 @@ UserAuthDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
 
         case WM_OVPN_STATE: /* state changed -- destroy the dialog */
             EndDialog(hwndDlg, LOWORD(wParam));
+            SOUI_ShowStatusPage(NULL, FALSE);
             return TRUE;
 
         case WM_CTLCOLORSTATIC:
@@ -838,6 +852,8 @@ UserAuthDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
                     clr = ac->txtclr;
                 }
                 SetTextColor((HDC)wParam, clr);
+                TRY_GETPROP(hwndDlg, cfgProp, param, TRUE);
+                SOUI_SetWarningColor(param->c, clr);
                 return (INT_PTR)br;
             }
             break;
@@ -845,13 +861,14 @@ UserAuthDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
         case WM_CLOSE:
             EndDialog(hwndDlg, LOWORD(wParam));
             TRY_GETPROP(hwndDlg, cfgProp, param, TRUE);
+            SOUI_ShowStatusPage(param->c, FALSE);
             StopOpenVPN(param->c);
             return TRUE;
 
         case WM_NCDESTROY:
             param = (auth_param_t *)GetProp(hwndDlg, cfgProp);
-            free_auth_param(param);
             AutoCloseCancel(hwndDlg);
+            free_auth_param(param);
             RemoveProp(hwndDlg, cfgProp);
             break;
     }
@@ -873,6 +890,11 @@ GenericPassDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
         case WM_INITDIALOG:
             param = (auth_param_t *)lParam;
             TRY_SETPROP(hwndDlg, cfgProp, (HANDLE)param);
+
+            param->c->hwndDlg = hwndDlg;
+
+            /* Hide the modal dialog window */
+            SOUI_SetWindowHide(hwndDlg, TRUE);
 
             WCHAR *wstr = Widen(param->str);
             if (!wstr)
@@ -989,6 +1011,7 @@ GenericPassDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
                         ManagementCommandFromInputBase64(
                             param->c, "cr-response \"%s\"", hwndDlg, ID_EDT_RESPONSE);
                         EndDialog(hwndDlg, LOWORD(wParam));
+                        SOUI_ShowStatusPage(param->c, FALSE);
                         return TRUE;
                     }
                     if (param->flags & FLAG_CR_TYPE_CRV1)
@@ -1045,10 +1068,12 @@ GenericPassDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
                     free(escaped_id);
 
                     EndDialog(hwndDlg, LOWORD(wParam));
+                    SOUI_ShowStatusPage(param->c, FALSE);
                     return TRUE;
 
                 case IDCANCEL:
                     EndDialog(hwndDlg, LOWORD(wParam));
+                    SOUI_ShowStatusPage(param->c, FALSE);
                     StopOpenVPN(param->c);
                     return TRUE;
 
@@ -1072,11 +1097,13 @@ GenericPassDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
             if (!(param->flags & FLAG_CR_TYPE_CRTEXT) || strcmp((const char *)lParam, "GET_CONFIG"))
             {
                 EndDialog(hwndDlg, LOWORD(wParam));
+                SOUI_ShowStatusPage(param->c, FALSE);
             }
             return TRUE;
 
         case WM_CLOSE:
             EndDialog(hwndDlg, LOWORD(wParam));
+            SOUI_ShowStatusPage(((auth_param_t *)lParam)->c, FALSE);
             return TRUE;
 
         case WM_NCDESTROY:
@@ -1105,6 +1132,12 @@ PrivKeyPassDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
             c = (connection_t *)lParam;
             TRY_SETPROP(hwndDlg, cfgProp, (HANDLE)c);
             AppendTextToCaption(hwndDlg, c->config_name);
+
+            c->hwndDlg = hwndDlg;
+
+            /* Hide the modal dialog window */
+            SOUI_SetWindowHide(hwndDlg, TRUE);
+
             if (RecallKeyPass(c->config_name, passphrase) && wcslen(passphrase)
                 && c->failed_psw_attempts == 0)
             {
@@ -1114,6 +1147,7 @@ PrivKeyPassDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
                 ManagementCommandFromInput(
                     c, "password \"Private Key\" \"%s\"", hwndDlg, ID_EDT_PASSPHRASE);
                 EndDialog(hwndDlg, IDOK);
+                SOUI_ShowStatusPage(c, FALSE);
                 return TRUE;
             }
             if (c->flags & FLAG_DISABLE_SAVE_PASS)
@@ -1128,6 +1162,7 @@ PrivKeyPassDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
             {
                 SetDlgItemTextW(
                     hwndDlg, ID_TXT_WARNING, LoadLocalizedString(IDS_NFO_KEY_PASS_RETRY));
+                SOUI_SetWarningText(c, LoadLocalizedString(IDS_NFO_KEY_PASS_RETRY));
             }
             if (c->state == resuming)
             {
@@ -1193,10 +1228,12 @@ PrivKeyPassDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
                     ManagementCommandFromInput(
                         c, "password \"Private Key\" \"%s\"", hwndDlg, ID_EDT_PASSPHRASE);
                     EndDialog(hwndDlg, LOWORD(wParam));
+                    SOUI_ShowStatusPage(c, FALSE);
                     return TRUE;
 
                 case IDCANCEL:
                     EndDialog(hwndDlg, LOWORD(wParam));
+                    SOUI_ShowStatusPage(c, FALSE);
                     StopOpenVPN(c);
                     return TRUE;
 
@@ -1210,6 +1247,8 @@ PrivKeyPassDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
 
         case WM_OVPN_STATE: /* state changed -- destroy the dialog */
             EndDialog(hwndDlg, LOWORD(wParam));
+            TRY_GETPROP(hwndDlg, cfgProp, c, FALSE);
+            SOUI_ShowStatusPage(c, FALSE);
             return TRUE;
 
         case WM_CTLCOLORSTATIC:
@@ -1217,12 +1256,15 @@ PrivKeyPassDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
             {
                 HBRUSH br = (HBRUSH)DefWindowProc(hwndDlg, msg, wParam, lParam);
                 SetTextColor((HDC)wParam, o.clr_warning);
+                TRY_GETPROP(hwndDlg, cfgProp, c, FALSE);
+                SOUI_SetWarningColor(c, o.clr_warning);
                 return (INT_PTR)br;
             }
             break;
 
         case WM_CLOSE:
             EndDialog(hwndDlg, LOWORD(wParam));
+            SOUI_ShowStatusPage((connection_t *)lParam, FALSE);
             return TRUE;
 
         case WM_NCDESTROY:
@@ -1532,6 +1574,7 @@ OnPassword(connection_t *c, char *msg)
                 free_auth_param(param);
                 return;
             }
+            SOUI_InitGenericPassDialog(param, ID_DLG_CHALLENGE_RESPONSE);
             LocalizedDialogBoxParamEx(
                 ID_DLG_CHALLENGE_RESPONSE, c->hwndStatus, GenericPassDialogFunc, (LPARAM)param);
             free_dynamic_cr(c);
@@ -1542,23 +1585,27 @@ OnPassword(connection_t *c, char *msg)
             param->flags |= (flags & 0x2) ? FLAG_CR_TYPE_CONCAT : FLAG_CR_TYPE_SCRV1;
             param->flags |= (flags & 0x1) ? FLAG_CR_ECHO : 0;
             param->str = strdup(chstr + 5);
+            SOUI_InitUserAuthDialog(param, ID_DLG_AUTH_CHALLENGE);
             LocalizedDialogBoxParamEx(
                 ID_DLG_AUTH_CHALLENGE, c->hwndStatus, UserAuthDialogFunc, (LPARAM)param);
         }
         else if (o.auth_pass_concat_otp)
         {
             param->flags |= FLAG_CR_ECHO | FLAG_CR_TYPE_CONCAT;
+            SOUI_InitUserAuthDialog(param, ID_DLG_AUTH_CHALLENGE);
             LocalizedDialogBoxParamEx(
                 ID_DLG_AUTH_CHALLENGE, c->hwndStatus, UserAuthDialogFunc, (LPARAM)param);
         }
         else
         {
+            SOUI_InitUserAuthDialog(param, ID_DLG_AUTH);
             LocalizedDialogBoxParamEx(
                 ID_DLG_AUTH, c->hwndStatus, UserAuthDialogFunc, (LPARAM)param);
         }
     }
     else if (strstr(msg, "'Private Key'"))
     {
+        SOUI_InitPrivKeyPassDialog(c, ID_DLG_PASSPHRASE);
         LocalizedDialogBoxParamEx(
             ID_DLG_PASSPHRASE, c->hwndStatus, PrivKeyPassDialogFunc, (LPARAM)c);
     }
@@ -1587,6 +1634,7 @@ OnPassword(connection_t *c, char *msg)
             free_auth_param(param);
             return;
         }
+        SOUI_InitGenericPassDialog(param, ID_DLG_CHALLENGE_RESPONSE);
         LocalizedDialogBoxParamEx(
             ID_DLG_CHALLENGE_RESPONSE, c->hwndStatus, GenericPassDialogFunc, (LPARAM)param);
     }
@@ -1902,6 +1950,8 @@ WriteStatusLog(connection_t *c, const WCHAR *prefix, const WCHAR *line, BOOL fil
     {
         return;
     }
+
+    SOUI_WriteStatusLog(c, prefix, line);
 
     HWND logWnd = GetDlgItem(c->hwndStatus, ID_EDT_LOG);
     FILE *log_fd;
@@ -2434,6 +2484,9 @@ StatusDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
             /* Set window icon "disconnected" */
             SetStatusWinIcon(hwndDlg, ID_ICO_CONNECTING);
 
+            /* Hide the status window */
+            SOUI_SetWindowHide(hwndDlg, TRUE);
+
             /* Set connection for this dialog */
             if (!SetPropW(hwndDlg, cfgProp, (HANDLE)c))
             {
@@ -2707,6 +2760,8 @@ ThreadOpenVPNStatus(void *p)
         return 1;
     }
 
+    SOUI_InitStatusPage(c);
+
     CheckAndSetTrayIcon();
     SetMenuStatus(c, connecting);
     SetDlgItemText(c->hwndStatus, ID_TXT_STATUS, LoadLocalizedString(IDS_NFO_STATE_CONNECTING));
@@ -2788,6 +2843,8 @@ ThreadOpenVPNStatus(void *p)
             DispatchMessage(&msg);
         }
     }
+
+    SOUI_ReleaseStatusPage(c);
 
     /* release handles etc.*/
     Cleanup(c);

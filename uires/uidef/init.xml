@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UIDEF>
+    <font face="微软雅黑" size="13dp"/>
+    <string src="values:string" />
+    <skin src="values:skin"/>
+    <color src="values:color"/>
+    <style>
+        <class name="cls_edit" font="adding:-2" colorText="#333333" cueColor="#666666" ncSkin="_skin.sys.border" margin-x="2" margin-y="2"/>
+    </style>
+    <objattr>
+    </objattr>
+</UIDEF>

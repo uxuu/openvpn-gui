@@ -170,6 +170,8 @@ struct connection
     HANDLE exit_event;
     DWORD threadId;
     HWND hwndStatus;
+    HWND hwndDlg; /* Handle to the modal dialog */
+    UINT dialogId; /* ID of the modal dialog */
     int flags;
     char *dynamic_cr; /* Pointer to buffer for dynamic challenge string received */
     unsigned long long int bytes_in;

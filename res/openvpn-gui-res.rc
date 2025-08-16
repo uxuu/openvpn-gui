@@ -119,3 +119,9 @@ BEGIN
         END
     END
 END
+
+LANGUAGE 4, 2
+#include "soui-res.rc"
+#if (defined(LIB_CORE) && defined(LIB_SOUI_COM))
+#include "theme_sys_res.rc2" //SOUI SYS Resource
+#endif
