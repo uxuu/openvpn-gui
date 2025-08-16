@@ -51,6 +51,8 @@
 #include "echo.h"
 #include "as.h"
 
+#include "soui/openvpn-soui.h"
+
 #define OVPN_EXITCODE_ERROR    1
 #define OVPN_EXITCODE_TIMEOUT  2
 #define OVPN_EXITCODE_NOTREADY 3
@@ -58,9 +60,9 @@
 /*  Declare Windows procedure  */
 LRESULT CALLBACK WindowProcedure(HWND, UINT, WPARAM, LPARAM);
 
-static void ShowSettingsDialog();
+void ShowSettingsDialog();
 
-void CloseApplication(HWND hwnd, BOOL ask_user);
+BOOL CloseApplication(HWND hwnd, BOOL ask_user);
 
 void ImportConfigFileFromDisk();
 
@@ -311,6 +313,9 @@ _tWinMain(HINSTANCE hThisInstance,
 
     GetProxyRegistrySettings();
 
+    SOUI_Init(hThisInstance);
+    SOUI_InitManagement(handler);
+
     /* The Window structure */
     wincl.hInstance = hThisInstance;
     wincl.lpszClassName = szClassName;
@@ -351,11 +356,14 @@ _tWinMain(HINSTANCE hThisInstance,
 
 
     /* Run the message loop. It will run until GetMessage() returns 0 */
+    messages.wParam = SOUI_Run();
+#if 0
     while (GetMessage(&messages, NULL, 0, 0))
     {
         TranslateMessage(&messages);
         DispatchMessage(&messages);
     }
+#endif
 
     CloseSemaphore(o.session_semaphore);
     o.session_semaphore = NULL; /* though we're going to die.. */
@@ -363,6 +371,8 @@ _tWinMain(HINSTANCE hThisInstance,
     {
         DeregisterEventSource(o.event_log);
     }
+
+    SOUI_Release();
 
     /* The program return-value is 0 - The value that PostQuitMessage() gave */
     return messages.wParam;
@@ -845,7 +855,7 @@ SettingsPsCallback(HWND hwnd, UINT msg, UNUSED LPARAM lParam)
     return 0;
 }
 
-static void
+void
 ShowSettingsDialog()
 {
     PROPSHEETPAGE psp[4];
@@ -915,7 +925,7 @@ ShowSettingsDialog()
 }
 
 
-void
+BOOL
 CloseApplication(HWND hwnd, BOOL ask_user)
 {
     /* Do not let user access main menu through tray icon */
@@ -936,7 +946,7 @@ CloseApplication(HWND hwnd, BOOL ask_user)
             /* recreate the tray icon */
             ShowTrayIcon();
             CheckAndSetTrayIcon();
-            return;
+            return FALSE;
         }
         break; /* show the above message box only once */
     }
@@ -944,6 +954,7 @@ CloseApplication(HWND hwnd, BOOL ask_user)
     SaveAutoRestartList(); /* active connection names saved in registry */
 
     DestroyWindow(hwnd);
+    return TRUE;
 }
 
 void

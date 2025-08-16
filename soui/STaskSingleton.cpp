@@ -1,0 +1,526 @@
+#include <souistd.h>
+#include <helper/SFunctor.hpp>
+#include <STurn3DView.h>
+
+using namespace SOUI;
+
+#include "openvpn-ex.h"
+#include "SMainWnd.h"
+#include "STreeAdapter.h"
+
+#include "STaskSingleton.h"
+
+#define PAGE_NAME(buf, c) \
+_stprintf_s(buf, _countof(buf), _T("page_%08x"), c->id)
+
+extern SMainWnd *pMainWnd;
+
+STaskSingleton *STaskSingleton::getInstance()
+{
+    static STaskSingleton instance;
+    return &instance;
+}
+
+void STaskSingleton::InitStatusPage(connection_t *c)
+{
+    TCHAR pageName[16];
+    PAGE_NAME(pageName, c);
+    auto* pTab = pMainWnd->FindChildByName2<STabCtrlEx>(L"tab_main");
+    int nIndex = pTab->GetPageIndex(pageName, TRUE);
+    if (nIndex < 0)
+    {
+        nIndex = pTab->InsertItem();
+        pTab->SetItemTitle(nIndex, pageName);
+    }
+
+    auto* pPage = pTab->GetItem(nIndex);
+    pPage->FindChildByName2<SWindow>(L"txt_name")->SetWindowText(c->config_name);
+}
+
+void STaskSingleton::ReleaseStatusPage(connection_t *c)
+{
+    auto* pTab = pMainWnd->FindChildByName2<STabCtrlEx>(L"tab_main");
+    int nIndex = GetStatusPageIndex(c, pTab);
+    if (nIndex >= 0)
+    {
+        if (pTab->GetCurSel() == nIndex)
+        {
+            pMainWnd->ShowPage(_T("page_home"));
+        }
+        pTab->RemoveItem(nIndex);
+    }
+}
+
+void STaskSingleton::ShowStatusPage(connection_t *c, BOOL bShow)
+{
+    if (bShow)
+    {
+        pMainWnd->ShowPage(GetStatusPageIndex(c));
+    } else
+    {
+        GetStatusWindow(c)->SetVisible(FALSE);
+        pMainWnd->ShowPage(_T("page_home"), TRUE);
+    }
+}
+
+int STaskSingleton::GetStatusPageIndex(connection_t *c, STabCtrlEx *pTab)
+{
+    TCHAR pageName[16];
+    PAGE_NAME(pageName, c);
+    if (pTab == NULL)
+    {
+        pTab = pMainWnd->FindChildByName2<STabCtrlEx>(L"tab_main");
+    }
+    return pTab->GetPageIndex(pageName, TRUE);
+}
+
+STabPage *STaskSingleton::GetStatusPage(connection_t *c, STabCtrlEx *pTab)
+{
+    if (pTab == NULL)
+    {
+        pTab = pMainWnd->FindChildByName2<STabCtrlEx>(L"tab_main");
+    }
+    int nIndex = GetStatusPageIndex(c, pTab);
+    return pTab->GetItem(nIndex);
+}
+
+STabPage *STaskSingleton::GetStatusPage(SWindow *pWnd)
+{
+    LPCWSTR clsName = NULL;
+    do
+    {
+        clsName = pWnd->GetObjectClass();
+        if (wcscmp(clsName, L"page") == 0)
+        {
+            return dynamic_cast<STabPage *>(pWnd);
+        }
+        pWnd = pWnd->GetParent();
+    } while (pWnd);
+    return NULL;
+}
+
+SWindow *STaskSingleton::GetStatusWindow(connection_t *c, STabPage *pPage)
+{
+    if (pPage == NULL)
+    {
+        pPage = GetStatusPage(c);
+    }
+    switch (c->dialogId)
+    {
+        case ID_DLG_AUTH:
+            return pPage->FindChildByName2<SWindow>(L"wnd_auth");
+        case ID_DLG_AUTH_CHALLENGE:
+            return pPage->FindChildByName2<SWindow>(L"wnd_challenge");
+        case ID_DLG_PASSPHRASE:
+            return pPage->FindChildByName2<SWindow>(L"wnd_passphrase");
+        case ID_DLG_CHALLENGE_RESPONSE:
+            return pPage->FindChildByName2<SWindow>(L"wnd_response");
+        case ID_DLG_PROXY_AUTH:
+            return pPage->FindChildByName2<SWindow>(L"wnd_proxy");
+        default:
+            return NULL;
+    }
+}
+
+void STaskSingleton::InitUserAuthDialog(auth_param_t *param, UINT dialogId)
+{
+    WCHAR username[USER_PASS_LEN] = L"";
+    WCHAR password[USER_PASS_LEN] = L"";
+    param->c->dialogId = dialogId;
+    auto *pPage = GetStatusPage(param->c);
+    auto *pWnd = GetStatusWindow(param->c, pPage);
+
+    if (param->str)
+    {
+        LPWSTR wstr = Widen(param->str);
+        auto *pEdit = pWnd->FindChildByName2<SEdit>(L"edt_challenge");
+
+        if (wstr)
+        {
+            pEdit->SetAttribute(L"cueText", wstr, FALSE);
+        }
+
+        free(wstr);
+
+        /* Set/Remove style ES_PASSWORD by SetWindowLong(GWL_STYLE) does nothing,
+         * send EM_SETPASSWORDCHAR just works. */
+        if (param->flags & FLAG_CR_ECHO)
+        {
+            pEdit->SetAttribute(L"password", L"0", FALSE);
+        }
+
+    }
+    else if (param->flags & FLAG_CR_TYPE_CONCAT)
+    {
+        pWnd->FindChildByName2<SEdit>(L"edt_challenge")->SetAttribute(L"cueText", LoadLocalizedString(IDS_NFO_OTP_PROMPT), FALSE);
+    }
+    if (RecallUsername(param->c->config_name, username))
+    {
+        pWnd->FindChildByName2<SEdit>(L"edt_username")->SetWindowText(username);
+        pWnd->FindChildByName2<SEdit>(L"edt_password")->SetFocus();
+    }
+    if (RecallAuthPass(param->c->config_name, password))
+    {
+        pWnd->FindChildByName2<SEdit>(L"edt_password")->SetWindowText(password);
+        if (username[0] != L'\0' && !(param->flags & (FLAG_CR_TYPE_SCRV1|FLAG_CR_TYPE_CONCAT))
+            && password[0] != L'\0' && param->c->failed_auth_attempts == 0)
+        {
+            /* user/pass available and no challenge response needed: skip dialog
+             * if silent_connection is on, else auto submit after a few seconds.
+             * User can interrupt.
+             */
+            pWnd->FindChildByName2<SButton>(L"btn_confirm")->SetFocus();
+        }
+        /* if auth failed, highlight password so that user can type over */
+        else if (param->c->failed_auth_attempts)
+        {
+            pWnd->FindChildByName2<SEdit>(L"edt_password")->SetSel(0, -1,0);
+            pWnd->FindChildByName2<SEdit>(L"edt_password")->SetFocus();
+        }
+        else if (param->flags & (FLAG_CR_TYPE_SCRV1|FLAG_CR_TYPE_CONCAT))
+        {
+            pWnd->FindChildByName2<SEdit>(L"edt_challenge")->SetFocus();
+        }
+        SecureZeroMemory(password, sizeof(password));
+    }
+    if (param->c->flags & FLAG_DISABLE_SAVE_PASS)
+    {
+        pWnd->FindChildByName2<SCheckBox>(L"chk_savepass")->SetVisible(FALSE);
+    }
+    else if (param->c->flags & FLAG_SAVE_AUTH_PASS)
+    {
+        pWnd->FindChildByName2<SCheckBox>(L"chk_savepass")->SetCheck(TRUE);
+    }
+
+    if (param->c->failed_auth_attempts > 0)
+    {
+        pWnd->FindChildByName2<SStatic>(L"txt_warning")->SetWindowText(LoadLocalizedString(IDS_NFO_AUTH_PASS_RETRY));
+    }
+
+    if (param->c->state == resuming)
+    {
+        ForceForegroundWindow(pMainWnd->GetHwnd());
+    }
+    else
+    {
+        SetForegroundWindow(pMainWnd->GetHwnd());
+    }
+
+    pPage->SetUserData(reinterpret_cast<ULONG_PTR>(param->c));
+    //pWnd->FindChildByName2<SButton>(L"btn_confirm")->EnableWindow(FALSE);
+    pWnd->FindChildByName2<SButton>(L"btn_confirm")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&STaskSingleton::OnButtonClick, this));
+    pWnd->FindChildByName2<SButton>(L"btn_cancel")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&STaskSingleton::OnButtonClick, this));
+    pWnd->FindChildByName2<SCheckBox>(L"chk_savepass")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&STaskSingleton::OnCheckBoxClick, this));
+    pWnd->FindChildByName2<SButton>(L"btn_password")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&STaskSingleton::OnButtonClick, this));
+    pWnd->FindChildByName2<SEdit>(L"edt_username")->GetEventSet()->subscribeEvent(EventKeyDown::EventID,Subscriber(&STaskSingleton::OnKeyDown, this));
+    pWnd->FindChildByName2<SEdit>(L"edt_password")->GetEventSet()->subscribeEvent(EventKeyDown::EventID,Subscriber(&STaskSingleton::OnKeyDown, this));
+    if (dialogId == ID_DLG_AUTH_CHALLENGE)
+    {
+        pWnd->FindChildByName2<SButton>(L"btn_challenge")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&STaskSingleton::OnButtonClick, this));
+        pWnd->FindChildByName2<SEdit>(L"edt_challenge")->GetEventSet()->subscribeEvent(EventKeyDown::EventID,Subscriber(&STaskSingleton::OnKeyDown, this));
+    }
+    pWnd->SetVisible(TRUE);
+    ShowStatusPage(param->c, TRUE);
+}
+
+void STaskSingleton::InitGenericPassDialog(auth_param_t *param, UINT dialogId)
+{
+    param->c->dialogId = dialogId;
+    auto *pPage = GetStatusPage(param->c);
+    auto *pWnd = GetStatusWindow(param->c, pPage);
+
+    WCHAR *wstr = Widen(param->str);
+    if (!wstr)
+    {
+        WriteStatusLog(
+            param->c, L"GUI> ", L"Error converting challenge string to widechar", false);
+        ShowStatusPage(param->c, FALSE);
+        return;
+    }
+    if (param->flags & FLAG_CR_TYPE_CRV1 || param->flags & FLAG_CR_TYPE_CRTEXT)
+    {
+        pWnd->FindChildByName2<SStatic>(L"txt_description")->SetWindowText(wstr);
+
+        /* Set password echo on if needed */
+        if (param->flags & FLAG_CR_ECHO)
+        {
+            pWnd->FindChildByName2<SEdit>(L"edt_response")->SetAttribute(L"password", L"0", FALSE);
+        }
+    }
+    else if (param->flags & FLAG_PASS_TOKEN)
+    {
+        pWnd->FindChildByName2<SStatic>(L"txt_description")->SetWindowText(LoadLocalizedString(IDS_NFO_TOKEN_PASSWORD_REQUEST, param->id));
+    }
+    else
+    {
+        WriteStatusLog(param->c, L"GUI> ", L"Unknown password request", false);
+        pWnd->FindChildByName2<SStatic>(L"txt_description")->SetWindowText(wstr);
+    }
+    free(wstr);
+
+    if (param->c->state == resuming)
+    {
+        ForceForegroundWindow(pMainWnd->GetHwnd());
+    }
+    else
+    {
+        SetForegroundWindow(pMainWnd->GetHwnd());
+    }
+
+    /* If response is not required hide the response field */
+    if ((param->flags & FLAG_CR_TYPE_CRV1 || param->flags & FLAG_CR_TYPE_CRTEXT)
+        && !(param->flags & FLAG_CR_RESPONSE))
+    {
+        pWnd->FindChildByName2<SStatic>(L"txt_response")->GetParent()->SetVisible(FALSE);
+    }
+    else
+    {
+        /* disable OK button until response is filled-in */
+        pWnd->FindChildByName2<SButton>(L"btn_confirm")->EnableWindow(FALSE);
+    }
+
+    pPage->SetUserData(reinterpret_cast<ULONG_PTR>(param->c));
+    pWnd->FindChildByName2<SButton>(L"btn_confirm")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&STaskSingleton::OnButtonClick, this));
+    pWnd->FindChildByName2<SButton>(L"btn_cancel")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&STaskSingleton::OnButtonClick, this));
+    pWnd->FindChildByName2<SCheckBox>(L"chk_savepass")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&STaskSingleton::OnCheckBoxClick, this));
+    pWnd->FindChildByName2<SButton>(L"btn_password")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&STaskSingleton::OnButtonClick, this));
+    pWnd->FindChildByName2<SEdit>(L"edt_response")->GetEventSet()->subscribeEvent(EventKeyDown::EventID,Subscriber(&STaskSingleton::OnKeyDown, this));
+    pWnd->SetVisible(TRUE);
+    ShowStatusPage(param->c, TRUE);
+}
+
+void STaskSingleton::InitPrivKeyPassDialog(connection_t *c, UINT dialogId)
+{
+    WCHAR passphrase[KEY_PASS_LEN];
+    c->dialogId = dialogId;
+    auto *pPage = GetStatusPage(c);
+    auto *pWnd = GetStatusWindow(c, pPage);
+
+    if (RecallKeyPass(c->config_name, passphrase) && wcslen(passphrase)
+        && c->failed_psw_attempts == 0)
+    {
+        /* Use the saved password and skip the dialog */
+        pWnd->FindChildByName2<SEdit>(L"edt_passphrase")->SetWindowText(passphrase);
+        SecureZeroMemory(passphrase, sizeof(passphrase));
+        return ;
+    }
+    if (c->flags & FLAG_DISABLE_SAVE_PASS)
+    {
+        pWnd->FindChildByName2<SCheckBox>(L"chk_savepass")->GetParent()->SetVisible(FALSE);
+    }
+    else if (c->flags & FLAG_SAVE_KEY_PASS)
+    {
+        pWnd->FindChildByName2<SCheckBox>(L"chk_savepass")->SetCheck(TRUE);
+    }
+    if (c->failed_psw_attempts > 0)
+    {
+        pWnd->FindChildByName2<SStatic>(L"txt_warning")->SetWindowText(LoadLocalizedString(IDS_NFO_KEY_PASS_RETRY));
+    }
+    if (c->state == resuming)
+    {
+        ForceForegroundWindow(pMainWnd->GetHwnd());
+    }
+    else
+    {
+        SetForegroundWindow(pMainWnd->GetHwnd());
+    }
+
+    pPage->SetUserData(reinterpret_cast<ULONG_PTR>(c));
+    /* disable OK button by default - not disabled in resources */
+    pWnd->FindChildByName2<SButton>(L"btn_confirm")->EnableWindow(FALSE);
+    pWnd->FindChildByName2<SButton>(L"btn_confirm")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&STaskSingleton::OnButtonClick, this));
+    pWnd->FindChildByName2<SButton>(L"btn_cancel")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&STaskSingleton::OnButtonClick, this));
+    pWnd->FindChildByName2<SCheckBox>(L"chk_savepass")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&STaskSingleton::OnCheckBoxClick, this));
+    pWnd->FindChildByName2<SButton>(L"btn_passphrase")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&STaskSingleton::OnButtonClick, this));
+    pWnd->FindChildByName2<SEdit>(L"edt_passphrase")->GetEventSet()->subscribeEvent(EventKeyDown::EventID,Subscriber(&STaskSingleton::OnKeyDown, this));
+    pWnd->SetVisible(TRUE);
+    ShowStatusPage(c, TRUE);
+}
+
+void STaskSingleton::InitProxyAuthDialog(connection_t *c, UINT dialogId)
+{
+    c->dialogId = dialogId;
+    auto *pPage = GetStatusPage(c);
+    auto *pWnd = GetStatusWindow(c, pPage);
+
+    if (c->state == resuming)
+    {
+        ForceForegroundWindow(pMainWnd->GetHwnd());
+    }
+    else
+    {
+        SetForegroundWindow(pMainWnd->GetHwnd());
+    }
+
+    pPage->SetUserData(reinterpret_cast<ULONG_PTR>(c));
+    pWnd->FindChildByName2<SButton>(L"btn_confirm")->EnableWindow(FALSE);
+    pWnd->FindChildByName2<SButton>(L"btn_confirm")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&STaskSingleton::OnButtonClick, this));
+    pWnd->FindChildByName2<SButton>(L"btn_password")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&STaskSingleton::OnButtonClick, this));
+    pWnd->FindChildByName2<SEdit>(L"edt_username")->GetEventSet()->subscribeEvent(EventKeyDown::EventID,Subscriber(&STaskSingleton::OnKeyDown, this));
+    pWnd->FindChildByName2<SEdit>(L"edt_password")->GetEventSet()->subscribeEvent(EventKeyDown::EventID,Subscriber(&STaskSingleton::OnKeyDown, this));
+    pWnd->SetVisible(TRUE);
+    ShowStatusPage(c, TRUE);
+}
+
+BOOL STaskSingleton::OnCheckBoxClick(EventCmd *pEvt)
+{
+    auto pPage = GetStatusPage(dynamic_cast<SWindow *>(pEvt->Sender()));
+    connection_t *c = reinterpret_cast<connection_t *>(pPage->GetUserData());;
+    SimulateButtonPress(c->hwndDlg, ID_CHK_SAVE_PASS);
+    return  TRUE;
+}
+
+BOOL STaskSingleton::OnButtonClick(EventCmd *pEvt)
+{
+    WCHAR username[USER_PASS_LEN] = L"";
+    WCHAR password[USER_PASS_LEN] = L"";
+    auto* pBtn =  dynamic_cast<SButton *>(pEvt->Sender());
+    auto* pPage = GetStatusPage(pBtn);
+    connection_t *c = reinterpret_cast<connection_t *>(pPage->GetUserData());;
+    if (wcscmp(pBtn->GetName(), L"btn_confirm") == 0)
+    {
+        auto* pWnd = GetStatusWindow(c, pPage);
+        switch (c->dialogId)
+        {
+            case ID_DLG_AUTH_CHALLENGE:
+                pWnd->FindChildByName2<SEdit>(L"edt_challenge")->GetWindowText(password, USER_PASS_LEN, TRUE);
+                SetDlgItemTextW(c->hwndDlg, ID_EDT_AUTH_CHALLENGE, password);
+            case ID_DLG_AUTH:
+                pWnd->FindChildByName2<SEdit>(L"edt_username")->GetWindowText(username, USER_PASS_LEN, TRUE);
+                SetDlgItemTextW(c->hwndDlg, ID_EDT_AUTH_USER, username);
+                pWnd->FindChildByName2<SEdit>(L"edt_password")->GetWindowText(password, USER_PASS_LEN, TRUE);
+                SetDlgItemTextW(c->hwndDlg, ID_EDT_AUTH_PASS, password);
+                break;
+            case ID_DLG_CHALLENGE_RESPONSE:
+                pWnd->FindChildByName2<SEdit>(L"edt_response")->GetWindowText(password, USER_PASS_LEN, TRUE);
+                SetDlgItemTextW(c->hwndDlg, ID_EDT_RESPONSE, password);
+                break;
+            case ID_DLG_PROXY_AUTH:
+                pWnd->FindChildByName2<SEdit>(L"edt_username")->GetWindowText(username, USER_PASS_LEN, TRUE);
+                SetDlgItemTextW(c->hwndDlg, ID_EDT_PROXY_USER, username);
+                pWnd->FindChildByName2<SEdit>(L"edt_password")->GetWindowText(password, USER_PASS_LEN, TRUE);
+                SetDlgItemTextW(c->hwndDlg, ID_EDT_PROXY_PASS, password);
+                break;
+            case ID_DLG_PASSPHRASE:
+                pWnd->FindChildByName2<SEdit>(L"edt_passphrase")->GetWindowText(password, USER_PASS_LEN, TRUE);
+                SetDlgItemTextW(c->hwndDlg, ID_EDT_PASSPHRASE, password);
+                break;
+            default:
+                return FALSE;
+        }
+        SecureZeroMemory(password, sizeof(password));
+        SimulateButtonPress(c->hwndDlg, IDOK);
+    }
+    else if (wcscmp(pBtn->GetName(), L"btn_cancel") ==0)
+    {
+        SimulateButtonPress(c->hwndDlg, IDCANCEL);
+    }
+    else
+    {
+        ChangePasswordVisibility(pBtn);
+    }
+    return  TRUE;
+}
+
+BOOL STaskSingleton::OnKeyDown(EventKeyDown *pEvt)
+{
+    auto *pPage =  GetStatusPage(dynamic_cast<SWindow *>(pEvt->Sender()));
+    connection_t *c = reinterpret_cast<connection_t *>(pPage->GetUserData());
+    STaskHelper::postTask(pMainWnd, this, &STaskSingleton::CheckEditEmpty, c);
+    return TRUE;
+}
+
+void STaskSingleton::CheckEditEmpty(connection_t *c)
+{
+    BOOL bEnable = TRUE;
+    auto* pWnd = GetStatusWindow(c);
+    switch (c->dialogId)
+    {
+        case ID_DLG_AUTH_CHALLENGE:
+            bEnable = pWnd->FindChildByName2<SEdit>(L"edt_challenge")->GetWindowTextLength() > 0;
+        case ID_DLG_AUTH:
+            bEnable = bEnable && pWnd->FindChildByName2<SEdit>(L"edt_password")->GetWindowTextLength() > 0;
+            bEnable = bEnable && pWnd->FindChildByName2<SEdit>(L"edt_username")->GetWindowTextLength() > 0;
+            break;
+        case ID_DLG_CHALLENGE_RESPONSE:
+            bEnable = pWnd->FindChildByName2<SEdit>(L"edt_response")->GetWindowTextLength() > 0;
+            break;
+        case ID_DLG_PROXY_AUTH:
+            bEnable = pWnd->FindChildByName2<SEdit>(L"edt_password")->GetWindowTextLength() > 0;
+            bEnable = bEnable && pWnd->FindChildByName2<SEdit>(L"edt_username")->GetWindowTextLength() > 0;
+            break;
+        case ID_DLG_PASSPHRASE:
+            bEnable = pWnd->FindChildByName2<SEdit>(L"edt_passphrase")->GetWindowTextLength() > 0;
+            break;
+        default:
+            return ;
+    }
+    pWnd->FindChildByName2<SButton>(L"btn_confirm")->EnableWindow(bEnable);
+    pWnd->FindChildByName2<SButton>(L"btn_confirm")->Invalidate();
+}
+
+BOOL STaskSingleton::ChangePasswordVisibility(SButton *pBtn)
+{
+    SStringT attr;
+    auto *pPage = GetStatusPage(pBtn);
+    connection_t *c = reinterpret_cast<connection_t *>(pPage->GetUserData());;
+    auto *pWnd = GetStatusWindow(c, pPage);
+    SEdit *pEdit = NULL;
+    if (wcscmp(pBtn->GetName(), L"btn_password") == 0)
+    {
+        pEdit = pWnd->FindChildByName2<SEdit>(L"edt_password");
+    }
+    else if (wcscmp(pBtn->GetName(), L"btn_passphrase") == 0)
+    {
+        pEdit = pWnd->FindChildByName2<SEdit>(L"edt_passphrase");
+    }
+    else if (wcscmp(pBtn->GetName(), L"btn_response") == 0)
+    {
+        pEdit = pWnd->FindChildByName2<SEdit>(L"edt_response");
+    }
+    else if (wcscmp(pBtn->GetName(), L"btn_challenge") == 0)
+    {
+        pEdit = pWnd->FindChildByName2<SEdit>(L"edt_challenge");
+    }
+    else
+    {
+        return FALSE;
+    }
+    pEdit->GetAttribute(L"password", &attr);
+    if (attr.Compare(L"1") == 0)
+    {
+        pBtn->SetAttribute(L"skin", L"img_eye", FALSE);
+        pEdit->SetAttribute(L"password", L"0", FALSE);
+    }
+    else
+    {
+        pBtn->SetAttribute(L"skin", L"img_eye_stroke", FALSE);
+        pEdit->SetAttribute(L"password", L"1", FALSE);
+    }
+    return TRUE;
+}
+
+void STaskSingleton::SetWarningText(connection_t* c, LPCTSTR pszText)
+{
+    auto *pWnd = GetStatusWindow(c);
+    pWnd->FindChildByName2<SStatic>(L"txt_warning")->SetWindowText(pszText);
+}
+
+void STaskSingleton::SetWarningColor(connection_t* c, COLORREF clr)
+{
+    WCHAR szColor[8];
+    wsprintf(szColor, L"#%02x%02x%02x", GetRValue(clr), GetGValue(clr), GetBValue(clr));
+    auto *pWnd = GetStatusWindow(c);
+    pWnd->FindChildByName2<SStatic>(L"txt_warning")->SetAttribute(L"colorText", szColor);
+}
+
+void STaskSingleton::HandleMessage(mgmt_rtmsg_type msg_type, connection_t* c, char* msg, BOOL bPre)
+{
+    if (msg_type == log_)
+    {
+        return;
+    }
+    auto pTree = pMainWnd->FindChildByName2<STreeView>(L"tv_home");
+    auto pAdapter = dynamic_cast<STreeAdapter *>(pTree->GetAdapter());
+    pAdapter->NotifyStateChange();
+}

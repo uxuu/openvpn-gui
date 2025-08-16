@@ -1,0 +1,6 @@
+﻿<?xml version="1.0"?>
+<include>
+    <window pos="0,0,-0,-0">
+        <text multiLines="1" font="adding:-2" width="-2" clipClient="0" wordWrap="1" margin="2dp" wantReturn="1" wantTab="1" />
+    </window>
+</include>

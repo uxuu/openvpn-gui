@@ -42,6 +42,8 @@
 #include "openvpn.h"
 #include "misc.h"
 
+#include "soui/openvpn-soui.h"
+
 extern options_t o;
 
 INT_PTR CALLBACK
@@ -357,6 +359,12 @@ ProxyAuthDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
             /* Set connection for this dialog and show it */
             c = (connection_t *)lParam;
             TRY_SETPROP(hwndDlg, cfgProp, (HANDLE)c);
+
+            c->hwndDlg = hwndDlg;
+
+            /* Hide the modal dialog window */
+            SOUI_SetWindowHide(hwndDlg, TRUE);
+
             if (c->state == resuming)
             {
                 ForceForegroundWindow(hwndDlg);
@@ -389,16 +397,19 @@ ProxyAuthDialogFunc(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
                     ManagementCommandFromInput(c, fmt, hwndDlg, ID_EDT_PROXY_PASS);
 
                     EndDialog(hwndDlg, LOWORD(wParam));
+                    SOUI_ShowStatusPage(c, FALSE);
                     return TRUE;
             }
             break;
 
         case WM_OVPN_STATE: /* state changed -- destroy the dialog */
             EndDialog(hwndDlg, LOWORD(wParam));
+            SOUI_ShowStatusPage((connection_t *)lParam, FALSE);
             return TRUE;
 
         case WM_CLOSE:
             EndDialog(hwndDlg, LOWORD(wParam));
+            SOUI_ShowStatusPage((connection_t *)lParam, FALSE);
             return TRUE;
 
         case WM_NCDESTROY:
@@ -413,6 +424,7 @@ void
 QueryProxyAuth(connection_t *c, proxy_t type)
 {
     c->proxy_type = type;
+    SOUI_InitProxyAuthDialog(c, ID_DLG_PROXY_AUTH);
     LocalizedDialogBoxParamEx(ID_DLG_PROXY_AUTH, c->hwndStatus, ProxyAuthDialogFunc, (LPARAM)c);
 }
 

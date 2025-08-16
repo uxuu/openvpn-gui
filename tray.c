@@ -38,6 +38,7 @@
 #include "openvpn-gui-res.h"
 #include "localization.h"
 #include "misc.h"
+#include "soui/openvpn-soui.h"
 
 #ifndef GUID_NULL
 #include <initguid.h>
@@ -445,6 +446,8 @@ OnNotifyTray(LPARAM lParam)
 
         case WM_LBUTTONDBLCLK:
         {
+            SOUI_ShowMainWnd(TRUE);
+            break;
             int disconnected_conns = CountConnState(disconnected);
 
             RecreatePopupMenus();

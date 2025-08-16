@@ -229,7 +229,22 @@ if (NOT PROJECT_NAME_SOUI)
 endif()
 
 add_library(${PROJECT_NAME_SOUI} STATIC
-    soui/soui.cpp)
+    ${SOUI_PATH}/controls.extend/gif/SGifPlayer.cpp
+    ${SOUI_PATH}/controls.extend/STurn3DView.cpp
+    ${SOUI_PATH}/controls.extend/image3d/3dlib.cpp
+    ${SOUI_PATH}/controls.extend/image3d/3dmatrix.cpp
+    ${SOUI_PATH}/controls.extend/image3d/3dtransform.cpp
+    soui/STabCtrlEx.cpp
+    soui/STreeAdapter.cpp
+    soui/SMainWnd.cpp
+    soui/STaskSingleton.cpp
+    soui/openvpn-soui.cpp)
+
+if (${SOUI_MAJOR} STREQUAL "4")
+    target_sources(${PROJECT_NAME_SOUI} PRIVATE ${SOUI_PATH}/controls.extend/gif/SSkinGif.cpp)
+else()
+    target_sources(${PROJECT_NAME_SOUI} PRIVATE ${SOUI_PATH}/controls.extend/gif/SSkinAni.cpp)
+endif()
 
 target_compile_definitions(${PROJECT_NAME_SOUI} PRIVATE
     ${SOUI_DEFINES}
@@ -247,7 +262,10 @@ target_include_directories(${PROJECT_NAME_SOUI} PRIVATE ${SOUI_PATH}/controls.ex
 
 # Configure the source character set as UTF-8 to properly handle Unicode characters in source files
 # This ensures correct compilation of internationalized text and non-ASCII characters used in the project
+target_compile_options(${PROJECT_NAME_SOUI} PRIVATE "/source-charset:utf-8")
 target_compile_options(${PROJECT_NAME} PRIVATE "/source-charset:utf-8")
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE ${SOUI_DEFINES})
 
 target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME_SOUI})
 target_link_libraries(${PROJECT_NAME} PRIVATE soui4 utilities4)
@@ -258,8 +276,6 @@ target_link_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 # Disable demo and richedit builds, enable Spectre mitigations,
 # and pass through the SOUI library linking options
 set(BUILD_DEMOS OFF)
-set(BUILD_RICHEDIT OFF)
-set(ENABLE_SPECTRE ON)
 set(ENABLE_SOUI_CORE_LIB ${SOUI_CORE_LIB})
 set(ENABLE_SOUI_COM_LIB ${SOUI_COM_LIB})
 
@@ -273,6 +289,9 @@ if(CMAKE_VS_PLATFORM_NAME STREQUAL "arm64")
     set(CMAKE_VS_PLATFORM_NAME "ARM64")
 endif()
 
+string(REPLACE "-DDEBUG" "" CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
+string(REPLACE "-DDEBUG" "" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
+
 # Add SOUI library as a subdirectory to be built as part of the project
 # This includes the SOUI UI framework which is essential for the GUI components
 add_subdirectory(${SOUI_PATH} ${CMAKE_CURRENT_BINARY_DIR}/soui4)
@@ -283,6 +302,7 @@ add_subdirectory(${SOUI_PATH} ${CMAKE_CURRENT_BINARY_DIR}/soui4)
 # directories to the current binary directory. This ensures SOUI is built as a dependency
 # with its outputs placed in the correct location for the openvpn-gui project to use.
 get_property(SOUI_SUBDIRS DIRECTORY ${SOUI_PATH} PROPERTY SUBDIRECTORIES)
+list(APPEND SOUI_SUBDIRS ${SOUI_PATH}/third-part/richedit41)
 foreach (subdir ${SOUI_SUBDIRS})
     get_property(subdirs DIRECTORY ${subdir} PROPERTY SUBDIRECTORIES)
     list(APPEND SOUI_SUBDIRS ${subdirs})
@@ -305,15 +325,28 @@ set(SOUI_DLLS
     utilities4
     imgdecoder-stb
     imgdecoder-gdip
+    imgdecoder-wic
     resprovider-zip
     resprovider-7zip
+    render-d2d
     render-gdi
     render-skia
     taskloop
     translator
+    msftedit
+    msls31
     soui-sys-resource
     soui-sys-resource2)
 
 add_dependencies(${PROJECT_NAME}
     ${PROJECT_NAME_SOUI}
     ${SOUI_DLLS})
+
+add_custom_command(
+    TARGET ${PROJECT_NAME}
+    PRE_BUILD
+    COMMAND ${SOUI_PATH}/tools/uiresbuilder.exe
+    -i ${PROJECT_SOURCE_DIR}/uires/uires.idx
+    -p ..\\uires
+    -r soui-res.rc
+    -h soui-res.h idtable)
