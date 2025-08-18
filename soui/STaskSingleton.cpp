@@ -232,7 +232,7 @@ void STaskSingleton::InitGenericPassDialog(auth_param_t *param, UINT dialogId)
     WCHAR *wstr = Widen(param->str);
     if (!wstr)
     {
-        WriteStatusLog(
+        ::WriteStatusLog(
             param->c, L"GUI> ", L"Error converting challenge string to widechar", false);
         ShowStatusPage(param->c, FALSE);
         return;
@@ -253,7 +253,7 @@ void STaskSingleton::InitGenericPassDialog(auth_param_t *param, UINT dialogId)
     }
     else
     {
-        WriteStatusLog(param->c, L"GUI> ", L"Unknown password request", false);
+        ::WriteStatusLog(param->c, L"GUI> ", L"Unknown password request", false);
         pWnd->FindChildByName2<SStatic>(L"txt_description")->SetWindowText(wstr);
     }
     free(wstr);
@@ -523,4 +523,165 @@ void STaskSingleton::HandleMessage(mgmt_rtmsg_type msg_type, connection_t* c, ch
     auto pTree = pMainWnd->FindChildByName2<STreeView>(L"tv_home");
     auto pAdapter = dynamic_cast<STreeAdapter *>(pTree->GetAdapter());
     pAdapter->NotifyStateChange();
+}
+
+void STaskSingleton::WriteLogLine(connection_t *c, char *msg)
+{
+    time_t timestamp;
+    wchar_t datetime[32];
+    const SETTEXTEX ste = {ST_SELECTION, CP_UTF8 };
+    auto* pPage = GetStatusPage(c);
+    if (!pPage)
+    {
+        return;
+    }
+    auto* pLogWnd = pPage->FindChildByName2<SRichEdit>(L"log_viewer");
+    if (!pLogWnd)
+    {
+        return;
+    }
+
+    char *flags = strchr(msg, ',');
+    if (flags == NULL)
+    {
+        return;
+    }
+    flags++;
+
+    char *message = strchr(flags, ',');
+    if (message == NULL)
+    {
+        return;
+    }
+    message++;
+    size_t flag_size = message - flags - 1; /* message is always > flags */
+
+    /* Remove lines from log window if it is getting full */
+    if (pLogWnd->SSendMessage(EM_GETLINECOUNT, 0, 0) > MAX_LOG_LINES)
+    {
+        int pos = pLogWnd->SSendMessage(EM_LINEINDEX, DEL_LOG_LINES, 0);
+        pLogWnd->SSendMessage(EM_SETSEL, 0, pos);
+        pLogWnd->SSendMessage(EM_REPLACESEL, FALSE, (LPARAM) _T(""));
+    }
+
+    timestamp = strtol(msg, NULL, 10);
+    struct tm *tm = localtime(&timestamp);
+
+    wsprintf(datetime, L"%04d-%02d-%02d %02d:%02d:%02d ",
+               tm->tm_year+1900, tm->tm_mon+1, tm->tm_mday,
+               tm->tm_hour, tm->tm_min, tm->tm_sec);
+
+    /* deselect current selection, if any */
+    pLogWnd->SSendMessage(EM_SETSEL, (WPARAM) -1, (LPARAM) -1);
+
+    /* change text color if Warning or Error */
+    COLORREF text_clr = 0;
+
+    if (memchr(flags, 'N', flag_size) || memchr(flags, 'F', flag_size))
+    {
+        text_clr = o.clr_error;
+    }
+    else if (memchr(flags, 'W', flag_size))
+    {
+        text_clr = o.clr_warning;
+    }
+
+    //if (text_clr != 0)
+    {
+        CHARFORMAT cfm = { sizeof(CHARFORMAT),
+                    CFM_COLOR|CFM_BOLD,
+                    0,
+                    0,
+                    0,
+                    text_clr,
+        };
+        pLogWnd->SSendMessage(EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM) &cfm);
+    }
+
+    /* Append line to log window */
+    pLogWnd->SSendMessage(EM_REPLACESEL, FALSE, (LPARAM) datetime);
+    pLogWnd->SSendMessage(EM_SETTEXTEX, (WPARAM) &ste, (LPARAM) message);
+    pLogWnd->SSendMessage(EM_REPLACESEL, FALSE, (LPARAM) _T("\n"));
+
+    /* scroll to the caret */
+    //pLogWnd->SSendMessage(EM_SCROLLCARET, 0, 0);
+    if (pLogWnd->SSendMessage(EM_GETLINECOUNT, 0, 0) > 20)
+    {
+        pLogWnd->SSendMessage(EM_SCROLL, SB_BOTTOM, 0);
+    }
+    else if (pLogWnd->SSendMessage(EM_GETLINECOUNT, 0, 0) > 10)
+    {
+        pLogWnd->SSendMessage(EM_SCROLL, SB_LINEDOWN, 0);
+    }
+}
+
+void STaskSingleton::WriteStatusLog(connection_t *c, LPCWSTR prefix, LPCWSTR msg)
+{
+    time_t now;
+    wchar_t datetime[32];
+    auto* pPage = GetStatusPage(c);
+    if (!pPage)
+    {
+        return;
+    }
+    auto* pLogWnd = pPage->FindChildByName2<SRichEdit>(L"log_viewer");
+    if (!pLogWnd)
+    {
+        return;
+    }
+
+    now = time(0);
+    struct tm *tm = localtime(&now);
+
+    wsprintf(datetime, L"%04d-%02d-%02d %02d:%02d:%02d ",
+               tm->tm_year+1900, tm->tm_mon+1, tm->tm_mday,
+               tm->tm_hour, tm->tm_min, tm->tm_sec);
+    /* change text color if Warning or Error */
+    COLORREF text_clr = 0;
+
+    if (wcsstr(prefix, L"ERROR"))
+    {
+        text_clr = o.clr_error;
+    }
+    else if (wcsstr(prefix, L"WARNING"))
+    {
+        text_clr = o.clr_warning;
+    }
+
+    //if (text_clr != 0)
+    {
+        CHARFORMAT cfm = { sizeof(CHARFORMAT),
+                           CFM_COLOR|CFM_BOLD,
+                           0,
+                           0,
+                           0,
+                           text_clr,
+        };
+        pLogWnd->SSendMessage(EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM) &cfm);
+    }
+
+
+    /* Remove lines from log window if it is getting full */
+    if (pLogWnd->SSendMessage(EM_GETLINECOUNT, 0, 0) > MAX_LOG_LINES)
+    {
+        int pos = pLogWnd->SSendMessage(EM_LINEINDEX, DEL_LOG_LINES, 0);
+        pLogWnd->SSendMessage(EM_SETSEL, 0, pos);
+        pLogWnd->SSendMessage(EM_REPLACESEL, FALSE, (LPARAM) _T(""));
+    }
+    /* Append line to log window */
+    pLogWnd->SSendMessage(EM_SETSEL, (WPARAM) -1, (LPARAM) -1);
+    pLogWnd->SSendMessage(EM_REPLACESEL, FALSE, (LPARAM) datetime);
+    pLogWnd->SSendMessage(EM_REPLACESEL, FALSE, (LPARAM) prefix);
+    pLogWnd->SSendMessage(EM_REPLACESEL, FALSE, (LPARAM) msg);
+    pLogWnd->SSendMessage(EM_REPLACESEL, FALSE, (LPARAM) L"\n");
+
+    /* scroll to the caret */
+    if (pLogWnd->SSendMessage(EM_GETLINECOUNT, 0, 0) > 20)
+    {
+        pLogWnd->SSendMessage(EM_SCROLL, SB_BOTTOM, 0);
+    }
+    else if (pLogWnd->SSendMessage(EM_GETLINECOUNT, 0, 0) > 10)
+    {
+        pLogWnd->SSendMessage(EM_SCROLL, SB_LINEDOWN, 0);
+    }
 }

@@ -12,6 +12,7 @@ using namespace SOUI;
 
 #include "openvpn-ex.h"
 #include "STreeAdapter.h"
+#include "STaskSingleton.h"
 
 /**
  * @brief Constructor for the STreeAdapter class.
@@ -344,8 +345,9 @@ BOOL STreeAdapter::OnButtonClick(EventCmd* pEvt)
     else if (wcscmp(btnName, btn_names[4]) == 0)
     {
         // StatusOpenVPN(ii.data.c);
-        ::SetForegroundWindow(ii.data.c->hwndStatus);
-        ::ShowWindow(ii.data.c->hwndStatus, SW_SHOW);
+        //::SetForegroundWindow(ii.data.c->hwndStatus);
+        //::ShowWindow(ii.data.c->hwndStatus, SW_SHOW);
+        STaskSingleton::getInstance()->ShowStatusPage(ii.data.c, TRUE);
     }
     else if (wcscmp(btnName, btn_names[5]) == 0)
     {

@@ -216,6 +216,9 @@ void SMainWnd::OnCommand( UINT uNotifyCode, int nID, HWND wndCtl )
             pAdapter = dynamic_cast<STreeAdapter *>(pTree->GetAdapter());
             pAdapter->NotifyStateChange();
             break;
+        case 6:
+            ShowPage(_T("page_home"));
+            break;
         default:
             SetMsgHandled(FALSE);
             break;

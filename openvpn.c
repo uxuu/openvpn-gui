@@ -174,6 +174,8 @@ OnLogLine(connection_t *c, char *line)
     TCHAR *datetime;
     const SETTEXTEX ste = { .flags = ST_SELECTION, .codepage = CP_UTF8 };
 
+    SOUI_WriteLogLine(c, line);
+
     char *flags = strchr(line, ',');
     if (flags == NULL)
     {
@@ -1895,6 +1897,8 @@ WriteStatusLog(connection_t *c, const WCHAR *prefix, const WCHAR *line, BOOL fil
     {
         return;
     }
+
+    SOUI_WriteStatusLog(c, prefix, line);
 
     HWND logWnd = GetDlgItem(c->hwndStatus, ID_EDT_LOG);
     FILE *log_fd;

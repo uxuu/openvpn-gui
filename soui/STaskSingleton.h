@@ -22,6 +22,8 @@ public:
     void CheckEditEmpty(connection_t *c);
     BOOL ChangePasswordVisibility(SButton *pBtn);
     void HandleMessage(mgmt_rtmsg_type msg_type, connection_t* c, char* msg, BOOL bPre);
+    void WriteLogLine(connection_t *c, char *msg);
+    void WriteStatusLog(connection_t *c, LPCWSTR prefix, LPCWSTR msg);
 public:
     BOOL OnCheckBoxClick(EventCmd *pEvt);
     BOOL OnButtonClick(EventCmd *pEvt);

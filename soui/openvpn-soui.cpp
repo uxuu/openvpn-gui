@@ -340,7 +340,7 @@ static void HandleMessage(connection_t* c, char* msg)
 /**
  * @brief 初始化管理接口消息处理函数
  * @param rtmsg_handler 外部提供的消息处理函数数组，用于初始化消息处理映射表
- * 
+ *
  * @details 该函数首先将外部传入的消息处理函数注册到内部消息处理器数组中，
  *          然后构造本地的消息处理映射表，并调用InitManagement完成最终的初始化。
  *          消息处理映射表以HandleMessage模板函数为统一入口，根据消息类型分发到具体的处理函数。
@@ -361,4 +361,16 @@ VOID WINAPI SOUI_InitManagement(mgmt_rtmsg_handler rtmsg_handler[])
         { timeout_,  HandleMessage<timeout_> },    { mgmt_rtmsg_type_max, NULL }
     };
     InitManagement(handler);
+}
+
+void SOUI_WriteLogLine(connection_t *c, char *msg)
+{
+    auto *obj = STaskSingleton::getInstance();
+    STaskHelper::sendTask(pMainWnd, obj, &STaskSingleton::WriteLogLine, c, msg);
+}
+
+void SOUI_WriteStatusLog(connection_t *c, LPCWSTR prefix, LPCWSTR msg)
+{
+    auto *obj = STaskSingleton::getInstance();
+    STaskHelper::sendTask(pMainWnd, obj, &STaskSingleton::WriteStatusLog, c, prefix, msg);
 }

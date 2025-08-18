@@ -121,12 +121,12 @@
             </window>
         </window>
         <text size="-2, 20dp" />
-        <window width="-2" margin="2dp" colorBkgnd="#cdcccc" display="0" show="0">
+        <window width="-2" margin="2dp" colorBkgnd="#cdcccc" display="1" show="1">
             <window width="-2" margin="0dp" padding="1dp" colorBkgnd="#ffffff" >
                 <richedit width="-2" name="log_viewer" height="165dp" class="cls_edit"
                           font="face:Microsoft Sans Serif,adding:-2dp" sbSkin="skin_scrollbar" multiLines="1"
                           hscrollBar="1" vscrollBar="1" autoHscroll="1" autoVscroll="1" wordWrap="0"
-                          wantTab="1" wantReturn="1" maxBuf="6400000" readOnly="0" />
+                          wantTab="1" wantReturn="1" maxBuf="6400000" readOnly="1" />
             </window>
         </window>
     </scrollview>

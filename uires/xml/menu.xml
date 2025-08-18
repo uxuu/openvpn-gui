@@ -5,6 +5,7 @@
     <item id="22" icon="1">从Access Server导入...</item>
     <item id="23" icon="2">从URL导入...</item>
   </item>
+  <item id="6">主页(&H)</item>
   <item id="7">刷新(&R)</item>
   <item id="8">选项(&S)</item>
   <item id="9">关于(&A)</item>

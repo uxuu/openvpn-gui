@@ -49,8 +49,10 @@ void SOUI_InitPrivKeyPassDialog(connection_t *c, UINT dialogId);
 void SOUI_InitProxyAuthDialog(connection_t *c, UINT dialogId);
 void SOUI_SetWindowHide(HWND hwnd, BOOL bHide);
 void SOUI_SetAutoCloseText(HWND hwnd, LPCTSTR pszText);
-void SOUI_SetWarningText(connection_t* c, LPCTSTR pszText);
-void SOUI_SetWarningColor(connection_t* c, COLORREF clr);
+void SOUI_SetWarningText(connection_t *c, LPCTSTR pszText);
+void SOUI_SetWarningColor(connection_t *c, COLORREF clr);
+void SOUI_WriteLogLine(connection_t *c, char *msg);
+void SOUI_WriteStatusLog(connection_t *c, LPCWSTR prefix, LPCWSTR msg);
 #else
 #define SOUI_InitStatusPage(c)
 #define SOUI_ReleaseStatusPage(c)
@@ -63,6 +65,8 @@ void SOUI_SetWarningColor(connection_t* c, COLORREF clr);
 #define SOUI_SetAutoCloseText(h, t)
 #define SOUI_SetWarningText(c, t)
 #define SOUI_SetWarningColor(c, clr)
+#define SOUI_WriteLogLine(c, m)
+#define SOUI_WriteStatusLog(c, p, m)
 #endif
 
 #ifdef __cplusplus
