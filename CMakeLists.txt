@@ -350,3 +350,6 @@ add_custom_command(
     -p ..\\uires
     -r soui-res.rc
     -h soui-res.h idtable)
+
+set(_UNUSED_VAR ${CMAKE_TOOLCHAIN_FILE})
+unset(_UNUSED_VAR)
