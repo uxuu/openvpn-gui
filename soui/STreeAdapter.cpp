@@ -170,21 +170,15 @@ void STreeAdapter::SetImageState(conn_state_t state, SItemPanel *pItem)
     switch (state)
     {
         case connected:
-            //pItem->FindChildByName(L"img_state")->SetVisible(TRUE);
             pItem->FindChildByName(L"img_state")->SetAttribute(L"iconIndex", L"2");
-            //pItem->FindChildByName(L"gif_state")->SetVisible(FALSE);
             break;
         case connecting:
         case reconnecting:
         case disconnecting:
-            //pItem->FindChildByName(L"img_state")->SetVisible(FALSE);
-            //pItem->FindChildByName(L"gif_state")->SetVisible(TRUE);
             pItem->FindChildByName(L"img_state")->SetAttribute(L"iconIndex", L"1");
             break;
         case disconnected:
-            //pItem->FindChildByName(L"img_state")->SetVisible(TRUE);
             pItem->FindChildByName(L"img_state")->SetAttribute(L"iconIndex", L"0");
-            //pItem->FindChildByName(L"gif_state")->SetVisible(FALSE);
             break;
         case detached:
         case detaching:
@@ -280,7 +274,7 @@ void STreeAdapter::NotifyStateChange()
     }
     if(groups) free(groups);
     notifyBranchChanged(STVI_ROOT);
-    //m_treeView->Invalidate();
+    m_treeView->Invalidate();
 }
 
 /**
@@ -345,13 +339,10 @@ BOOL STreeAdapter::OnButtonClick(EventCmd* pEvt)
     else if (wcscmp(btnName, btn_names[4]) == 0)
     {
         // StatusOpenVPN(ii.data.c);
-        //::SetForegroundWindow(ii.data.c->hwndStatus);
-        //::ShowWindow(ii.data.c->hwndStatus, SW_SHOW);
         STaskSingleton::getInstance()->ShowStatusPage(ii.data.c, TRUE);
     }
     else if (wcscmp(btnName, btn_names[5]) == 0)
     {
-        // LogViewOpenVPN(ii.data.c);
         ViewLog(ii.data.c);
     }
 

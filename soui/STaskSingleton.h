@@ -28,6 +28,8 @@ public:
     BOOL OnCheckBoxClick(EventCmd *pEvt);
     BOOL OnButtonClick(EventCmd *pEvt);
     BOOL OnKeyDown(EventKeyDown *pEvt);
+protected:
+    void SetImageState(connection_t *c);
 private:
     STaskSingleton() {};
     STaskSingleton(STaskSingleton&) = delete;

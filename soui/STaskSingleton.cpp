@@ -520,6 +520,7 @@ void STaskSingleton::HandleMessage(mgmt_rtmsg_type msg_type, connection_t* c, ch
     {
         return;
     }
+    SetImageState(c);
     auto pTree = pMainWnd->FindChildByName2<STreeView>(L"tv_home");
     auto pAdapter = dynamic_cast<STreeAdapter *>(pTree->GetAdapter());
     pAdapter->NotifyStateChange();
@@ -684,4 +685,32 @@ void STaskSingleton::WriteStatusLog(connection_t *c, LPCWSTR prefix, LPCWSTR msg
     {
         pLogWnd->SSendMessage(EM_SCROLL, SB_LINEDOWN, 0);
     }
+}
+
+void STaskSingleton::SetImageState(connection_t *c)
+{
+    auto* pPage = GetStatusPage(c);
+    switch (c->state)
+    {
+        case connected:
+            pPage->FindChildByName(L"img_state")->SetAttribute(L"iconIndex", L"2");
+            break;
+        case connecting:
+        case reconnecting:
+        case disconnecting:
+            pPage->FindChildByName(L"img_state")->SetAttribute(L"iconIndex", L"1");
+            break;
+        case disconnected:
+            pPage->FindChildByName(L"img_state")->SetAttribute(L"iconIndex", L"0");
+            break;
+        case detached:
+        case detaching:
+        case onhold:
+        case resuming:
+        case suspended:
+        default:
+            pPage->FindChildByName(L"img_state")->SetAttribute(L"iconIndex", L"0");
+            break;
+    }
+    pPage->Invalidate();
 }
