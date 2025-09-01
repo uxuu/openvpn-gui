@@ -43,6 +43,7 @@
 #include "openvpn-gui-res.h"
 #include "tray.h"
 #include "config_parser.h"
+#include "hook/reghook.h"
 
 /*
  * Helper function to do base64 conversion through CryptoAPI

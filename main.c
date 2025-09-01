@@ -256,6 +256,7 @@ _tWinMain(HINSTANCE hThisInstance,
     PrintDebug(_T("Shell32.dll version: 0x%lx"), shell32_version);
 #endif
 
+    SetConfigMode();
     if (first_instance)
     {
         UpdateRegistry(); /* Checks version change and update keys/values */

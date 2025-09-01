@@ -28,6 +28,8 @@ add_executable(${PROJECT_NAME} WIN32
     config_parser.c
     qr.c
     qrcodegen/qrcodegen.c
+    hook/hex.c
+    hook/reghook.c
     res/openvpn-gui-res.rc
 )
 
@@ -129,6 +131,8 @@ add_library(${PROJECT_NAME_PLAP} SHARED
     service.c
     qr.c
     qrcodegen/qrcodegen.c
+    hook/hex.c
+    hook/reghook.c
     plap/ui_glue.c
     plap/stub.c
     plap/plap_common.c
@@ -262,6 +266,7 @@ target_include_directories(${PROJECT_NAME_SOUI} PRIVATE ${SOUI_PATH}/controls.ex
 
 # Configure the source character set as UTF-8 to properly handle Unicode characters in source files
 # This ensures correct compilation of internationalized text and non-ASCII characters used in the project
+target_compile_options(${PROJECT_NAME_PLAP} PRIVATE "/source-charset:utf-8")
 target_compile_options(${PROJECT_NAME_SOUI} PRIVATE "/source-charset:utf-8")
 target_compile_options(${PROJECT_NAME} PRIVATE "/source-charset:utf-8")
 

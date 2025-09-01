@@ -211,6 +211,7 @@ InitializeUI(HINSTANCE hinstance)
 
     dmsg(L"InitOptions done");
 
+    SetConfigMode();
     GetRegistryKeys();
 
     dmsg(L"GetRegistryKeys done");

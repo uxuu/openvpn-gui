@@ -113,6 +113,7 @@ GetGlobalRegistryKeys()
         }
         /* Use a sane default value */
         _sntprintf_0(o.install_path, _T("%ls"), _T("C:\\Program Files\\OpenVPN\\"));
+        GetInstallPath(o.install_path, sizeof(o.install_path));
     }
     if (o.install_path[_tcslen(o.install_path) - 1] != _T('\\'))
     {
