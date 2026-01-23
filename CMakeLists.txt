@@ -188,6 +188,7 @@ target_compile_definitions(${TEST_PLAP_EXE} PRIVATE
     HAVE_CONFIG_H)
 
 target_compile_options(${PROJECT_NAME} PRIVATE "$<$<CONFIG:Release>:/Zi>")
+target_compile_options(${PROJECT_NAME} PRIVATE "/source-charset:utf-8")
 target_link_options(${PROJECT_NAME} PRIVATE
     "$<$<CONFIG:Release>:/DEBUG:FULL>"
     "$<$<CONFIG:Release>:/OPT:REF>"
