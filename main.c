@@ -51,7 +51,8 @@
 #include "echo.h"
 #include "as.h"
 
-#include "soui/openvpn-soui.h"
+#include "soui/openvpn-bridge.h"
+#include "soui/openvpn-mgmt.h"
 
 #define OVPN_EXITCODE_ERROR    1
 #define OVPN_EXITCODE_TIMEOUT  2

@@ -10,9 +10,9 @@
 
 using namespace SOUI;
 
-#include "openvpn-ex.h"
+#include "openvpn-export.h"
 #include "STreeAdapter.h"
-#include "STaskSingleton.h"
+#include "SPageMgr.h"
 
 /**
  * @brief Constructor for the STreeAdapter class.
@@ -339,7 +339,7 @@ BOOL STreeAdapter::OnButtonClick(EventCmd* pEvt)
     else if (wcscmp(btnName, btn_names[4]) == 0)
     {
         // StatusOpenVPN(ii.data.c);
-        STaskSingleton::getInstance()->ShowStatusPage(ii.data.c, TRUE);
+        SPageMgr::getSingleton().ShowStatusPage(ii.data.c, TRUE);
     }
     else if (wcscmp(btnName, btn_names[5]) == 0)
     {

@@ -64,7 +64,7 @@
 #include "service.h"
 #include "qr.h"
 
-#include "soui/openvpn-soui.h"
+#include "soui/openvpn-bridge.h"
 
 #define OPENVPN_SERVICE_PIPE_NAME_OVPN2 L"\\\\.\\pipe\\openvpn\\service"
 #define OPENVPN_SERVICE_PIPE_NAME_OVPN3 L"\\\\.\\pipe\\ovpnagent"

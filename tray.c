@@ -38,7 +38,7 @@
 #include "openvpn-gui-res.h"
 #include "localization.h"
 #include "misc.h"
-#include "soui/openvpn-soui.h"
+#include "soui/openvpn-bridge.h"
 
 #ifndef GUID_NULL
 #include <initguid.h>

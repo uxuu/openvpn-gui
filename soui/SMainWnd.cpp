@@ -8,12 +8,12 @@
  */
 
 #include "souistd.h"
-#include <STurn3DView.h>
 
 using namespace SOUI;
 
-#include "openvpn-ex.h"
+#include "openvpn-export.h"
 #include "STreeAdapter.h"
+#include "SPageMgr.h"
 #include "SMainWnd.h"
 
 /**
@@ -88,6 +88,7 @@ void SMainWnd::OnShowWindow(BOOL bShow, UINT nStatus)
 BOOL SMainWnd::OnInitDialog(HWND hWnd, LPARAM lParam)
 {
     m_bLayoutInited = TRUE;
+    SPageMgr::getSingleton(FindChildByName2<STabCtrlEx>(L"tab_main"));
     auto* pTree = FindChildByName2<STreeView>(L"tv_home");
     if (pTree)
     {
@@ -205,7 +206,7 @@ void SMainWnd::OnCommand( UINT uNotifyCode, int nID, HWND wndCtl )
             SendMessage(WM_SYSCOMMAND, SC_CLOSE);
             break;
         case 9:
-            ShowPage(_T("page_about"));
+            SPageMgr::getSingleton().ShowPage(_T("page_about"));
             break;
         case 8:
             ShowSettingsDialog();
@@ -217,7 +218,7 @@ void SMainWnd::OnCommand( UINT uNotifyCode, int nID, HWND wndCtl )
             pAdapter->NotifyStateChange();
             break;
         case 6:
-            ShowPage(_T("page_home"));
+            SPageMgr::getSingleton().ShowPage(_T("page_home"));
             break;
         default:
             SetMsgHandled(FALSE);
@@ -237,35 +238,4 @@ void SMainWnd::OnMouseClick(EventArgs* pEvt)
             AutoCloseCancel(c->hwndDlg);
         }
     }
-}
-
-/**
- * @brief Displays a specific page by index.
- * @param nIndex Index of the page to display.
- */
-void SMainWnd::ShowPage(int nIndex)
-{
-    auto *pTab = FindChildByName2<STabCtrl>(L"tab_main");
-    if (pTab)
-    {
-        if (nIndex < 0 || nIndex == pTab->GetCurSel())
-        {
-            return;
-        }
-        ShowHostWnd(SW_HIDE, TRUE);
-        pTab->SetCurSel(nIndex);
-        ShowHostWnd(SW_SHOW, TRUE);
-    }
-}
-
-/**
- * @brief Displays a specific page by name.
- * @param pszName Name of the page to display.
- * @param bTitle Indicates whether the page title is used.
- */
-void SMainWnd::ShowPage(LPCTSTR pszName, BOOL bTitle)
-{
-    auto *pTab = FindChildByName2<STabCtrl>(L"tab_main");
-    int nIndex = pTab->GetPageIndex(pszName, bTitle);
-    ShowPage(nIndex);
 }

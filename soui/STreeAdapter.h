@@ -10,6 +10,8 @@
 
 #include <helper/SAdapterBase.h>
 
+#include "openvpn-export.h"
+
 struct ItemData
 {
     INT32 gid{};

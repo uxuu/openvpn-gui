@@ -5,7 +5,9 @@
  * @author UxGood <uxgood.org@gmail.com>
  * @date 2025-06-25
  */
-#pragma once
+
+#ifndef SOUI_ATTRSTORAGE_H
+#define SOUI_ATTRSTORAGE_H
 
 #include <map>
 #include <string>
@@ -65,3 +67,5 @@ public:
      */
     std::map<std::wstring, std::wstring> m_attrs;
 };
+
+#endif // SOUI_ATTRSTORAGE_H

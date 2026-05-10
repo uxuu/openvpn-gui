@@ -6,7 +6,8 @@
  * @date 2025-03-05
  */
 
-#pragma once
+#ifndef SOUI_TABCTLEX_H
+#define SOUI_TABCTLEX_H
 
 #include <control/STabCtrl.h>
 
@@ -27,3 +28,5 @@ public:
 protected:
 	SXmlDoc m_xmlTpl; ///< XML document template used by the tab control.
 };
+
+#endif // SOUI_TABCTLEX_H

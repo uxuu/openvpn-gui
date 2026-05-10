@@ -228,9 +228,10 @@ message(STATUS "SOUI_MAJOR: ${SOUI_MAJOR}")
 message(STATUS "SOUI_MINOR: ${SOUI_MINOR}")
 
 if (NOT PROJECT_NAME_SOUI)
-    set(PROJECT_NAME_SOUI "soui")
+    set(PROJECT_NAME_SOUI "libopenvpn_soui")
 endif()
 
+# Static library providing OpenVPN-GUI integration with SOUI framework
 add_library(${PROJECT_NAME_SOUI} STATIC
     ${SOUI_PATH}/controls.extend/gif/SGifPlayer.cpp
     ${SOUI_PATH}/controls.extend/STurn3DView.cpp
@@ -240,9 +241,13 @@ add_library(${PROJECT_NAME_SOUI} STATIC
     soui/STabCtrlEx.cpp
     soui/STreeAdapter.cpp
     soui/SMainWnd.cpp
-    soui/STaskSingleton.cpp
-    soui/openvpn-soui.cpp)
+    soui/SPageMgr.cpp
+    soui/openvpn-bridge.cpp
+    soui/openvpn-helpers.cpp
+    soui/openvpn-mgmt.cpp
+    soui/openvpn-misc.cpp)
 
+# SOUI v4 compatibility: use different GIF skin implementation
 if (${SOUI_MAJOR} STREQUAL "4")
     target_sources(${PROJECT_NAME_SOUI} PRIVATE ${SOUI_PATH}/controls.extend/gif/SSkinGif.cpp)
 else()
@@ -270,7 +275,7 @@ if(CMAKE_VS_PLATFORM_NAME STREQUAL "arm64")
 endif()
 
 # Configure SOUI build options and features
-# Disable demos games tools builds, enable Spectre mitigations, enable richedit builds
+# Do not build demos/games/tools, build the RichEdit module and enable Spectre mitigations
 # and pass through the SOUI library linking options
 option(SOUI_BUILD_DEMOS "" OFF)
 option(SOUI_BUILD_GAMES "" OFF)
@@ -280,7 +285,11 @@ option(SOUI_ENABLE_SPECTRE "" ON)
 option(SOUI_ENABLE_CORE_LIB "" ON)
 option(SOUI_ENABLE_COM_LIB "" ON)
 
-# Configure SOUI library linking options - allows choosing between dynamic and static linking
+# Add SOUI library as a subdirectory to be built as part of the project
+# This includes the SOUI UI framework which is essential for the GUI
+add_subdirectory(${SOUI_PATH} soui4)
+
+# Configure SOUI library linking options - allow choosing between dynamic and static linking
 # By default, dynamic linking is used (DLL_CORE and DLL_SOUI_COM)
 # Users can opt for static linking by setting SOUI_ENABLE_CORE_LIB and/or SOUI_ENABLE_COM_LIB to ON
 set(SOUI_DEFINES DLL_CORE DLL_SOUI_COM)
@@ -292,6 +301,7 @@ if(SOUI_ENABLE_COM_LIB)
     list(TRANSFORM SOUI_DEFINES REPLACE "DLL_SOUI_COM" "LIB_SOUI_COM")
 endif()
 
+# Add include directories required to build with SOUI framework
 target_include_directories(${PROJECT_NAME_SOUI} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(${PROJECT_NAME_SOUI} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(${PROJECT_NAME_SOUI} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -299,6 +309,7 @@ target_include_directories(${PROJECT_NAME_SOUI} PRIVATE ${SOUI_PATH}/utilities/i
 target_include_directories(${PROJECT_NAME_SOUI} PRIVATE ${SOUI_PATH}/SOUI/include)
 target_include_directories(${PROJECT_NAME_SOUI} PRIVATE ${SOUI_PATH}/controls.extend)
 
+# Include system resources for static SOUI builds
 if(SOUI_ENABLE_COM_LIB AND SOUI_ENABLE_CORE_LIB)
     target_include_directories(${PROJECT_NAME} PRIVATE ${SOUI_PATH}/soui-sys-resource)
 endif()
@@ -308,15 +319,11 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE ${SOUI_DEFINES})
 
 target_link_libraries(${PROJECT_NAME} PRIVATE soui4 utilities4)
 
-# Add SOUI library as a subdirectory to be built as part of the project
-# This includes the SOUI UI framework which is essential for the GUI components
-add_subdirectory(${SOUI_PATH} soui4)
-
 # Configure SOUI framework subdirectories and targets
 # This block collects all SOUI subdirectories recursively, then configures each target
 # to be excluded from the main build (EXCLUDE_FROM_ALL ON) and sets their output
 # directories to the current binary directory. This ensures SOUI is built as a dependency
-# with its outputs placed in the correct location for the openvpn-gui project to use.
+# with its outputs placed in the correct location for the OpenVPN-GUI project to use.
 function(get_subdirectory subdir ret)
     set(subdirs ${${ret}})
     get_property(subdirs2 DIRECTORY ${subdir} PROPERTY SUBDIRECTORIES)
@@ -329,6 +336,7 @@ endfunction()
 
 get_subdirectory(${SOUI_PATH} SOUI_SUBDIRS)
 
+# Configure all SOUI targets: exclude from default build, set output directory to current binary directory
 foreach (subdir ${SOUI_SUBDIRS})
     get_property(targets DIRECTORY ${subdir} PROPERTY BUILDSYSTEM_TARGETS)
     foreach (target ${targets})
@@ -340,7 +348,7 @@ foreach (subdir ${SOUI_SUBDIRS})
 endforeach ()
 
 # Define SOUI library dependencies and add them to the project
-# These are the core SOUI components required for the GUI functionality
+# These are the core SOUI components required for the GUI
 # Including image decoders, resource providers, renderers, and utility libraries
 set(SOUI_LIBS
     soui4
@@ -364,16 +372,22 @@ endif()
 
 add_dependencies(${PROJECT_NAME_SOUI} ${SOUI_LIBS})
 
+# Link full SOUI dependency set when using static COM module
 if(SOUI_ENABLE_COM_LIB)
     target_link_libraries(${PROJECT_NAME} PRIVATE ${SOUI_LIBS})
 endif()
 
+# Generate SOUI UI resource header and RC file from UI definition
+# Uses uiresbuilder.exe to compile XML UI resources into C headers
 add_custom_command(
-    TARGET ${PROJECT_NAME}
-    PRE_BUILD
+    OUTPUT  soui-res.h soui-res.rc
     COMMAND ${SOUI_PATH}/tools/uiresbuilder.exe
-    -i ${PROJECT_SOURCE_DIR}/uires/uires.idx
-    -p ..\\uires
+    -i ${CMAKE_CURRENT_SOURCE_DIR}/uires/uires.idx
+    -p ../uires
     -r soui-res.rc
-    -h soui-res.h idtable)
+    -h soui-res.h idtable
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/uires/uires.idx
+    VERBATIM)
 
+add_custom_target(soui_res_gen ALL DEPENDS soui-res.h soui-res.rc)
+add_dependencies(${PROJECT_NAME_SOUI} soui_res_gen)

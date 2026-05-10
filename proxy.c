@@ -42,7 +42,7 @@
 #include "openvpn.h"
 #include "misc.h"
 
-#include "soui/openvpn-soui.h"
+#include "soui/openvpn-bridge.h"
 
 extern options_t o;
 

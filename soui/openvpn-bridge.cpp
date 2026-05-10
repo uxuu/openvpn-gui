@@ -1,10 +1,9 @@
 /**
- * @file openvpn-soui.cpp
- * @brief Implementation of main window functions for the OpenVPN GUI application.
- * @details This source file contains the implementation for the main window functions
- *          and the message loop for the OpenVPN GUI application.
+ * @file openvpn-bridge.c
+ * @brief Implements bridge functionalities for OpenVPN.
+ * @details This file contains the implements of various bridge functions and utilities for OpenVPN.
  * @author UxGood <uxgood.org@gmail.com>
- * @date 2025-03-05
+ * @date 2026-05-10
  */
 
 #include <souistd.h>
@@ -28,15 +27,15 @@
 
 using namespace SOUI;
 
-#include "openvpn-ex.h"
+#include "openvpn-export.h"
 
 #include "STabCtrlEx.h"
 #include "SMainWnd.h"
 #include "SAttrStorage.h"
 #include "SAttrStorageFactory.h"
-#include "STaskSingleton.h"
+#include "SPageMgr.h"
 
-#include "openvpn-soui.h"
+#include "openvpn-bridge.h"
 
 #define SYS_NAMED_RESOURCE _T("soui-sys-resource.dll")
 
@@ -108,7 +107,15 @@ VOID WINAPI SOUI_Init(HINSTANCE hInstance)
         pComMgr = new SComMgr3(GetImgDecoder());
 
         GetRenderFactory((IObjRef**)&pRenderFactory, pComMgr);
+        if (!pRenderFactory)
+        {
+            return;
+        }
         pComMgr->CreateImgDecoder((IObjRef**)&pImgDecoderFactory);
+        if (!pImgDecoderFactory)
+        {
+            return;
+        }
         pRenderFactory->SetImgDecoderFactory(pImgDecoderFactory);
         pImgDecoderFactory = NULL;
         pApp = new SApplication(pRenderFactory, hInstance, _T(PACKAGE_NAME));
@@ -124,14 +131,21 @@ VOID WINAPI SOUI_Init(HINSTANCE hInstance)
         pApp->RegisterSkinClass<SSkinAni>();
 #endif
 
-        HMODULE hSysResource = LoadLibrary(SYS_NAMED_RESOURCE);
-        if (hSysResource)
+#if (defined(LIB_CORE) && defined(LIB_SOUI_COM))
+        HMODULE hSysRes = pApp->GetModule();
+#else
+        HMODULE hSysRes = LoadLibrary(SYS_NAMED_RESOURCE);
+#endif
+        if (hSysRes)
         {
             CAutoRefPtr<IResProvider> pResProvider;
             pResProvider.Attach(souiFac.CreateResProvider(RES_PE));
-            pResProvider->Init((WPARAM)hSysResource, 0);
+            pResProvider->Init((WPARAM)hSysRes, 0);
             pApp->LoadSystemNamedResource(pResProvider);
         }
+#if (!(defined(LIB_CORE) && defined(LIB_SOUI_COM)))
+        FreeLibrary(hSysRes);
+#endif
 
         CAutoRefPtr<IResProvider> pResProvider;
         pResProvider.Attach(LoadResource(&souiFac, hInstance));
@@ -200,8 +214,8 @@ VOID WINAPI SOUI_ShowMainWnd(BOOL bShow)
  */
 void SOUI_InitStatusPage(connection_t *c)
 {
-    auto *obj = STaskSingleton::getInstance();
-    STaskHelper::sendTask(pMainWnd, obj, &STaskSingleton::InitStatusPage, c);
+    auto *obj = SPageMgr::getSingletonPtr();
+    STaskHelper::sendTask(pMainWnd, obj, &SPageMgr::InitStatusPage, c);
 }
 
 /**
@@ -210,8 +224,8 @@ void SOUI_InitStatusPage(connection_t *c)
  */
 void SOUI_ReleaseStatusPage(connection_t *c)
 {
-    auto *obj = STaskSingleton::getInstance();
-    STaskHelper::sendTask(pMainWnd, obj, &STaskSingleton::ReleaseStatusPage, c);
+    auto *obj = SPageMgr::getSingletonPtr();
+    STaskHelper::sendTask(pMainWnd, obj, &SPageMgr::ReleaseStatusPage, c);
 }
 
 /**
@@ -221,32 +235,32 @@ void SOUI_ReleaseStatusPage(connection_t *c)
  */
 void SOUI_ShowStatusPage(connection_t *c, BOOL bShow)
 {
-    auto *obj = STaskSingleton::getInstance();
-    STaskHelper::sendTask(pMainWnd, obj, &STaskSingleton::ShowStatusPage, c, bShow);
+    auto *obj = SPageMgr::getSingletonPtr();
+    STaskHelper::sendTask(pMainWnd, obj, &SPageMgr::ShowStatusPage, c, bShow);
 }
 
 void SOUI_InitUserAuthDialog(auth_param_t *param, UINT dialogId)
 {
-    auto *obj = STaskSingleton::getInstance();
-    STaskHelper::sendTask(pMainWnd, obj, &STaskSingleton::InitUserAuthDialog, param, dialogId);
+    auto *obj = SPageMgr::getSingletonPtr();
+    STaskHelper::sendTask(pMainWnd, obj, &SPageMgr::InitUserAuthDialog, param, dialogId);
 }
 
 void SOUI_InitGenericPassDialog(auth_param_t *param, UINT dialogId)
 {
-    auto *obj = STaskSingleton::getInstance();
-    STaskHelper::sendTask(pMainWnd, obj, &STaskSingleton::InitGenericPassDialog, param, dialogId);
+    auto *obj = SPageMgr::getSingletonPtr();
+    STaskHelper::sendTask(pMainWnd, obj, &SPageMgr::InitGenericPassDialog, param, dialogId);
 }
 
 void SOUI_InitPrivKeyPassDialog(connection_t *c, UINT dialogId)
 {
-    auto *obj = STaskSingleton::getInstance();
-    STaskHelper::sendTask(pMainWnd, obj, &STaskSingleton::InitPrivKeyPassDialog, c, dialogId);
+    auto *obj = SPageMgr::getSingletonPtr();
+    STaskHelper::sendTask(pMainWnd, obj, &SPageMgr::InitPrivKeyPassDialog, c, dialogId);
 }
 
 void SOUI_InitProxyAuthDialog(connection_t *c, UINT dialogId)
 {
-    auto *obj = STaskSingleton::getInstance();
-    STaskHelper::sendTask(pMainWnd, obj, &STaskSingleton::InitProxyAuthDialog, c, dialogId);
+    auto *obj = SPageMgr::getSingletonPtr();
+    STaskHelper::sendTask(pMainWnd, obj, &SPageMgr::InitProxyAuthDialog, c, dialogId);
 }
 
 /**
@@ -291,8 +305,8 @@ void SOUI_SetWindowHide(HWND hwnd, BOOL bHide)
 void SOUI_SetAutoCloseText(HWND hwnd, LPCTSTR pszText)
 {
     auth_param_t *param = static_cast<auth_param_t *>(GetPropW(hwnd, cfgProp));
-    auto *obj = STaskSingleton::getInstance();
-    STaskHelper::sendTask(pMainWnd, obj, &STaskSingleton::SetWarningText, param->c, pszText);
+    auto *obj = SPageMgr::getSingletonPtr();
+    STaskHelper::sendTask(pMainWnd, obj, &SPageMgr::SetWarningText, param->c, pszText);
 }
 
 /**
@@ -302,8 +316,8 @@ void SOUI_SetAutoCloseText(HWND hwnd, LPCTSTR pszText)
  */
 void SOUI_SetWarningText(connection_t* c, LPCTSTR pszText)
 {
-    auto *obj = STaskSingleton::getInstance();
-    STaskHelper::sendTask(pMainWnd, obj, &STaskSingleton::SetWarningText, c, pszText);
+    auto *obj = SPageMgr::getSingletonPtr();
+    STaskHelper::sendTask(pMainWnd, obj, &SPageMgr::SetWarningText, c, pszText);
 }
 
 /**
@@ -313,64 +327,18 @@ void SOUI_SetWarningText(connection_t* c, LPCTSTR pszText)
  */
 void SOUI_SetWarningColor(connection_t* c,COLORREF clr)
 {
-    auto *obj = STaskSingleton::getInstance();
-    STaskHelper::sendTask(pMainWnd, obj, &STaskSingleton::SetWarningColor, c, clr);
-}
-
-
-static mgmt_msg_func msg_handler[mgmt_rtmsg_type_max];
-
-/**
- * @brief 处理管理接口消息的模板函数
- * @tparam msg_type 消息类型
- * @param c 连接对象指针
- * @param msg 消息内容
- */
-template<mgmt_rtmsg_type msg_type>
-static void HandleMessage(connection_t* c, char* msg)
-{
-    DbgPrintf(_T("%s(%d): msg_type=%d,%hs"), _T(__FUNCTION__), __LINE__,msg_type, msg);
-    auto *obj = STaskSingleton::getInstance();
-    STaskHelper::sendTask(pMainWnd, obj, &STaskSingleton::HandleMessage, msg_type, c, msg, TRUE);
-    msg_handler[msg_type](c, msg);
-    STaskHelper::sendTask(pMainWnd, obj, &STaskSingleton::HandleMessage, msg_type, c, msg, FALSE);
-}
-
-
-/**
- * @brief 初始化管理接口消息处理函数
- * @param rtmsg_handler 外部提供的消息处理函数数组，用于初始化消息处理映射表
- *
- * @details 该函数首先将外部传入的消息处理函数注册到内部消息处理器数组中，
- *          然后构造本地的消息处理映射表，并调用InitManagement完成最终的初始化。
- *          消息处理映射表以HandleMessage模板函数为统一入口，根据消息类型分发到具体的处理函数。
- */
-VOID WINAPI SOUI_InitManagement(mgmt_rtmsg_handler rtmsg_handler[])
-{
-    for (int i = 0; rtmsg_handler[i].handler; ++i)
-    {
-        msg_handler[rtmsg_handler[i].type] = rtmsg_handler[i].handler;
-    }
-    mgmt_rtmsg_handler handler[] = {
-        { ready_,    HandleMessage<ready_> },      { hold_,     HandleMessage<hold_> },
-        { log_,      HandleMessage<log_> },        { state_,    HandleMessage<state_> },
-        { password_, HandleMessage<password_> },   { proxy_,    HandleMessage<proxy_> },
-        { stop_,     HandleMessage<stop_> },       { needok_,   HandleMessage<needok_> },
-        { needstr_,  HandleMessage<needstr_> },    { echo_,     HandleMessage<echo_> },
-        { bytecount_, HandleMessage<bytecount_> }, { infomsg_,  HandleMessage<infomsg_> },
-        { timeout_,  HandleMessage<timeout_> },    { mgmt_rtmsg_type_max, NULL }
-    };
-    InitManagement(handler);
+    auto *obj = SPageMgr::getSingletonPtr();
+    STaskHelper::sendTask(pMainWnd, obj, &SPageMgr::SetWarningColor, c, clr);
 }
 
 void SOUI_WriteLogLine(connection_t *c, char *msg)
 {
-    auto *obj = STaskSingleton::getInstance();
-    STaskHelper::sendTask(pMainWnd, obj, &STaskSingleton::WriteLogLine, c, msg);
+    auto *obj = SPageMgr::getSingletonPtr();
+    STaskHelper::sendTask(pMainWnd, obj, &SPageMgr::WriteLogLine, c, msg);
 }
 
 void SOUI_WriteStatusLog(connection_t *c, LPCWSTR prefix, LPCWSTR msg)
 {
-    auto *obj = STaskSingleton::getInstance();
-    STaskHelper::sendTask(pMainWnd, obj, &STaskSingleton::WriteStatusLog, c, prefix, msg);
+    auto *obj = SPageMgr::getSingletonPtr();
+    STaskHelper::sendTask(pMainWnd, obj, &SPageMgr::WriteStatusLog, c, prefix, msg);
 }

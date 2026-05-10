@@ -1,90 +1,152 @@
+/**
+ * @file SPageMgr.cpp
+ * @brief Source file for the SPageMgr class, which provides functionality
+ *        for managing tab pages and handling page interactions.
+ * @details This file contains the implementation of page management functions.
+ *          It provides methods for initializing, releasing, and showing status pages.
+ * @author UxGood <uxgood.org@gmail.com>
+ * @date 2026-05-10
+ */
+
 #include <souistd.h>
 #include <helper/SFunctor.hpp>
 #include <STurn3DView.h>
 
 using namespace SOUI;
 
-#include "openvpn-ex.h"
-#include "SMainWnd.h"
 #include "STreeAdapter.h"
+#include "SPageMgr.h"
 
-#include "STaskSingleton.h"
+#include "openvpn-export.h"
 
-#define PAGE_NAME(buf, c) \
-_stprintf_s(buf, _countof(buf), _T("page_%08x"), c->id)
+#define PAGE_NAME(buf, c) _stprintf_s(buf, _countof(buf), _T("page_%08x"), c->id)
 
-extern SMainWnd *pMainWnd;
-
-STaskSingleton *STaskSingleton::getInstance()
+SPageMgr &SPageMgr::getSingleton(STabCtrlEx *pTab)
 {
-    static STaskSingleton instance;
-    return &instance;
+    static SPageMgr inst;
+    if (pTab != NULL)
+    {
+        inst.m_pTab = pTab;
+    }
+    return inst;
 }
 
-void STaskSingleton::InitStatusPage(connection_t *c)
+SPageMgr *SPageMgr::getSingletonPtr(STabCtrlEx *pTab)
 {
-    TCHAR pageName[16];
-    PAGE_NAME(pageName, c);
-    auto* pTab = pMainWnd->FindChildByName2<STabCtrlEx>(L"tab_main");
-    int nIndex = pTab->GetPageIndex(pageName, TRUE);
-    if (nIndex < 0)
+    return &getSingleton(pTab);
+}
+
+void SPageMgr::ShowPage(int nIndex)
+{
+    if (!m_pTab)
     {
-        nIndex = pTab->InsertItem();
-        pTab->SetItemTitle(nIndex, pageName);
+        return;
     }
 
-    auto* pPage = pTab->GetItem(nIndex);
+    if (nIndex < 0 || nIndex == m_pTab->GetCurSel())
+    {
+        return;
+    }
+    reinterpret_cast<SHostWnd *>(m_pTab->GetRoot())->ShowHostWnd(SW_HIDE, TRUE);
+    m_pTab->SetCurSel(nIndex);
+    reinterpret_cast<SHostWnd *>(m_pTab->GetRoot())->ShowHostWnd(SW_SHOW, TRUE);
+}
+
+void SPageMgr::ShowPage(LPCTSTR pszName, BOOL bTitle)
+{
+    if (!m_pTab)
+    {
+        return;
+    }
+
+    ShowPage(m_pTab->GetPageIndex(pszName, bTitle));
+}
+
+void SPageMgr::InitStatusPage(connection_t *c)
+{
+    if (!m_pTab)
+    {
+        return;
+    }
+
+    TCHAR pageName[16];
+    PAGE_NAME(pageName, c);
+    int nIndex = m_pTab->GetPageIndex(pageName, TRUE);
+    if (nIndex < 0)
+    {
+        nIndex = m_pTab->InsertItem();
+        m_pTab->SetItemTitle(nIndex, pageName);
+    }
+
+    auto* pPage = m_pTab->GetItem(nIndex);
+    if (!pPage)
+    {
+        return;
+    }
     pPage->FindChildByName2<SWindow>(L"txt_name")->SetWindowText(c->config_name);
 }
 
-void STaskSingleton::ReleaseStatusPage(connection_t *c)
+void SPageMgr::ReleaseStatusPage(connection_t *c)
 {
-    auto* pTab = pMainWnd->FindChildByName2<STabCtrlEx>(L"tab_main");
-    int nIndex = GetStatusPageIndex(c, pTab);
-    if (nIndex >= 0)
+    if (!m_pTab)
     {
-        if (pTab->GetCurSel() == nIndex)
-        {
-            pMainWnd->ShowPage(_T("page_home"));
-        }
-        pTab->RemoveItem(nIndex);
+        return;
     }
+
+    int nIndex = GetStatusPageIndex(c);
+    if (nIndex < 0)
+    {
+        return;
+    }
+    if (m_pTab->GetCurSel() == nIndex)
+    {
+        ShowPage(_T("page_home"), TRUE);
+    }
+    m_pTab->RemoveItem(nIndex);
 }
 
-void STaskSingleton::ShowStatusPage(connection_t *c, BOOL bShow)
+void SPageMgr::ShowStatusPage(connection_t *c, BOOL bShow)
 {
     if (bShow)
     {
-        pMainWnd->ShowPage(GetStatusPageIndex(c));
-    } else
+        ShowPage(GetStatusPageIndex(c));
+    }
+    else
     {
         GetStatusWindow(c)->SetVisible(FALSE);
-        pMainWnd->ShowPage(_T("page_home"), TRUE);
+        ShowPage(_T("page_home"), TRUE);
     }
 }
 
-int STaskSingleton::GetStatusPageIndex(connection_t *c, STabCtrlEx *pTab)
+int SPageMgr::GetStatusPageIndex(connection_t *c)
 {
     TCHAR pageName[16];
     PAGE_NAME(pageName, c);
-    if (pTab == NULL)
+
+    if (!m_pTab)
     {
-        pTab = pMainWnd->FindChildByName2<STabCtrlEx>(L"tab_main");
+        return -1;
     }
-    return pTab->GetPageIndex(pageName, TRUE);
+
+    return m_pTab->GetPageIndex(pageName, TRUE);
 }
 
-STabPage *STaskSingleton::GetStatusPage(connection_t *c, STabCtrlEx *pTab)
+STabPage *SPageMgr::GetStatusPage(connection_t *c)
 {
-    if (pTab == NULL)
+    if (!m_pTab)
     {
-        pTab = pMainWnd->FindChildByName2<STabCtrlEx>(L"tab_main");
+        return NULL;
     }
-    int nIndex = GetStatusPageIndex(c, pTab);
-    return pTab->GetItem(nIndex);
+
+    int nIndex = GetStatusPageIndex(c);
+    if (nIndex < 0)
+    {
+        return NULL;
+    }
+    return m_pTab->GetItem(nIndex);
 }
 
-STabPage *STaskSingleton::GetStatusPage(SWindow *pWnd)
+STabPage *SPageMgr::GetStatusPage(SWindow *pWnd)
 {
     LPCWSTR clsName = NULL;
     do
@@ -99,7 +161,7 @@ STabPage *STaskSingleton::GetStatusPage(SWindow *pWnd)
     return NULL;
 }
 
-SWindow *STaskSingleton::GetStatusWindow(connection_t *c, STabPage *pPage)
+SWindow *SPageMgr::GetStatusWindow(connection_t *c, STabPage *pPage)
 {
     if (pPage == NULL)
     {
@@ -122,13 +184,21 @@ SWindow *STaskSingleton::GetStatusWindow(connection_t *c, STabPage *pPage)
     }
 }
 
-void STaskSingleton::InitUserAuthDialog(auth_param_t *param, UINT dialogId)
+void SPageMgr::InitUserAuthDialog(auth_param_t *param, UINT dialogId)
 {
     WCHAR username[USER_PASS_LEN] = L"";
     WCHAR password[USER_PASS_LEN] = L"";
     param->c->dialogId = dialogId;
     auto *pPage = GetStatusPage(param->c);
+    if (!pPage)
+    {
+        return ;
+    }
     auto *pWnd = GetStatusWindow(param->c, pPage);
+    if (!pWnd)
+    {
+        return ;
+    }
 
     if (param->str)
     {
@@ -199,35 +269,43 @@ void STaskSingleton::InitUserAuthDialog(auth_param_t *param, UINT dialogId)
 
     if (param->c->state == resuming)
     {
-        ForceForegroundWindow(pMainWnd->GetHwnd());
+        ForceForegroundWindow(m_pTab->GetHostHwnd());
     }
     else
     {
-        SetForegroundWindow(pMainWnd->GetHwnd());
+        SetForegroundWindow(m_pTab->GetHostHwnd());
     }
 
     pPage->SetUserData(reinterpret_cast<ULONG_PTR>(param->c));
     //pWnd->FindChildByName2<SButton>(L"btn_confirm")->EnableWindow(FALSE);
-    pWnd->FindChildByName2<SButton>(L"btn_confirm")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&STaskSingleton::OnButtonClick, this));
-    pWnd->FindChildByName2<SButton>(L"btn_cancel")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&STaskSingleton::OnButtonClick, this));
-    pWnd->FindChildByName2<SCheckBox>(L"chk_savepass")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&STaskSingleton::OnCheckBoxClick, this));
-    pWnd->FindChildByName2<SButton>(L"btn_password")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&STaskSingleton::OnButtonClick, this));
-    pWnd->FindChildByName2<SEdit>(L"edt_username")->GetEventSet()->subscribeEvent(EventKeyDown::EventID,Subscriber(&STaskSingleton::OnKeyDown, this));
-    pWnd->FindChildByName2<SEdit>(L"edt_password")->GetEventSet()->subscribeEvent(EventKeyDown::EventID,Subscriber(&STaskSingleton::OnKeyDown, this));
+    pWnd->FindChildByName2<SButton>(L"btn_confirm")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&SPageMgr::OnButtonClick, this));
+    pWnd->FindChildByName2<SButton>(L"btn_cancel")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&SPageMgr::OnButtonClick, this));
+    pWnd->FindChildByName2<SCheckBox>(L"chk_savepass")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&SPageMgr::OnCheckBoxClick, this));
+    pWnd->FindChildByName2<SButton>(L"btn_password")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&SPageMgr::OnButtonClick, this));
+    pWnd->FindChildByName2<SEdit>(L"edt_username")->GetEventSet()->subscribeEvent(EventKeyDown::EventID,Subscriber(&SPageMgr::OnKeyDown, this));
+    pWnd->FindChildByName2<SEdit>(L"edt_password")->GetEventSet()->subscribeEvent(EventKeyDown::EventID,Subscriber(&SPageMgr::OnKeyDown, this));
     if (dialogId == ID_DLG_AUTH_CHALLENGE)
     {
-        pWnd->FindChildByName2<SButton>(L"btn_challenge")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&STaskSingleton::OnButtonClick, this));
-        pWnd->FindChildByName2<SEdit>(L"edt_challenge")->GetEventSet()->subscribeEvent(EventKeyDown::EventID,Subscriber(&STaskSingleton::OnKeyDown, this));
+        pWnd->FindChildByName2<SButton>(L"btn_challenge")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&SPageMgr::OnButtonClick, this));
+        pWnd->FindChildByName2<SEdit>(L"edt_challenge")->GetEventSet()->subscribeEvent(EventKeyDown::EventID,Subscriber(&SPageMgr::OnKeyDown, this));
     }
     pWnd->SetVisible(TRUE);
     ShowStatusPage(param->c, TRUE);
 }
 
-void STaskSingleton::InitGenericPassDialog(auth_param_t *param, UINT dialogId)
+void SPageMgr::InitGenericPassDialog(auth_param_t *param, UINT dialogId)
 {
     param->c->dialogId = dialogId;
     auto *pPage = GetStatusPage(param->c);
+    if (!pPage)
+    {
+        return ;
+    }
     auto *pWnd = GetStatusWindow(param->c, pPage);
+    if (!pWnd)
+    {
+        return ;
+    }
 
     WCHAR *wstr = Widen(param->str);
     if (!wstr)
@@ -260,11 +338,11 @@ void STaskSingleton::InitGenericPassDialog(auth_param_t *param, UINT dialogId)
 
     if (param->c->state == resuming)
     {
-        ForceForegroundWindow(pMainWnd->GetHwnd());
+        ForceForegroundWindow(m_pTab->GetHostHwnd());
     }
     else
     {
-        SetForegroundWindow(pMainWnd->GetHwnd());
+        SetForegroundWindow(m_pTab->GetHostHwnd());
     }
 
     /* If response is not required hide the response field */
@@ -280,21 +358,29 @@ void STaskSingleton::InitGenericPassDialog(auth_param_t *param, UINT dialogId)
     }
 
     pPage->SetUserData(reinterpret_cast<ULONG_PTR>(param->c));
-    pWnd->FindChildByName2<SButton>(L"btn_confirm")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&STaskSingleton::OnButtonClick, this));
-    pWnd->FindChildByName2<SButton>(L"btn_cancel")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&STaskSingleton::OnButtonClick, this));
-    pWnd->FindChildByName2<SCheckBox>(L"chk_savepass")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&STaskSingleton::OnCheckBoxClick, this));
-    pWnd->FindChildByName2<SButton>(L"btn_password")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&STaskSingleton::OnButtonClick, this));
-    pWnd->FindChildByName2<SEdit>(L"edt_response")->GetEventSet()->subscribeEvent(EventKeyDown::EventID,Subscriber(&STaskSingleton::OnKeyDown, this));
+    pWnd->FindChildByName2<SButton>(L"btn_confirm")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&SPageMgr::OnButtonClick, this));
+    pWnd->FindChildByName2<SButton>(L"btn_cancel")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&SPageMgr::OnButtonClick, this));
+    pWnd->FindChildByName2<SCheckBox>(L"chk_savepass")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&SPageMgr::OnCheckBoxClick, this));
+    pWnd->FindChildByName2<SButton>(L"btn_password")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&SPageMgr::OnButtonClick, this));
+    pWnd->FindChildByName2<SEdit>(L"edt_response")->GetEventSet()->subscribeEvent(EventKeyDown::EventID,Subscriber(&SPageMgr::OnKeyDown, this));
     pWnd->SetVisible(TRUE);
     ShowStatusPage(param->c, TRUE);
 }
 
-void STaskSingleton::InitPrivKeyPassDialog(connection_t *c, UINT dialogId)
+void SPageMgr::InitPrivKeyPassDialog(connection_t *c, UINT dialogId)
 {
     WCHAR passphrase[KEY_PASS_LEN];
     c->dialogId = dialogId;
     auto *pPage = GetStatusPage(c);
+    if (!pPage)
+    {
+        return ;
+    }
     auto *pWnd = GetStatusWindow(c, pPage);
+    if (!pWnd)
+    {
+        return ;
+    }
 
     if (RecallKeyPass(c->config_name, passphrase) && wcslen(passphrase)
         && c->failed_psw_attempts == 0)
@@ -318,68 +404,91 @@ void STaskSingleton::InitPrivKeyPassDialog(connection_t *c, UINT dialogId)
     }
     if (c->state == resuming)
     {
-        ForceForegroundWindow(pMainWnd->GetHwnd());
+        ForceForegroundWindow(m_pTab->GetHostHwnd());
     }
     else
     {
-        SetForegroundWindow(pMainWnd->GetHwnd());
+        SetForegroundWindow(m_pTab->GetHostHwnd());
     }
 
     pPage->SetUserData(reinterpret_cast<ULONG_PTR>(c));
     /* disable OK button by default - not disabled in resources */
     pWnd->FindChildByName2<SButton>(L"btn_confirm")->EnableWindow(FALSE);
-    pWnd->FindChildByName2<SButton>(L"btn_confirm")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&STaskSingleton::OnButtonClick, this));
-    pWnd->FindChildByName2<SButton>(L"btn_cancel")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&STaskSingleton::OnButtonClick, this));
-    pWnd->FindChildByName2<SCheckBox>(L"chk_savepass")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&STaskSingleton::OnCheckBoxClick, this));
-    pWnd->FindChildByName2<SButton>(L"btn_passphrase")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&STaskSingleton::OnButtonClick, this));
-    pWnd->FindChildByName2<SEdit>(L"edt_passphrase")->GetEventSet()->subscribeEvent(EventKeyDown::EventID,Subscriber(&STaskSingleton::OnKeyDown, this));
+    pWnd->FindChildByName2<SButton>(L"btn_confirm")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&SPageMgr::OnButtonClick, this));
+    pWnd->FindChildByName2<SButton>(L"btn_cancel")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&SPageMgr::OnButtonClick, this));
+    pWnd->FindChildByName2<SCheckBox>(L"chk_savepass")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&SPageMgr::OnCheckBoxClick, this));
+    pWnd->FindChildByName2<SButton>(L"btn_passphrase")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&SPageMgr::OnButtonClick, this));
+    pWnd->FindChildByName2<SEdit>(L"edt_passphrase")->GetEventSet()->subscribeEvent(EventKeyDown::EventID,Subscriber(&SPageMgr::OnKeyDown, this));
     pWnd->SetVisible(TRUE);
     ShowStatusPage(c, TRUE);
 }
 
-void STaskSingleton::InitProxyAuthDialog(connection_t *c, UINT dialogId)
+void SPageMgr::InitProxyAuthDialog(connection_t *c, UINT dialogId)
 {
     c->dialogId = dialogId;
     auto *pPage = GetStatusPage(c);
+    if (!pPage)
+    {
+        return ;
+    }
     auto *pWnd = GetStatusWindow(c, pPage);
-
+    if (!pWnd)
+    {
+        return ;
+    }
     if (c->state == resuming)
     {
-        ForceForegroundWindow(pMainWnd->GetHwnd());
+        ForceForegroundWindow(m_pTab->GetHostHwnd());
     }
     else
     {
-        SetForegroundWindow(pMainWnd->GetHwnd());
+        SetForegroundWindow(m_pTab->GetHostHwnd());
     }
 
     pPage->SetUserData(reinterpret_cast<ULONG_PTR>(c));
     pWnd->FindChildByName2<SButton>(L"btn_confirm")->EnableWindow(FALSE);
-    pWnd->FindChildByName2<SButton>(L"btn_confirm")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&STaskSingleton::OnButtonClick, this));
-    pWnd->FindChildByName2<SButton>(L"btn_password")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&STaskSingleton::OnButtonClick, this));
-    pWnd->FindChildByName2<SEdit>(L"edt_username")->GetEventSet()->subscribeEvent(EventKeyDown::EventID,Subscriber(&STaskSingleton::OnKeyDown, this));
-    pWnd->FindChildByName2<SEdit>(L"edt_password")->GetEventSet()->subscribeEvent(EventKeyDown::EventID,Subscriber(&STaskSingleton::OnKeyDown, this));
+    pWnd->FindChildByName2<SButton>(L"btn_confirm")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&SPageMgr::OnButtonClick, this));
+    pWnd->FindChildByName2<SButton>(L"btn_password")->GetEventSet()->subscribeEvent(EventCmd::EventID,Subscriber(&SPageMgr::OnButtonClick, this));
+    pWnd->FindChildByName2<SEdit>(L"edt_username")->GetEventSet()->subscribeEvent(EventKeyDown::EventID,Subscriber(&SPageMgr::OnKeyDown, this));
+    pWnd->FindChildByName2<SEdit>(L"edt_password")->GetEventSet()->subscribeEvent(EventKeyDown::EventID,Subscriber(&SPageMgr::OnKeyDown, this));
     pWnd->SetVisible(TRUE);
     ShowStatusPage(c, TRUE);
 }
 
-BOOL STaskSingleton::OnCheckBoxClick(EventCmd *pEvt)
+BOOL SPageMgr::OnCheckBoxClick(EventCmd *pEvt)
 {
     auto pPage = GetStatusPage(dynamic_cast<SWindow *>(pEvt->Sender()));
+    if (!pPage)
+    {
+        return FALSE;
+    }
     connection_t *c = reinterpret_cast<connection_t *>(pPage->GetUserData());;
     SimulateButtonPress(c->hwndDlg, ID_CHK_SAVE_PASS);
     return  TRUE;
 }
 
-BOOL STaskSingleton::OnButtonClick(EventCmd *pEvt)
+BOOL SPageMgr::OnButtonClick(EventCmd *pEvt)
 {
     WCHAR username[USER_PASS_LEN] = L"";
     WCHAR password[USER_PASS_LEN] = L"";
     auto* pBtn =  dynamic_cast<SButton *>(pEvt->Sender());
+    if (!pBtn)
+    {
+        return FALSE;
+    }
     auto* pPage = GetStatusPage(pBtn);
+    if (!pPage)
+    {
+        return FALSE;
+    }
     connection_t *c = reinterpret_cast<connection_t *>(pPage->GetUserData());;
     if (wcscmp(pBtn->GetName(), L"btn_confirm") == 0)
     {
         auto* pWnd = GetStatusWindow(c, pPage);
+        if (!pWnd)
+        {
+            return FALSE;
+        }
         switch (c->dialogId)
         {
             case ID_DLG_AUTH_CHALLENGE:
@@ -422,18 +531,22 @@ BOOL STaskSingleton::OnButtonClick(EventCmd *pEvt)
     return  TRUE;
 }
 
-BOOL STaskSingleton::OnKeyDown(EventKeyDown *pEvt)
+BOOL SPageMgr::OnKeyDown(EventKeyDown *pEvt)
 {
     auto *pPage =  GetStatusPage(dynamic_cast<SWindow *>(pEvt->Sender()));
     connection_t *c = reinterpret_cast<connection_t *>(pPage->GetUserData());
-    STaskHelper::postTask(pMainWnd, this, &STaskSingleton::CheckEditEmpty, c);
+    STaskHelper::postTask(m_pTab->GetContainer(), this, &SPageMgr::CheckEditEmpty, c);
     return TRUE;
 }
 
-void STaskSingleton::CheckEditEmpty(connection_t *c)
+void SPageMgr::CheckEditEmpty(connection_t *c)
 {
     BOOL bEnable = TRUE;
     auto* pWnd = GetStatusWindow(c);
+    if (!pWnd)
+    {
+        return ;
+    }
     switch (c->dialogId)
     {
         case ID_DLG_AUTH_CHALLENGE:
@@ -459,12 +572,20 @@ void STaskSingleton::CheckEditEmpty(connection_t *c)
     pWnd->FindChildByName2<SButton>(L"btn_confirm")->Invalidate();
 }
 
-BOOL STaskSingleton::ChangePasswordVisibility(SButton *pBtn)
+BOOL SPageMgr::ChangePasswordVisibility(SButton *pBtn)
 {
     SStringT attr;
     auto *pPage = GetStatusPage(pBtn);
+    if (!pPage)
+    {
+        return FALSE;
+    }
     connection_t *c = reinterpret_cast<connection_t *>(pPage->GetUserData());;
     auto *pWnd = GetStatusWindow(c, pPage);
+    if (!pWnd)
+    {
+        return FALSE;
+    }
     SEdit *pEdit = NULL;
     if (wcscmp(pBtn->GetName(), L"btn_password") == 0)
     {
@@ -500,33 +621,55 @@ BOOL STaskSingleton::ChangePasswordVisibility(SButton *pBtn)
     return TRUE;
 }
 
-void STaskSingleton::SetWarningText(connection_t* c, LPCTSTR pszText)
+void SPageMgr::SetWarningText(connection_t* c, LPCTSTR pszText)
 {
     auto *pWnd = GetStatusWindow(c);
+    if (!pWnd)
+    {
+        return;
+    }
     pWnd->FindChildByName2<SStatic>(L"txt_warning")->SetWindowText(pszText);
 }
 
-void STaskSingleton::SetWarningColor(connection_t* c, COLORREF clr)
+void SPageMgr::SetWarningColor(connection_t* c, COLORREF clr)
 {
     WCHAR szColor[8];
     wsprintf(szColor, L"#%02x%02x%02x", GetRValue(clr), GetGValue(clr), GetBValue(clr));
     auto *pWnd = GetStatusWindow(c);
+    if (!pWnd)
+    {
+        return;
+    }
     pWnd->FindChildByName2<SStatic>(L"txt_warning")->SetAttribute(L"colorText", szColor);
 }
 
-void STaskSingleton::HandleMessage(mgmt_rtmsg_type msg_type, connection_t* c, char* msg, BOOL bPre)
+void SPageMgr::HandleMessage(mgmt_rtmsg_type msg_type, connection_t* c, char* msg, BOOL bPre)
 {
     if (msg_type == log_)
     {
         return;
     }
+
+    if (!m_pTab)
+    {
+        return;
+    }
     SetImageState(c);
-    auto pTree = pMainWnd->FindChildByName2<STreeView>(L"tv_home");
+
+    auto pTree = m_pTab->FindChildByName2<STreeView>(L"tv_home");
+    if (!pTree)
+    {
+        return;
+    }
     auto pAdapter = dynamic_cast<STreeAdapter *>(pTree->GetAdapter());
+    if (!pAdapter)
+    {
+        return;
+    }
     pAdapter->NotifyStateChange();
 }
 
-void STaskSingleton::WriteLogLine(connection_t *c, char *msg)
+void SPageMgr::WriteLogLine(connection_t *c, char *msg)
 {
     time_t timestamp;
     wchar_t datetime[32];
@@ -616,7 +759,7 @@ void STaskSingleton::WriteLogLine(connection_t *c, char *msg)
     }
 }
 
-void STaskSingleton::WriteStatusLog(connection_t *c, LPCWSTR prefix, LPCWSTR msg)
+void SPageMgr::WriteStatusLog(connection_t *c, LPCWSTR prefix, LPCWSTR msg)
 {
     time_t now;
     wchar_t datetime[32];
@@ -687,9 +830,14 @@ void STaskSingleton::WriteStatusLog(connection_t *c, LPCWSTR prefix, LPCWSTR msg
     }
 }
 
-void STaskSingleton::SetImageState(connection_t *c)
+void SPageMgr::SetImageState(connection_t *c)
 {
     auto* pPage = GetStatusPage(c);
+    if (!pPage)
+    {
+        return;
+    }
+
     switch (c->state)
     {
         case connected:

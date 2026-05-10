@@ -7,7 +7,10 @@
  * @date 2025-03-05
  */
 
-#pragma once
+#ifndef SOUI_MAINWND_H
+#define SOUI_MAINWND_H
+
+#include <STurn3DView.h>
 
 class SMainWnd : public SHostWnd
                , public SDpiHandler<SMainWnd>
@@ -147,3 +150,5 @@ protected:
     BOOL            m_bHided;
     BOOL         	m_bLayoutInited;
 };
+
+#endif // SOUI_MAINWND_H

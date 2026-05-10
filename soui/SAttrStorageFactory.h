@@ -6,7 +6,8 @@
  * @date 2025-06-25
  */
 
-#pragma once
+#ifndef SOUI_ATTRSTORAGEFACTORY_H
+#define SOUI_ATTRSTORAGEFACTORY_H
 
 /**
  * @class SAttrStorageFactory
@@ -40,3 +41,5 @@ public:
         return S_OK;
     }
 };
+
+#endif // SOUI_ATTRSTORAGEFACTORY_H

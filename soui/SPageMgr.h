@@ -1,16 +1,36 @@
-#pragma once
+/**
+ * @file SPageMgr.h
+ * @brief Header file for the SPageMgr class, which provides functionality
+ *        for managing tab pages and handling page interactions.
+ * @details This file contains the declarations of page management functions.
+ *          It provides methods for initializing, releasing, and showing status pages.
+ * @author UxGood <uxgood.org@gmail.com>
+ * @date 2026-05-10
+ */
+#ifndef SOUI_SPAGEMGR_H
+#define SOUI_SPAGEMGR_H
+
+#include <windows.h>
+#include <tchar.h>
+
+#include "openvpn-export.h"
 
 #include "STabCtrlEx.h"
 
-class STaskSingleton {
+class SPageMgr
+{
 public:
-    static STaskSingleton *getInstance();
+    static SPageMgr &getSingleton (STabCtrlEx *pTab = NULL);
+    static SPageMgr *getSingletonPtr (STabCtrlEx *pTab = NULL);
 public:
+    void ShowPage(int nIndex);
+    void ShowPage(LPCTSTR pszName, BOOL bTitle = TRUE);
+
     void InitStatusPage(connection_t *c);
     void ReleaseStatusPage(connection_t *c);
     void ShowStatusPage(connection_t *c, BOOL bShow);
-    int GetStatusPageIndex(connection_t *c, STabCtrlEx *pTab = NULL);
-    STabPage *GetStatusPage(connection_t *c, STabCtrlEx *pTab = NULL);
+    int GetStatusPageIndex(connection_t *c);
+    STabPage *GetStatusPage(connection_t *c);
     STabPage *GetStatusPage(SWindow *pWnd);
     SWindow *GetStatusWindow(connection_t *c, STabPage *pPage = NULL);
     void InitUserAuthDialog(auth_param_t *param, UINT dialogId);
@@ -31,6 +51,11 @@ public:
 protected:
     void SetImageState(connection_t *c);
 private:
-    STaskSingleton() {};
-    STaskSingleton(STaskSingleton&) = delete;
+    SPageMgr() = default;
+    SPageMgr(STabCtrlEx *pTab);
+    SPageMgr(SPageMgr&) = delete;
+
+private:
+    STabCtrlEx *m_pTab;
 };
+#endif  // SOUI_SPAGEMGR_H

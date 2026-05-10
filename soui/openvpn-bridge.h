@@ -1,18 +1,25 @@
 /**
- * @file openvpn-soui.h
- * @brief Main extension functions for the OpenVPN GUI application.
- * @details This header file contains declarations for the main window functions
- *          and the message loop for the OpenVPN GUI application.
+ * @file openvpn-bridge.h
+ * @brief Header file for bridge functionalities for OpenVPN.
+ * @details This file contains the declarations of bridge functions and utilities for OpenVPN.
  * @author UxGood <uxgood.org@gmail.com>
- * @date 2025-03-05
+ * @date 2026-05-10
  */
 
-#ifndef SOUI_SOUI_H
-#define SOUI_SOUI_H
+#ifndef SOUI_OPENVPN_BRIDGE_H
+#define SOUI_OPENVPN_BRIDGE_H
+
+#include <windows.h>
+#include <tchar.h>
+
+
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include "options.h"
+#include "openvpn.h"
 
 /**
  * @brief Initializes the main window.
@@ -36,8 +43,6 @@ DWORD WINAPI SOUI_Run();
  * @param bShow TRUE to show the window, FALSE to hide it.
  */
 VOID WINAPI SOUI_ShowMainWnd(BOOL bShow);
-
-VOID WINAPI SOUI_InitManagement(mgmt_rtmsg_handler rtmsg_handler[]);
 
 #if defined(DLL_SOUI_COM) || defined(LIB_SOUI_COM)
 void SOUI_InitStatusPage(connection_t *c);
@@ -73,4 +78,4 @@ void SOUI_WriteStatusLog(connection_t *c, LPCWSTR prefix, LPCWSTR msg);
 }
 #endif
 
-#endif //SOUI_SOUI_H
+#endif  // SOUI_OPENVPN_BRIDGE_H
