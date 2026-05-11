@@ -1,7 +1,7 @@
 <SOUI name="mainWindow" title="@string/title" bigIcon="ICON_LOGO:32" smallIcon="ICON_LOGO:16" width="300" height="600" resizable="1" sendWheel2Hover="1" wndType="appMain" appWnd="1" translucent="1">
     <root skin="" cache="1">
         <window pos="0dp,0dp,-0dp,-0dp" cache="1">
-             <window  colorBkgnd="#cdcccc">
+             <window size="-2,-2" colorBkgnd="#cdcccc">
                 <caption  font="adding:2" pos="0,0,-0,32dp" colorBkgnd="#0694F3" show="1">
                     <caption gravity="center" layout="hbox" height="32dp" >
                         <img valign="middle" skin="img_logo" size="20dp, 20dp" extend_left="6dp" />

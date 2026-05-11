@@ -205,6 +205,8 @@ target_link_options(${TEST_PLAP_EXE} PRIVATE
     "/MANIFEST:EMBED"
     "/MANIFESTINPUT:${CMAKE_SOURCE_DIR}/plap/test-plap.manifest")
 
+string(REPLACE "-DDEBUG" "" CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
+string(REPLACE "-DDEBUG" "" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
 
 # Check SOUI_PATH environment variable which is required for building the project
 # SOUI is the UI framework used in this project, so we need to ensure it's properly configured
@@ -284,6 +286,7 @@ option(SOUI_BUILD_RICHEDIT "" ON)
 option(SOUI_ENABLE_SPECTRE "" ON)
 option(SOUI_ENABLE_CORE_LIB "" ON)
 option(SOUI_ENABLE_COM_LIB "" ON)
+option(SOUI_ENABLE_SPY "" OFF)
 
 # Add SOUI library as a subdirectory to be built as part of the project
 # This includes the SOUI UI framework which is essential for the GUI
@@ -292,13 +295,16 @@ add_subdirectory(${SOUI_PATH} soui4)
 # Configure SOUI library linking options - allow choosing between dynamic and static linking
 # By default, dynamic linking is used (DLL_CORE and DLL_SOUI_COM)
 # Users can opt for static linking by setting SOUI_ENABLE_CORE_LIB and/or SOUI_ENABLE_COM_LIB to ON
-set(SOUI_DEFINES DLL_CORE DLL_SOUI_COM)
+set(SOUI_DEFINES DLL_CORE DLL_SOUI_COM DISABLE_SWNDSPY=1)
 
 if(SOUI_ENABLE_CORE_LIB)
     list(TRANSFORM SOUI_DEFINES REPLACE "DLL_CORE" "LIB_CORE")
 endif()
 if(SOUI_ENABLE_COM_LIB)
     list(TRANSFORM SOUI_DEFINES REPLACE "DLL_SOUI_COM" "LIB_SOUI_COM")
+endif()
+if(SOUI_ENABLE_SPY)
+    list(TRANSFORM SOUI_DEFINES REPLACE "DISABLE_SWNDSPY=1" "DISABLED_SWNDSPY=0")
 endif()
 
 # Add include directories required to build with SOUI framework

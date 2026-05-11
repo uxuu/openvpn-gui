@@ -47,9 +47,21 @@ void SPageMgr::ShowPage(int nIndex)
     {
         return;
     }
-    reinterpret_cast<SHostWnd *>(m_pTab->GetRoot())->ShowHostWnd(SW_HIDE, TRUE);
+    SRootWindow *pRootWnd = sobj_cast<SRootWindow>(m_pTab->GetRoot());
+    SHostWnd *pHostWnd = NULL;
+    if(pRootWnd)
+    {
+        pHostWnd = pRootWnd->GetHostWnd();
+    }
+    if (pHostWnd)
+    {
+        pHostWnd->ShowHostWnd(SW_HIDE, TRUE);
+    }
     m_pTab->SetCurSel(nIndex);
-    reinterpret_cast<SHostWnd *>(m_pTab->GetRoot())->ShowHostWnd(SW_SHOW, TRUE);
+    if (pHostWnd)
+    {
+        pHostWnd->ShowHostWnd(SW_SHOW, TRUE);
+    }
 }
 
 void SPageMgr::ShowPage(LPCTSTR pszName, BOOL bTitle)
